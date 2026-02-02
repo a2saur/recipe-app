@@ -2,9 +2,9 @@
 # CS 3733 Term Project
 ### AWS Deployment URL: 
 ### Project Title: 
-### Team Name :  <enter your team name here> 
+### Team Name :  Team REST
 ### Team Members 
-* member 1
-* member 2
-* member 3
-* member 4
+* Zoya Ahmad
+* Sunny Kang
+* Patricia Oltra
+* Alexa Saur
