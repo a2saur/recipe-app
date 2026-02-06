@@ -12,16 +12,23 @@ def register():
         return redirect(url_for('main.index'))
     rform = RegistrationForm()
     if rform.validate_on_submit():
+        if rform.user_type.data == 'certified':
+            is_certified = True
+        else:            
+            is_certified = False   
         user = User(
+            first_name = rform.first_name.data,
+            last_name = rform.last_name.data,
             username = rform.username.data,
-            email = rform.email.data
+            email = rform.email.data,
+            is_certified = is_certified,
         )
         user.set_password(rform.password.data)
         
         db.session.add(user)
         db.session.commit()
-        flash('User {} has been registered.'.format(user.username))
-        return redirect(url_for('main.index'))
+        flash('User {} {} has been registered.'.format(user.first_name, user.last_name))
+        return redirect(url_for('auth.login'))
     return render_template('register.html', title='Register', form=rform)
 
 @bp_auth.route('/user/login', methods=['GET', 'POST'])
@@ -35,7 +42,7 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
         login_user(user, remember=lform.remember_me.data)
-        flash('The user {} has successfully logged in'.format(user.username))
+        flash('Welcome back, {}!'.format(user.first_name))
         return redirect(url_for('main.index'))
     return render_template('login.html', form=lform)
 

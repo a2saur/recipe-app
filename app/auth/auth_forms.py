@@ -14,19 +14,17 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
-    user_type = RadioField('User type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
+    user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
 
     submit = SubmitField('Register')
 
     def validate_username(self, username):
-        query = sqla.select(User).where(User.username == username.data)
-        user = db.session.scalars(query).first()
+        user = db.session.scalars(sqla.select(User).where(User.username == username.data)).first()
         if user is not None:
             raise ValidationError('This username already exists! Please provide a different username')
         
     def validate_email(self, email):
-        query = sqla.select(User).where(User.email == email.data)
-        user = db.session.scalars(query).first()
+        user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
