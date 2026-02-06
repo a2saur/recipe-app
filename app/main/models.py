@@ -13,12 +13,19 @@ recipeTags = db.Table('recipeTags', db.metadata, sqla.Column('recipe_id', sqla.I
 friends = db.Table('friends', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True), 
                                  sqla.Column('friend_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True))
 
+currentIngredients = db.Table('currentIngredients', db.metadata,
+                              sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                              sqla.Column('ingredient_id', sqla.Integer, sqla.ForeignKey('ingredient.id'), primary_key=True))
+
 class User(db.Model, UserMixin):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
-    curr_ingredients = sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(2000))
+    curr_ingredients : sqlo.WriteOnlyMapped['Ingredient'] = sqlo.relationship(
+        secondary = currentIngredients,
+        primaryjoin = (currentIngredients.c.user_id == id),
+        back_populates = 'user_ingredients')
     # relationships
     recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
   
@@ -69,3 +76,12 @@ class Tag(db.Model):
     def __repr__(self):
         return '<Tag id: {} - name: {}>'.format(self.id,self.name)
 
+class Ingredient(db.Model):
+    id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
+    amount :sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default = 0)
+    user_ingredients : sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = currentIngredients,
+        primaryjoin = (currentIngredients.c.ingredient_id == id),
+        back_populates = 'curr_ingredients')
+    unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
