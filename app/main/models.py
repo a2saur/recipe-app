@@ -19,15 +19,20 @@ currentIngredients = db.Table('currentIngredients', db.metadata,
 
 class User(db.Model, UserMixin):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    first_name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
+    last_name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
+    # only true for certified users
+    is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
+
+    # relationships
+    recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
     curr_ingredients : sqlo.WriteOnlyMapped['Ingredient'] = sqlo.relationship(
         secondary = currentIngredients,
         primaryjoin = (currentIngredients.c.user_id == id),
         back_populates = 'user_ingredients')
-    # relationships
-    recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
   
     def __repr__(self):
         return '<User id: {} - username: {} - email: {}>'.format(self.id, self.username, self.email)

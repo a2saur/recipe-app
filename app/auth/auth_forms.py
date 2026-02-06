@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField, TextAreaField
+from wtforms import RadioField, StringField, SubmitField, PasswordField, BooleanField, TextAreaField
 from wtforms.validators import  ValidationError, DataRequired, EqualTo, Email
 from flask_login import current_user
 
@@ -8,11 +8,13 @@ from app.main.models import User
 from app import db
 
 class RegistrationForm(FlaskForm):
+    first_name = StringField('First name', validators=[DataRequired()])
+    last_name = StringField('Last name', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
-    curr_ingredients = TextAreaField('Current Ingredients')
+    user_type = RadioField('User type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
 
     submit = SubmitField('Register')
 
