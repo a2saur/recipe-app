@@ -15,13 +15,13 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
     user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
-
     submit = SubmitField('Register')
 
     def validate_username(self, username):
         user = db.session.scalars(sqla.select(User).where(User.username == username.data)).first()
         if user is not None:
-            raise ValidationError('This username already exists! Please provide a different username')
+            if user.id != current_user.id:
+                raise ValidationError('This username already exists! Please provide a different username')
         
     def validate_email(self, email):
         user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
