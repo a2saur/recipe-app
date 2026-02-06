@@ -4,7 +4,7 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center">
-    <h1 >Welcome to Smile Portal!</h1>
+    <h1 >Welcome!</h1>
 
 
     <!-- TODO: (milestone 2) Add the template to render an instance of a `sortForm`. The form should display the sort attribute select box and the "Refresh" submit button.
@@ -18,21 +18,15 @@
         </div>
 
         <div class="form-check mb-0 ms-2 text-nowrap">
-            {{ sortform.my_posts_only(class="form-check-input") }}
-            <label class="form-check-label small" for="my_posts_only">
-                {{ sortform.my_posts_only.label.text }}
+            {{ sortform.my_recipes_only(class="form-check-input") }}
+            <label class="form-check-label small" for="my_recipes_only">
+                {{ sortform.my_recipes_only.label.text }}
             </label>
         </div>
 
         {{ sortform.refresh(class="btn btn-primary btn-sm ms-2") }}
     </form>
 </div>
-
-<div class="d-flex justify-content-between align-items-center">
-    <!-- TODO: (milestone1) Display smile count.   -->
-    <h3>Number of smiles:  {{ num_posts }}</h3>
-</div>
-
 
     <!-- TODO: (milestone1) Format posts -->
     <div class="postlist">

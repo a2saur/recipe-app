@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main.models import Recipe, Tag, User, recipeTags
-from app.main.forms import RecipeForm, EmptyForm, SortForm #, ProfileForm
+from app.main.forms import RecipeForm, EmptyForm, SortForm, ProfileForm
 
 from app.main import main_blueprint as bp_main
 
@@ -91,21 +91,6 @@ def delete(recipe_id):
 @bp_main.route('/user/profile', methods=['GET','POST'])
 # @login_required
 def display_profile():
-    pform = ProfileForm()
-    eform = EmptyForm()
-
-    if pform.validate_on_submit():
-        friend = db.session.scalars(sqla.select(User).where(User.username == pform.friend_username.data)).first()
-        if friend is None:
-            flash('User {} not exist.'.format(pform.friend_username.data))
-        elif friend == current_user:
-            flash('You cannot add yourself as a friend.')
-        elif friend in current_user.get_friends():
-            flash('User {} is already your friend.'.format(friend.username))
-        else:
-            current_user.friends.add(friend)
-            db.session.commit()
-            flash('User {} has been added as your friend.'.format(friend.username))
-    return render_template('profile.html', title="User Profile", user=current_user, form=pform, eform=eform, friend_count=len(current_user.get_friends()))
+    return render_template('profile.html', title="User Profile")
 
 
