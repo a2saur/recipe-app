@@ -50,6 +50,9 @@
                                 </span>
                             </li>
                         {% else %}
+                            <li class="nav-item border border-light px-2 me-3 " >
+                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('auth.login') }}">Log in</a>
+                            </li>
                         {% endif %}
                     </ul>
                 </div>
