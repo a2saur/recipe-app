@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main.models import Recipe, Tag, User, recipeTags
-from app.main.forms import RecipeForm, EmptyForm, SortForm, ProfileForm
+from app.main.forms import RecipeForm, EmptyForm, SortForm
 
 from app.main import main_blueprint as bp_main
 
