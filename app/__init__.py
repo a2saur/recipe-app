@@ -20,7 +20,7 @@ def create_app(config_class=Config):
     app.template_folder = config_class.TEMPLATE_FOLDER_MAIN
 
     db.init_app(app)
-    migrate.init_app(app,db)
+    migrate.init_app(app, db)
     login.init_app(app, db)
     moment.init_app(app)
     
