@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+
+    <h1>{{ current_user.username }}'s Profile</h1>
+    <p>Email: {{ current_user.email }}</p>
+    <br>
+    <h2>Add Friends</h2>
+
+    {% if form %}
+        <form action="{{ url_for('main.display_profile') }}" method="post">
+            {{ form.hidden_tag() }}
+
+            {{ wtf.form_field( form.friend_username )}}
+            {{ wtf.form_field( form.add_friend )}}
+        </form>
+    {% endif %}
+
+        <h2>Your Friends ({{ friend_count }})</h2>
+        <table class="table table-hover align-middle">
+            <tbody>
+                {% for friend in current_user.get_friends() %}
+                    <tr>
+                        <td>{{ friend.username }}</td>
+                        <td class="text-end">
+                            <form action="{{ url_for('main.remove_friend', friend_username=friend.username) }}" method="POST" class="m-0 p-0">
+                                {{ eform.hidden_tag() }}
+                                <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td class="text-muted">No friends added yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+
+{% endblock %}

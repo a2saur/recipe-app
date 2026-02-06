@@ -1,0 +1,182 @@
+body {
+    margin: 1px 1px 1px 15px;
+    padding: 1px;
+    font-family: Tahoma;
+    text-align: left;
+  
+}
+.nav-container {
+    background:#f6f6f6;
+    font-family: Tahoma;
+    font-size: 12px;
+    height: 32px;
+    text-transform: uppercase;
+}
+a:hover {
+	color:#2387D9;
+}
+
+.flash-container {
+    background: #99c5ee;
+    height: 35px;
+	font-family: Tahoma;
+	font-size: 16px;
+	padding: 20px 0px 5px 15px ;
+	margin: 10px 0px 10px 0px;
+}
+
+.button {
+    width : 65px;
+    padding : 3px;    
+    font-size: 16px;
+    margin : 5px;
+    padding : auto;
+    border: 1px solid lightgray;
+}
+.button:hover {
+    background-color: 157dd3;
+    color: white;
+    cursor:pointer;
+}
+
+.posttable { 
+    width : 100%;
+    margin: 0px;
+}
+
+.title {
+    text-align: center;    
+    font-style: Helvetica;
+    margin: 0px;
+    padding: 5px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.postmessage {
+    font-size: 15px;
+    padding: 5px;
+}
+
+.posttimestamp {
+    font-size: 12px;
+    color: darkblue;
+}
+
+.likecount {
+    text-align: center;
+    font-weight: bold;
+}
+
+.useritem {
+    text-align: center;
+    padding: 3px;
+    margin: 4px 3px 4px 3px;
+    color: crimson; 
+    text-transform: uppercase;
+}
+
+.thumbsupbtn {
+    margin: 0 auto;
+    height: 40px;
+    width: 55px;
+    border: 0px;
+    vertical-align: middle;
+    background-image: url("..//img//like.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    -webkit-background-size: contain;
+    -moz-background-size: contain;
+    -o-background-size: contain;
+} 
+
+.thumbsupbtn:hover {
+    background-image: url("..//img//like_hover.png");
+    cursor:pointer;
+}
+
+.error {
+    color: red;
+}
+
+.formtitle {
+    width: 75%;
+    font-family: Arial, sans-serif;
+    margin: 5px;
+    padding: 8px 12px;
+}
+
+.formbody {
+    width: 75%;
+    height: 20%;
+    font-family: Arial, sans-serif;
+    margin: 5px;
+    padding: 8px 12px;
+}
+
+.forminput {
+    width: 30%;
+    margin: 2px 0px 20px 0px;
+    padding: auto;
+}
+
+.formselect {
+    width: 20%;
+    height: 20px;
+    font-family: Arial, sans-serif;
+    margin: 5px;
+    padding: 0px 0px;
+}
+
+.recipelist {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.recipe-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;  
+    background-color: #eceaea;
+    margin: 5px;
+    padding: 4px 4px 4px 4px;
+}
+
+@media screen and (min-width: 1200px) {
+    .recipe-box{
+        width: 32%;
+    }
+}
+
+@media screen and (min-width: 800px) and (max-width: 1200px){
+    .recipe-box{
+        width: 48%;
+    }
+}
+
+@media screen and (max-width: 800px){
+    .recipe-box{
+        width: 99%;
+    }
+}
+
+.tagitem {
+    text-align: center;
+    margin: auto;
+    padding: 2px 4px 2px 4px;
+    border: 1px solid black;
+    background-color: white;
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 70px; /* adjust to fit the button height */
+}
+
