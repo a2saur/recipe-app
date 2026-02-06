@@ -12,7 +12,7 @@ from app.main import main_blueprint as bp_main
 
 @bp_main.route('/', methods=['GET'])
 @bp_main.route('/index', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def index():
     empty_form = EmptyForm()
     sort_form = SortForm()
@@ -38,7 +38,7 @@ def index():
 
 
 @bp_main.route('/recipe', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def postRecipe():
     pform = RecipeForm()
     if pform.validate_on_submit():
@@ -76,7 +76,7 @@ def postRecipe():
     
 
 @bp_main.route('/recipe/<recipe_id>/delete', methods=['POST'])
-@login_required
+# @login_required
 def delete(recipe_id):
     therecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if therecipe is not None:
@@ -89,7 +89,7 @@ def delete(recipe_id):
         return redirect(url_for('main.index'))
     
 @bp_main.route('/user/profile', methods=['GET','POST'])
-@login_required
+# @login_required
 def display_profile():
     pform = ProfileForm()
     eform = EmptyForm()
