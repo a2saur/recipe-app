@@ -7,15 +7,17 @@ from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 
-recipeTags = db.Table('recipeTags', db.metadata, sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True), 
+UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
+
+recipe_tags_table = db.Table('recipe_tags_table', db.metadata, sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True), 
                                  sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
 
-friends = db.Table('friends', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True), 
-                                 sqla.Column('friend_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True))
-
-currentIngredients = db.Table('currentIngredients', db.metadata,
-                              sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
-                              sqla.Column('ingredient_id', sqla.Integer, sqla.ForeignKey('ingredient.id'), primary_key=True))
+saved_recipes_table = db.Table(
+    'saved_recipes_table', 
+    db.metadata, 
+    sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+    sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True)
+)
 
 class User(db.Model, UserMixin):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
@@ -28,12 +30,14 @@ class User(db.Model, UserMixin):
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
 
     # relationships
-    recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
-    curr_ingredients : sqlo.WriteOnlyMapped['Ingredient'] = sqlo.relationship(
-        secondary = currentIngredients,
-        primaryjoin = (currentIngredients.c.user_id == id),
-        back_populates = 'user_ingredients')
-  
+    written_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
+    users_saved_recipes : sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
+        secondary=saved_recipes_table,
+        primaryjoin=(saved_recipes_table.c.user_id == id),
+        back_populates='recipe_saved_by_users'
+    )
+    curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_users')
+
     def __repr__(self):
         return '<User id: {} - username: {} - email: {}>'.format(self.id, self.username, self.email)
     
@@ -48,11 +52,10 @@ class User(db.Model, UserMixin):
         return db.session.get(User, int(id))
     
     def get_user_recipes(self):
-        return db.session.scalars(self.recipes.select()).all()
+        return db.session.scalars(self.written_recipes.select()).all()
     
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
-
 
 
 class Recipe(db.Model):
@@ -60,23 +63,31 @@ class Recipe(db.Model):
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
     body: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(1500))
     timestamp : sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc)) 
-    saves: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default = 0)
+
     user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('user.id'))
+
     # relationships
-    writer : sqlo.Mapped['User'] = sqlo.relationship(back_populates='recipes')
+    writer : sqlo.Mapped['User'] = sqlo.relationship(back_populates='written_recipes')
     tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
-        secondary=recipeTags, primaryjoin=(recipeTags.c.recipe_id == id),back_populates='recipes', passive_deletes=True)
+        secondary=recipe_tags_table, primaryjoin=(recipe_tags_table.c.recipe_id == id),back_populates='recipes', passive_deletes=True)
+    recipe_saved_by_users : sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary=saved_recipes_table,
+        primaryjoin=(saved_recipes_table.c.recipe_id == id),
+        back_populates='users_saved_recipes'
+    )
+    ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipes')
     
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
-    
+
+
 class Tag(db.Model):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
 
     # relationships
     recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
-        secondary=recipeTags, primaryjoin=(recipeTags.c.tag_id == id), back_populates='tags')
+        secondary=recipe_tags_table, primaryjoin=(recipe_tags_table.c.tag_id == id), back_populates='tags')
 
     def __repr__(self):
         return '<Tag id: {} - name: {}>'.format(self.id,self.name)
@@ -84,9 +95,38 @@ class Tag(db.Model):
 class Ingredient(db.Model):
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
-    amount :sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default = 0)
-    user_ingredients : sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
-        secondary = currentIngredients,
-        primaryjoin = (currentIngredients.c.ingredient_id == id),
-        back_populates = 'curr_ingredients')
+    
+    # relationships
+    recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredients')
+    userlist_involvements: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_ingredients')
+
+
+class RecipeIngredientUse(db.Model):
+    recipe_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Recipe.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    amount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
     unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(unit.in_(UNIT_OPTIONS), name='recipe_unit_check'),
+    )
+
+    # relationships
+    recipe_usecase_recipes : sqlo.Mapped[Recipe] = sqlo.relationship(back_populates = 'ingredients_used')
+    recipe_usecase_ingredients : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'recipe_involvements')
+
+class UserIngredientListUse(db.Model):
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    amount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(unit.in_(UNIT_OPTIONS), name='userlist_unit_check'),
+    )
+
+    # relationships
+    userlist_users : sqlo.Mapped[User] = sqlo.relationship(back_populates = 'curr_ingredients')
+    userlist_ingredients : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'userlist_involvements')

@@ -4,7 +4,7 @@ import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, Tag, User, recipeTags
+from app.main.models import Recipe, Tag, User, recipe_tags_table
 from app.main.forms import RecipeForm, EmptyForm, SortForm, EditForm
 from app.auth.auth_forms import RegistrationForm
 
@@ -38,7 +38,7 @@ def index():
     return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form)
 
 
-@bp_main.route('/recipe', methods=['GET', 'POST'])
+@bp_main.route('/recipe/create', methods=['GET', 'POST'])
 # @login_required
 def postRecipe():
     pform = RecipeForm()

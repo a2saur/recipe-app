@@ -1,6 +1,6 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField
+from wtforms import StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField, FloatField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, Length
 from wtforms.widgets import ListWidget, CheckboxInput
@@ -12,9 +12,10 @@ from app.main.models import Tag, User
 
 class RecipeForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
-    body = TextAreaField('Body', validators=[DataRequired(), Length(min=1, max=1500)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(min=1, max=1500)])
+    servingSize = FloatField('Serving Size', validators=[DataRequired(), Length(min=1, max=1500)])
     tag = QuerySelectMultipleField('Tag', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), get_label= lambda tag: tag.name,
-                                   widget = ListWidget(prefix_label=False), option_widget=CheckboxInput())   
+                                   widget = ListWidget(prefix_label=False), option_widget=CheckboxInput())
     submit = SubmitField('Post')
 
 class EmptyForm(FlaskForm):
