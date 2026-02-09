@@ -45,7 +45,7 @@ class User(db.Model, UserMixin):
     )
 
     # helps keep track of the user's ingredient list
-    curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_users')
+    curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_user')
 
     # --- METHODS ---
     def __repr__(self):
@@ -102,7 +102,7 @@ class Recipe(db.Model):
     )
 
     # keeps track of what ingredients + amounts are used in this recipe
-    ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipes')
+    ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe')
     
     # --- METHODS ---
     def __repr__(self):
@@ -140,10 +140,10 @@ class Ingredient(db.Model):
     
     # --- RELATIONSHIPS ---
     # helps keep track of ingredients + amounts in recipes
-    recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredients')
+    recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredient')
 
     # helps keep track of ingredients + amounts in users' ingredient lists
-    userlist_involvements: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_ingredients')
+    userlist_involvements: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_ingredient')
 
     # --- METHODS ---
     def __repr__(self):
