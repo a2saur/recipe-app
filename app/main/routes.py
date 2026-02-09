@@ -58,6 +58,18 @@ def createRecipe():
     return redirect(url_for('main.editRecipe', recipe_id=recipeDraft.id))
 
 
+# checks that the ingredient form is valid, used before saving an ingredient use
+def validRecipeIngredientUseForm(ingredientRel):
+    if ingredientRel.ingredientName.data == "":
+        # blank name, invalid
+        return False
+    elif ingredientRel.quantity.data <= 0:
+        # negative or 0 quantity, invalid
+        return False
+    else:
+        return True
+
+
 # saves the data in the recipe form
 def saveRecipeDraft(recipe_id, rform):
     # get recipe object from the db
@@ -75,17 +87,15 @@ def saveRecipeDraft(recipe_id, rform):
     # go through the ingredient fields in the form to check if the ingredients have been changed or added
     for ingredientRel in rform.ingredients:
         # if statement to ignore blank ingredients
-        if ingredientRel.ingredientName.data != "":
+        if validRecipeIngredientUseForm(ingredientRel):
             # check if an ingredient with this name exists in the db
             ingredientItem = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == ingredientRel.ingredientName.data)).first()
             if ingredientItem is None:
                 # ingredient doesn't exist, so add it
-
                 # create and commit ingredient object to db
                 ingredientItem = Ingredient(name=ingredientRel.ingredientName.data)
                 db.session.add(ingredientItem)
                 db.session.commit()
-
                 # create and commit the ingredient use case to the db
                 newIngredientUse = RecipeIngredientUse(
                     recipe_id = recipe_id,
@@ -100,7 +110,6 @@ def saveRecipeDraft(recipe_id, rform):
                 ingredientUse = db.session.get(RecipeIngredientUse, (recipe_id, ingredientItem.id))
                 if ingredientUse is None:
                     # isn't in db yet, so add it
-
                     # create and commit the ingredient use case to the db
                     newIngredientUse = RecipeIngredientUse(
                         recipe_id = recipe_id,
@@ -115,6 +124,36 @@ def saveRecipeDraft(recipe_id, rform):
                     ingredientUse.amount = ingredientRel.quantity.data
                     ingredientUse.unit = ingredientRel.unit.data
                     db.session.commit()
+
+# check if the recipe draft is publishable
+def validateRecipeDraftForPost(recipe_id):
+    recipeDraft = db.session.get(Recipe, recipe_id)
+    errors = []
+
+    # check title is not blank
+    if recipeDraft.title == "":
+        errors.append("Please add a title")
+    
+    # check description is not blank
+    if recipeDraft.description == "":
+        errors.append("Please add a description")
+
+    # check serving size is not empty
+    if recipeDraft.servingSize <= 0:
+        errors.append("Please put in a serving size")
+
+    # check estimated time is not blank
+    if recipeDraft.estimatedTime == "":
+        errors.append("Please add an estimated time")
+
+    # check steps is not blank
+    if recipeDraft.steps == "":
+        errors.append("Please add steps")
+
+    # check that there are ingredients
+    if db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).first() is None:
+        errors.append("No ingredients found")
+    return errors
 
 # removes an ingredient use from a recipe (NOTE: does not remove the ingredient from the db)
 def removeIngredient(recipe_id, ingredient_id):
@@ -136,7 +175,6 @@ def editRecipe(recipe_id):
 
     if request.method == "GET":
         # pre-fill the recipe draft data
-        
         # populate ingredient forms
         ingredient_data = []
         for ingUseCase in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
@@ -146,14 +184,12 @@ def editRecipe(recipe_id):
                 "unit": ingUseCase.unit,
                 "ingredient_id": ingUseCase.ingredient_id
             })
-
         # add an extra empty ingredient form for a new ingredient
         ingredient_data.append({
             "ingredientName": "",
             "quantity": 0.0,
             "unit": "",
         })
-
         # populate recipe form
         rform = RecipeForm(
             title = recipeDraft.title,
@@ -167,22 +203,25 @@ def editRecipe(recipe_id):
     else:
         # if recipe is being submitted, just get the form
         rform = RecipeForm()
-
     if rform.validate_on_submit():
         buttonVal = request.form.get('action_button') # get which button was pressed
         if buttonVal == "post":
             # post recipe
-
             # save changes
             saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            errors = validateRecipeDraftForPost(recipe_id)
+            # validate recipe draft, check that there are no errors
+            if len(errors) == 0:
+                # change recipe from draft in db (ie publish it)
+                newRecipe = db.session.get(Recipe, recipe_id)
+                newRecipe.is_draft = False
+                db.session.commit()
 
-            # change recipe from draft in db (ie publish it)
-            newRecipe = db.session.get(Recipe, recipe_id)
-            newRecipe.is_draft = False
-            db.session.commit()
-
-            # redirect to main
-            return redirect(url_for('main.index'))
+                # redirect to main
+                return redirect(url_for('main.index'))
+            else:
+                # show first error
+                flash('Error posting draft: {}'.format(errors[0]))
         elif buttonVal == "add":
             # add ingredient
 
