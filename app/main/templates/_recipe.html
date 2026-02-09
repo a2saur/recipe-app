@@ -5,25 +5,11 @@
         </div>
 
         <div class="card-body">
-            <div class="row">
-                <div class="col">
-                    <p class="card-text">{{ recipe.body }}</p>
+            <p class="card-text">{{ recipe.description }}</p>
                     <!-- (milestone2) TODO: include all the tags associated with the recipe-->
-                    {% for tag in recipe.get_tags() %}
+                    <!-- {% for tag in recipe.get_tags() %}
                         <span class="tagitem">#{{ tag.name }}</span>
-                    {% endfor %}
-                </div>
-
-                <div class="col-auto text-center">
-                    <!-- <button class="btn btn-outline-primary" onclick="like_recipe({{ recipe.id }})">
-                        <img src="{{ url_for('static', filename='img/like.png') }}" 
-                            alt="Like" 
-                            width="50" 
-                            height="45">
-                    </button> -->
-                    <div class="likecount">{{ recipe.likes }}</div>
-                </div>
-            </div>
+                    {% endfor %} -->
         </div>
 
         <div class="card-footer">
@@ -35,38 +21,12 @@
             <div>
                 {% if recipe.writer.id == current_user.id %}
                     <form action="{{ url_for('main.delete', recipe_id=recipe.id) }}" method="post">
-                        <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                        <input type="submit" value="Delete" class="btn btn-danger btn-sm" style="width: 100%;">
                     </form>
                 {% endif %}
+                <form action="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}" method="get">
+                        <input type="submit" value="View" class="btn btn-secondary btn-sm" style="width: 100%">
+                </form>
             </div>
         </div>
 </div>
-
-
-        
-
-<!-- (milestone3)  TODO: refactor the "like" use case. Add the JavaScript code below. -->
-{% block script %}
-<script>
-    async function like_recipe(recipe_id){
-        const url = "{{url_for('main.like', recipe_id = 'recipe_id')}}".replace('recipe_id', recipe_id)
-        try{
-            const response = await fetch(url);
-            if (!response.ok){
-                throw new Error(`Response status: ${response.status}`);
-            }
-            const json = await response.json();
-            console.log(json);
-            update_likes(recipe_id, json);
-        } catch(error){
-            console.error(error.message)
-        }
-    }
-
-    function update_likes(recipe_id, data){
-        let recipe_table = document.getElementById(`recipe-${recipe_id}`);
-        let like_count_div = recipe_table.querySelector('.likecount');
-        like_count_div.textContent = data['like_count'];
-    }
-</script>    
-{% endblock %}

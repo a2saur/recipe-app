@@ -6,32 +6,12 @@
 <div class="d-flex justify-content-between align-items-center">
     <h1 >Welcome!</h1>
 
-
-    <!-- TODO: (milestone 2) Add the template to render an instance of a `sortForm`. The form should display the sort attribute select box and the "Refresh" submit button.
-            Style the `sortorder` form element using the `formselect` CSS element we defined in milestone1 -->
-    <form method="POST" class="d-flex align-items-center gap-1">
-        {{ sortform.hidden_tag() }}
-
-        <div class="d-flex align-items-center">
-            <label class="me-2 mb-0 small text-secondary text-nowrap">Sort by</label>
-            {{ sortform.sortby(class="form-select form-select-sm", style="width: auto;") }}
-        </div>
-
-        <div class="form-check mb-0 ms-2 text-nowrap">
-            {{ sortform.my_recipes_only(class="form-check-input") }}
-            <label class="form-check-label small" for="my_recipes_only">
-                {{ sortform.my_recipes_only.label.text }}
-            </label>
-        </div>
-
-        {{ sortform.refresh(class="btn btn-primary btn-sm ms-2") }}
-    </form>
 </div>
 
     <!-- TODO: (milestone1) Format posts -->
-    <div class="postlist">
-        {% for post in posts %}
-            <div class="post-box">{% include '_post.html' %} </div>
+    <div class="recipelist">
+        {% for recipe in recipes %}
+            <div class="recipe-box">{% include '_recipe.html' %} </div>
         {% endfor %}
     </div>
     

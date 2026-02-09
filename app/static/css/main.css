@@ -180,6 +180,15 @@ a:hover {
     min-height: 70px; /* adjust to fit the button height */
 }
 
+.btn-danger.like{
+    background-color: palevioletred;
+    outline-color: palevioletred;
+}
+
+.btn-danger.like:hover{
+    background-color: pink;
+    outline-color: palevioletred;
+}
 
 /* FOR RECIPE INGREDIENTS FORM */
 
