@@ -107,9 +107,9 @@ class Recipe(db.Model):
     # --- METHODS ---
     def __repr__(self):
         if self.is_draft:
-            return '<Recipe id: {} - title: {} (last edited {})>'.format(self.id, self.title, self.timestamp)
-        else:
             return '<[DRAFT] Recipe id: {} - title: {} (last edited {})>'.format(self.id, self.title, self.timestamp)
+        else:
+            return '<Recipe id: {} - title: {} (last edited {})>'.format(self.id, self.title, self.timestamp)
     
     def get_ingredient_use_cases(self):
         return db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all()
