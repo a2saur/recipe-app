@@ -53,11 +53,10 @@ class User(db.Model, UserMixin):
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
 
-
-
 class Recipe(db.Model):
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(200))
     body: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(1500))
     timestamp : sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc)) 
     saves: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default = 0)
