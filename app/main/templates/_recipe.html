@@ -21,9 +21,12 @@
             <div>
                 {% if recipe.writer.id == current_user.id %}
                     <form action="{{ url_for('main.delete', recipe_id=recipe.id) }}" method="post">
-                        <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                        <input type="submit" value="Delete" class="btn btn-danger btn-sm" style="width: 100%;">
                     </form>
                 {% endif %}
+                <form action="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}" method="get">
+                        <input type="submit" value="View" class="btn btn-secondary btn-sm" style="width: 100%">
+                </form>
             </div>
         </div>
 </div>
