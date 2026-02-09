@@ -1,7 +1,7 @@
 from config import Config
 
 from app import create_app, db
-from app.main.models import Recipe, Tag, User
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 
@@ -9,7 +9,7 @@ app = create_app(Config)
 
 @app.shell_context_processor
 def make_shell_context():
-    return {'sqla': sqla, 'sqlo': sqlo, 'db': db, 'Recipe': Recipe, 'Tag': Tag, 'User': User}
+    return {'sqla': sqla, 'sqlo': sqlo, 'db': db, 'Recipe': Recipe, 'RecipeIngredientUse': RecipeIngredientUse, 'Ingredient': Ingredient, 'Tag': Tag, 'User': User}
 
 # tags = ['funny','inspiring', 'true-story', 'heartwarming', 'friendship']
 

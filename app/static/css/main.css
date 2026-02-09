@@ -189,3 +189,33 @@ a:hover {
     background-color: pink;
     outline-color: palevioletred;
 }
+
+/* FOR RECIPE INGREDIENTS FORM */
+
+.ingredients-form {
+    
+}
+
+.form-ingredient-remove {
+    background-color: #ffdede;
+    color: #820000;
+    outline:#40000f;
+    border-radius: 5px;
+}
+.form-ingredient-remove:hover {
+    background-color: #820000;
+    color: #ffdede;
+    border-radius: 5px;
+}
+
+.form-ingredient-add {
+    background-color: #e4ecff;
+    color: #000782;
+    outline:#000040;
+    border-radius: 5px;
+}
+.form-ingredient-add:hover {
+    background-color: #000782;
+    color: #e4ecff;
+    border-radius: 5px;
+}
