@@ -30,7 +30,7 @@
     ```
 - run the selenium tests
     * Download the Chrome webdriver for your Chrome browser version (https://chromedriver.chromium.org/downloads); extract and copy it under `C:\Webdriver` folder.
-    * Run the SmileApp in a terminal window: 
+    * Run the MealPlannerApp in a terminal window: 
         ```
         python meal_planner.py
         ```

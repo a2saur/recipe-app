@@ -56,13 +56,20 @@ class User(db.Model, UserMixin):
     
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
+    
+    def get_drafted_recipe(self):
+        return db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True).where(Recipe.user_id == self.id)).first()
 
 
 class Recipe(db.Model):
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
-    title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
-    body: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(1500))
+    title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
+    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(1500), default="")
+    servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
+    estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
+    steps : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String, default="")
     timestamp : sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc)) 
+    is_draft : sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=True)
 
     user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('user.id'))
 
@@ -77,6 +84,9 @@ class Recipe(db.Model):
     )
     ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipes')
     
+    def get_ingredient_use_cases(self):
+        return db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all()
+
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
 
@@ -94,7 +104,7 @@ class Tag(db.Model):
 
 class Ingredient(db.Model):
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
-    name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
+    name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20), index=True, unique=True)
     
     # relationships
     recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredients')
@@ -115,6 +125,9 @@ class RecipeIngredientUse(db.Model):
     # relationships
     recipe_usecase_recipes : sqlo.Mapped[Recipe] = sqlo.relationship(back_populates = 'ingredients_used')
     recipe_usecase_ingredients : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'recipe_involvements')
+
+    def __repr__(self):
+        return '<Recipe id: {} - ingredient: {} with {} {}>'.format(self.recipe_id, self.ingredient_id, self.amount, self.unit)
 
 class UserIngredientListUse(db.Model):
     user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)

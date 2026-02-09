@@ -1,11 +1,12 @@
+from datetime import datetime, timezone
 import sys
 from flask import render_template, flash, redirect, url_for, request, jsonify
 import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, Tag, User, recipe_tags_table
-from app.main.forms import RecipeForm, EmptyForm, SortForm, EditForm
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table
+from app.main.forms import RecipeForm, IngredientForm, EmptyForm, SortForm, EditForm
 from app.auth.auth_forms import RegistrationForm
 
 from app.main import main_blueprint as bp_main
@@ -38,24 +39,155 @@ def index():
     return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form)
 
 
-@bp_main.route('/recipe/create', methods=['GET', 'POST'])
+@bp_main.route('/recipe/create', methods=['GET'])
 # @login_required
-def postRecipe():
-    pform = RecipeForm()
-    if pform.validate_on_submit():
-        recipe = Recipe(
-            title = pform.title.data,
-            body = pform.body.data,
-            user_id = current_user.id
+def createRecipe():
+    # get recipe draft
+    recipeDraft = current_user.get_drafted_recipe()
+    print(recipeDraft)
+    if recipeDraft is None:
+        # make new recipe
+        recipeDraft = Recipe(
+            is_draft=True,
+            user_id=current_user.id
         )
-        db.session.add(recipe)
-        db.session.flush()
-        for t in pform.tag.data:
-            recipe.tags.add(t)
+        db.session.add(recipeDraft)
         db.session.commit()
-        flash(f'Your recipe "{recipe.title}" is created!')
-        return redirect(url_for('main.index'))
-    return render_template('create.html', title="", form=pform)
+    
+    return redirect(url_for('main.editRecipe', recipe_id=recipeDraft.id))
+
+
+def saveRecipeDraft(recipe_id, rform):
+    recipeDraft = db.session.get(Recipe, recipe_id)
+    recipeDraft.title = rform.title.data
+    recipeDraft.description = rform.description.data
+    recipeDraft.servingSize = rform.servingSize.data
+    recipeDraft.estimatedTime = rform.estimatedTime.data
+    recipeDraft.steps = rform.steps.data
+    recipeDraft.timestamp = datetime.now(timezone.utc)
+    db.session.commit()
+
+    for ingredientRel in rform.ingredients:
+        if ingredientRel.ingredientName.data != "":
+            print("Adding ingredient ", ingredientRel.ingredientName.data)
+            # get ingredient id if there already is an ingredient
+            ingredientItem = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == ingredientRel.ingredientName.data)).first()
+            if ingredientItem is None:
+                print("ingredient doesn't exist")
+                # ingredient doesn't exist, so add it
+                ingredientItem = Ingredient(name=ingredientRel.ingredientName.data)
+                db.session.add(ingredientItem)
+                db.session.commit()
+
+                newIngredientUse = RecipeIngredientUse(
+                    recipe_id = recipe_id,
+                    ingredient_id = ingredientItem.id,
+                    amount = ingredientRel.quantity.data,
+                    unit = ingredientRel.unit.data
+                )
+                db.session.add(newIngredientUse)
+                db.session.commit()
+            else:
+                print("ingredient exists")
+                # ingredient exists, check if recipe ingredient use is already in db
+                ingredientUse = db.session.get(RecipeIngredientUse, (recipe_id, ingredientItem.id))
+                if ingredientUse is None:
+                    print("not in db, adding")
+                    # isn't in db yet, so add it
+                    newIngredientUse = RecipeIngredientUse(
+                        recipe_id = recipe_id,
+                        ingredient_id = ingredientItem.id,
+                        amount = ingredientRel.quantity.data,
+                        unit = ingredientRel.unit.data
+                    )
+                    db.session.add(newIngredientUse)
+                    db.session.commit()
+                else:
+                    print("in db, updating")
+                    # in db, update values
+                    ingredientUse.amount = ingredientRel.quantity.data
+                    ingredientUse.unit = ingredientRel.unit.data
+                    db.session.commit()
+                    print(ingredientUse)
+
+def removeIngredient(recipe_id, ingredient_id):
+    ingredientToRemove = db.session.get(RecipeIngredientUse, (recipe_id, ingredient_id))
+    if ingredientToRemove is None:
+        flash("Error! Could not find ingredient in recipe")
+    else:
+        # Delete ingredient
+        db.session.delete(ingredientToRemove)
+        db.session.commit()
+        flash("Successfully removed ingredient")
+
+@bp_main.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
+# @login_required
+def editRecipe(recipe_id):
+    recipeDraft = db.session.get(Recipe, recipe_id)
+
+    ingredient_data = []
+    for ingUseCase in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
+        ingredient_data.append({
+            "ingredientName": ingUseCase.recipe_usecase_ingredients.name,
+            "quantity": ingUseCase.amount,
+            "unit": ingUseCase.unit,
+            "ingredient_id": ingUseCase.ingredient_id
+        })
+    # add empty ingredient
+    ingredient_data.append({
+        "ingredientName": "",
+        "quantity": 0.0,
+        "unit": "",
+    })
+
+    if request.method == "GET":
+        rform = RecipeForm(
+            title = recipeDraft.title,
+            description = recipeDraft.description,
+            servingSize = recipeDraft.servingSize,
+            estimatedTime = recipeDraft.estimatedTime,
+            tags = recipeDraft.get_tags(),
+            ingredients = ingredient_data,
+            steps = recipeDraft.steps
+        )
+    else:
+        rform = RecipeForm()
+
+    print("AAAAAA")
+    if rform.validate_on_submit():
+        print("bbbb")
+        buttonVal = request.form.get('action_button')
+        print(buttonVal)
+        if buttonVal == "post":
+            # post recipe
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            newRecipe = db.session.get(Recipe, recipe_id)
+            newRecipe.is_draft = False
+            db.session.commit()
+            return redirect(url_for('main.index'))
+        elif buttonVal == "add":
+            # add ingredient (save draft)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            return redirect(url_for('main.editRecipe', recipe_id=recipe_id))
+        elif buttonVal == "save":
+            # save draft + return to main
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            return redirect(url_for('main.index'))
+        else:
+            print("Removing ingredient")
+            try:
+                # remove ingredient
+                buttonVal = int(buttonVal)
+                saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+                removeIngredient(recipe_id=recipe_id, ingredient_id=buttonVal)
+            except ValueError:
+                # blank value
+                pass
+            return redirect(url_for('main.editRecipe', recipe_id=recipe_id))
+    elif request.method == "POST":
+        print(rform.errors)
+    return render_template('create_recipe.html', title="", form=rform, recipe_id=recipe_id)
+
 
 # MODIFY THIS METHOD
 # @bp_main.route('/recipe/<recipe_id>/like', methods=['POST', 'GET'])

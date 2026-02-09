@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+
+    <h1>Create New Recipe</h1>
+
+    <form action="{{ url_for('main.editRecipe', recipe_id=recipe_id) }}" method="post">
+        {{ form.hidden_tag() }}
+
+        {{ wtf.form_field(form.title) }}
+        {{ wtf.form_field(form.description) }}
+        {{ wtf.form_field(form.servingSize) }}
+        {{ wtf.form_field(form.estimatedTime) }}
+        {{ wtf.form_field(form.tags) }}
+
+
+        <table class="ingredients-form">
+            <tr>
+                <th>Ingredient Name</th>
+                <th>Quantity</th>
+                <th>Units</th>
+                <th></th>
+            </tr>
+        {% for ingredient in form.ingredients %}
+            <tr>
+                {% if ingredient.ingredientName.data %}
+                <td>{{ ingredient.ingredientName.data }}</td>
+                {% else %}
+                <td>{{ ingredient.ingredientName() }}</td>
+                {% endif %}
+                <td>{{ ingredient.quantity() }}</td>
+                <td>{{ ingredient.unit() }}</td>
+                <td><button type="submit" name="action_button" value="{{ingredient.ingredient_id.data}}" class="form-ingredient-remove">Remove</button></td>
+            </tr>
+        {% endfor %}
+        </table>
+        <button type="submit" name="action_button" value="add" class="form-ingredient-add">Add ingredient</button>
+        
+        {{ wtf.form_field(form.steps) }}
+        <!-- {{ wtf.form_field(form.submit) }} -->
+        <button type="submit" name="action_button" value="save" class="form-ingredient-save">Save Draft and Return</button>
+        <button type="submit" name="action_button" value="post" class="form-ingredient-post">Post</button>
+    </form>
+
+    {% for ingredient in ingredientsList %}
+    ingredient
+    {% endfor %}
+
+  {% endblock %}
