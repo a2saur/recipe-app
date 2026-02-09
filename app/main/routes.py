@@ -153,11 +153,8 @@ def editRecipe(recipe_id):
     else:
         rform = RecipeForm()
 
-    print("AAAAAA")
     if rform.validate_on_submit():
-        print("bbbb")
         buttonVal = request.form.get('action_button')
-        print(buttonVal)
         if buttonVal == "post":
             # post recipe
             saveRecipeDraft(recipe_id=recipe_id, rform=rform)
