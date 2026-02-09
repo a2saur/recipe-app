@@ -1,20 +1,31 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField
+from wtforms import Form, FormField, FieldList, StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField, FloatField, HiddenField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, Length
 from wtforms.widgets import ListWidget, CheckboxInput
-from wtforms.validators import DataRequired, EqualTo, Email
+from wtforms.validators import DataRequired, EqualTo, Email, Optional
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import Tag, User
+from app.main.models import Tag, User, UNIT_OPTIONS
+
+class IngredientForm(Form):
+    ingredient_id = HiddenField()
+    ingredientName = StringField('Ingredient Name', default="")
+    quantity = FloatField('Quantity', default=0.0, validators=[Optional()])
+    unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
 
 class RecipeForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    body = TextAreaField('Body', validators=[DataRequired(), Length(min=1, max=1500)])
-    tag = QuerySelectMultipleField('Tag', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), get_label= lambda tag: tag.name,
-                                   widget = ListWidget(prefix_label=False), option_widget=CheckboxInput())   
+    title = StringField('Title')
+    description = TextAreaField('Description', validators=[Length(max=1500)])
+    servingSize = FloatField('Serving Size', default=0.0, validators=[Optional()])
+    estimatedTime = StringField('Estimated Time', validators=[Length(max=25)])
+    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), get_label= lambda tag: tag.name,
+                                   widget = ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    ingredients = FieldList(FormField(IngredientForm))
+    steps = TextAreaField('Steps')
+
     submit = SubmitField('Post')
 
 class EmptyForm(FlaskForm):

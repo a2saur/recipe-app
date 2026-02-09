@@ -25,8 +25,11 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         {% if not current_user.is_anonymous %}
-                            <li class="nav-item border border-light px-3 ms-3 ">
+                            <li class="nav-item border border-light px-2 me-3 ">
                                 <a class="nav-link text-white" aria-current="page" href="{{ url_for('main.index') }}">Main</a>
+                            </li>
+                            <li class="nav-item border border-light px-2 me-3 " >
+                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('main.createRecipe') }}">New Recipe</a>
                             </li>
                         {% endif %}
                     </ul>
