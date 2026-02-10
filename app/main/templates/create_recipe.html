@@ -3,7 +3,7 @@
 
 {% block content %}
 
-    <h1>Create New Recipe</h1>
+    <h1>{{ title }}</h1>
 
     <form action="{{ url_for('main.editRecipe', recipe_id=recipe_id) }}" method="post">
         {{ form.hidden_tag() }}
@@ -39,8 +39,12 @@
         
         {{ wtf.form_field(form.steps) }}
         <!-- {{ wtf.form_field(form.submit) }} -->
-        <button type="submit" name="action_button" value="save" class="form-ingredient-save">Save Draft and Return</button>
-        <button type="submit" name="action_button" value="post" class="form-ingredient-post">Post</button>
+        {% if is_draft %}
+            <button type="submit" name="action_button" value="save" class="form-ingredient-save">Save Draft and Return</button>
+            <button type="submit" name="action_button" value="post" class="form-ingredient-post">Post</button>
+        {% else %}
+            <button type="submit" name="action_button" value="post" class="form-ingredient-post">Save and Return to Main</button>
+        {% endif %}
     </form>
 
     {% for ingredient in ingredientsList %}
