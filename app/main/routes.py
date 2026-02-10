@@ -41,8 +41,10 @@ def index():
 def viewRecipe(recipe_id):
     theRecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if not (theRecipe is None):
-        return render_template('view_recipe.html', recipe = theRecipe)
+        theIngredients = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()
+        return render_template('view_recipe.html', recipe = theRecipe, ingredients = theIngredients)
     return redirect(url_for('main.index'))
+
 
 
 @bp_main.route('/recipe/create', methods=['GET'])
