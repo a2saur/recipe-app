@@ -17,24 +17,18 @@ from app.main import main_blueprint as bp_main
 # @login_required
 def index():
     empty_form = EmptyForm()
-    # sort_form = SortForm()
-    # if request.method == 'POST':
-    #     if sort_form.validate_on_submit():
-    #         if sort_form.my_recipes_only.data:
-    #             base_query = current_user.get_user_recipes_query()
-    #         else:
-    #             base_query = sqla.select(Recipe)
-
-    #         if sort_form.sortby.data == '# of likes':
-    #             recipes = base_query.order_by(Recipe.saves.desc())
-    #         elif sort_form.sortby.data == "Title":
-    #             recipes = base_query.order_by(Recipe.title)
-    #         else:
-    #             recipes = base_query.order_by(Recipe.timestamp.desc())
+    sort_form = SortForm()
+    if request.method == 'POST':
+        if sort_form.validate_on_submit():
+            base_query = sqla.select(Recipe)
+            if sort_form.sortby.data == "Title":
+                recipes = base_query.order_by(Recipe.title)
+            else:
+                recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
         recipes = sqla.select(Recipe).order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
-    return render_template('index.html', title="", recipes=all_recipes, form=empty_form)
+    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form)
 
 @bp_main.route('/recipe/<recipe_id>/view', methods=['GET'])
 # @login_required

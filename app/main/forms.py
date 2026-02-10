@@ -33,8 +33,7 @@ class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class SortForm(FlaskForm):
-    sortby = SelectField('Sort by', choices=['Date', 'Title', "# of likes", "Happiness level"])
-    my_recipes_only = BooleanField('Display my recipes only')
+    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified User"])
     refresh = SubmitField('Refresh')
 
 class EditForm(FlaskForm):
