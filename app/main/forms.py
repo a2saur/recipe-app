@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import Form, FormField, FieldList, StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField, FloatField, HiddenField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, Length
-from wtforms.widgets import ListWidget, CheckboxInput
+from wtforms.widgets import ListWidget, CheckboxInput, Select
 from wtforms.validators import DataRequired, EqualTo, Email, Optional
 
 from app import db
@@ -21,8 +21,9 @@ class RecipeForm(FlaskForm):
     description = TextAreaField('Description', validators=[Length(max=1500)])
     servingSize = FloatField('Serving Size', default=0.0, validators=[Optional()])
     estimatedTime = StringField('Estimated Time', validators=[Length(max=25)])
-    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), get_label= lambda tag: tag.name,
-                                   widget = ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
+                                    get_label= lambda tag: tag.name,
+                                    render_kw={"class": "form-control", "size": "1"})
     ingredients = FieldList(FormField(IngredientForm))
     steps = TextAreaField('Steps')
 
