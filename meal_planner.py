@@ -11,13 +11,13 @@ app = create_app(Config)
 def make_shell_context():
     return {'sqla': sqla, 'sqlo': sqlo, 'db': db, 'Recipe': Recipe, 'RecipeIngredientUse': RecipeIngredientUse, 'Ingredient': Ingredient, 'Tag': Tag, 'User': User}
 
-# tags = ['funny','inspiring', 'true-story', 'heartwarming', 'friendship']
-
 @sqla.event.listens_for(Tag.__table__, 'after_create')
 def add_tags(*args, **kwargs):
     query = sqla.select(Tag)
     if db.session.scalars(query).first() is None:
-        tags = ['funny','inspiring', 'true-story', 'heartwarming', 'friendship']
+        tags = ['breakfast','lunch', 'dinner', 'quick', 'easy', 'beginner', 'hard',
+                'baking', 'cooking', 'oven', 'one-pot', 'vegan', 'gluten-free',
+                'grilling', 'vegetarian', 'holiday', 'sweet', 'savory', 'spicy']
         for t in tags:
             db.session.add(Tag(name=t))
         db.session.commit()

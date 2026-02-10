@@ -100,6 +100,11 @@ class Recipe(db.Model):
         primaryjoin=(saved_recipes_table.c.recipe_id == id),
         back_populates='users_saved_recipes'
     )
+    def get_tags(self):
+        return db.session.scalars(self.tags.select()).all()
+    def get_num_tag(self):
+        return len(self.get_tags())
+
 
     # keeps track of what ingredients + amounts are used in this recipe
     ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe')
