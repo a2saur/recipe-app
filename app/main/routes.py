@@ -20,7 +20,7 @@ def index():
     sort_form = SortForm()
     if request.method == 'POST':
         if sort_form.validate_on_submit():
-            base_query = sqla.select(Recipe)
+            base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
             if sort_form.sortby.data == "Title":
                 recipes = base_query.order_by(Recipe.title)
             else:
