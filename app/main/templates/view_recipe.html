@@ -12,6 +12,12 @@
                 <p class="card-title fw-bold"> Description: </p>
                 <p class="card-text"> {{ recipe.description }}</p>
             </div>
+            <div class = "card-tag d-flex flex-wrap justify-content-start gap-1 mat-1 ms-3">
+                <p class = "card-title fw-bold">Tags: </p>
+                {% for tag in recipe.get_tags() %}
+                    <span class = "tagitem"> {{tag.name}} </span>
+                {% endfor %}
+            </div>
             <div class="card mx-2 mb-2 p-2" style="width: auto;"> 
                 <p class="card-title fw-bold" > Steps: </p>
                 <p class="card-text ms-2"> {{ recipe.steps }}</p>
