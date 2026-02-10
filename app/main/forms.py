@@ -36,6 +36,15 @@ class SortForm(FlaskForm):
     sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified User"])
     refresh = SubmitField('Refresh')
 
+class FilterForm(FlaskForm):
+    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
+                                    get_label= lambda tag: tag.name,
+                                    render_kw={"class": "form-control", "size": "1"})
+    # date
+    # likes
+    # certifieduser
+    refresh = SubmitField('Filter')
+
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     first_name = StringField('First Name', validators=[DataRequired()])
