@@ -41,8 +41,8 @@ class User(db.Model, UserMixin):
     users_saved_recipes : sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
         secondary=saved_recipes_table,
         primaryjoin=(saved_recipes_table.c.user_id == id),
-        back_populates='recipe_saved_by_users'
-    )
+        back_populates='recipe_saved_by_users',
+        passive_deletes=True)
 
     # helps keep track of the user's ingredient list
     curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_user')
@@ -92,14 +92,17 @@ class Recipe(db.Model):
 
     # keeps track of what tags are on this recipe
     tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
-        secondary=recipe_tags_table, primaryjoin=(recipe_tags_table.c.recipe_id == id),back_populates='recipes', passive_deletes=True)
+        secondary=recipe_tags_table, 
+        primaryjoin=(recipe_tags_table.c.recipe_id == id),
+        back_populates='recipes', 
+        passive_deletes=True)
     
     # keeps track of what users have saved this recipe
     recipe_saved_by_users : sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
         secondary=saved_recipes_table,
         primaryjoin=(saved_recipes_table.c.recipe_id == id),
-        back_populates='users_saved_recipes'
-    )
+        back_populates='users_saved_recipes',
+        passive_deletes=True)
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
     def get_num_tag(self):
@@ -107,7 +110,7 @@ class Recipe(db.Model):
 
 
     # keeps track of what ingredients + amounts are used in this recipe
-    ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe')
+    ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe', passive_deletes=True)
     
     # --- METHODS ---
     def __repr__(self):
