@@ -13,6 +13,14 @@
                 <p class="card-text"> {{ recipe.description }}</p>
             </div>
             <div class="card mx-2 mb-2 p-2" style="width: auto;"> 
+                <p class="card-title fw-bold"> Ingredients: </p>
+                <ul>
+                    {% for ingredient in ingredients %}
+                        <li class="card-text"> {{ingredient.amount}} {{ingredient.unit}} of {{ingredient.getName()}} </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card mx-2 mb-2 p-2" style="width: auto;"> 
                 <p class="card-title fw-bold" > Steps: </p>
                 <p class="card-text ms-2"> {{ recipe.steps }}</p>
             </div>
