@@ -162,8 +162,8 @@ a:hover {
 
 .tagitem {
     text-align: center;
-    margin: auto;
-    padding: 2px 4px 2px 4px;
+    margin: 5px 5px 5px 5px;
+    padding: 5px;
     border: 1px solid black;
     background-color: white;
 }
@@ -178,6 +178,13 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     min-height: 70px; /* adjust to fit the button height */
+}
+
+.card-tag{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
 }
 
 .btn-danger.like{
