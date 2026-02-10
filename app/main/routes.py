@@ -87,6 +87,10 @@ def saveRecipeDraft(recipe_id, rform):
     recipeDraft.servingSize = rform.servingSize.data
     recipeDraft.estimatedTime = rform.estimatedTime.data
     recipeDraft.steps = rform.steps.data
+    for t in recipeDraft.get_tags():
+        recipeDraft.tags.remove(t)
+    for t in rform.tags.data :
+            recipeDraft.tags.add(t)
     recipeDraft.timestamp = datetime.now(timezone.utc)
     db.session.commit()
 
@@ -206,6 +210,7 @@ def editRecipe(recipe_id):
             ingredients = ingredient_data,
             steps = recipeDraft.steps
         )
+
     else:
         # if recipe is being submitted, just get the form
         rform = RecipeForm()

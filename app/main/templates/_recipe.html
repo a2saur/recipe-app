@@ -32,9 +32,18 @@
         </div>
             <tr> 
                     <div class = "card-tag">
-                        {% for tag in recipe.get_tags() %}
-                            <span class = "tagitem"> {{tag.name}} </span>
-                        {% endfor %}
+                        {% if recipe.get_num_tag() > 6 %}
+                            {% for tag in recipe.get_tags()[:5] %}
+                                <span class = "tagitem"> {{tag.name}} </span>
+                            {% endfor %}
+                            <span class="tagitem tag-more">
+                                +{{ recipe.get_num_tag()-5 }} more
+                            </span>
+                        {% else %}
+                            {% for tag in recipe.get_tags() %}
+                                <span class = "tagitem"> {{tag.name}} </span>
+                            {% endfor %}
+                        {% endif %}
                     </div>
             </tr>
 </div>
