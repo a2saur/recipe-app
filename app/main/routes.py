@@ -32,7 +32,7 @@ def index():
     #         else:
     #             recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
-        recipes = sqla.select(Recipe).order_by(Recipe.timestamp.desc())
+        recipes = sqla.select(Recipe).where(Recipe.is_draft == False).order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
     return render_template('index.html', title="", recipes=all_recipes, form=empty_form)
 
@@ -203,6 +203,7 @@ def editRecipe(recipe_id):
             "unit": "",
         })
         # populate recipe form
+        print(recipeDraft.title)
         rform = RecipeForm(
             title = recipeDraft.title,
             description = recipeDraft.description,
@@ -256,14 +257,21 @@ def editRecipe(recipe_id):
                 saveRecipeDraft(recipe_id=recipe_id, rform=rform)
 
                 # remove ingredient
-                removeIngredient(recipe_id=recipe_id, ingredient_id=buttonVal)
+                if recipeDraft.is_draft: # if recipe is posted, make sure there's still one ingredient
+                    removeIngredient(recipe_id=recipe_id, ingredient_id=buttonVal)
+                else:
+                    if len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()):
+                        flash("Error: Need at least one ingredient on a posted recipe")
             except ValueError:
                 # blank value, don't do anything
                 pass
 
             # redirect back to the edit recipe page
             return redirect(url_for('main.editRecipe', recipe_id=recipe_id))
-    return render_template('create_recipe.html', title="", form=rform, recipe_id=recipe_id)
+    if recipeDraft.is_draft:
+        return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True)
+    else:
+        return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False)
 
 
 # MODIFY THIS METHOD
