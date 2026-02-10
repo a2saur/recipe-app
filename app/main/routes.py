@@ -32,7 +32,7 @@ def index():
     #         else:
     #             recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
-        recipes = sqla.select(Recipe).order_by(Recipe.timestamp.desc())
+        recipes = sqla.select(Recipe).where(Recipe.is_draft == False).order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
     return render_template('index.html', title="", recipes=all_recipes, form=empty_form)
 
