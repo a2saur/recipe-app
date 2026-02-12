@@ -1,7 +1,7 @@
 <!-- We add an id for the table to update the HTML content of the table through JavaScript.  -->
 <div class="shine-effect">
     <a class="hidden-link" href="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}">
-        <div class="recipe-card-header">
+        <div class="recipe-card-header bottom-line">
             <span>
                 <h5>{{ recipe.title }}</h5>
                 <h7>Posted By: {{ recipe.writer.username }}</h7>
@@ -15,8 +15,21 @@
             </span>
         </div>
 
-        <div class="recipe-card-content">
+        <div class="recipe-card-content bottom-line">
             <p>{{ recipe.description }}</p>
+        </div>
+
+        <div class = "recipe-card-tags bottom-line">
+            {% if recipe.get_num_tag() > 6 %}
+                {% for tag in recipe.get_tags()[:5] %}
+                    {{tag.name}} 
+                {% endfor %}
+                +{{ recipe.get_num_tag()-5 }} more
+            {% else %}
+                {% for tag in recipe.get_tags() %}
+                    {{tag.name}} 
+                {% endfor %}
+            {% endif %}
         </div>
 
         <div class="recipe-card-footer">
