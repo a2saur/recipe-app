@@ -1,53 +1,44 @@
 <!-- We add an id for the table to update the HTML content of the table through JavaScript.  -->
-<div id="recipe-{{recipe.id}}" class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">{{ recipe.title }}</h5>
-            <div class="card-subtitle">
-                <h6 class="card-text"> {{recipe.servingSize}} serving(s) </h5>
-                <h6 class="card-text"> {{recipe.estimatedTime}} </h5>
-            </div>
+<div class="shine-effect">
+    <a class="hidden-link" href="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}">
+        <div class="recipe-card-header">
+            <span>
+                <h5>{{ recipe.title }}</h5>
+                <h7>Posted By: {{ recipe.writer.username }}</h7>
+            </span>
+            <span class="icon-button">
+                <form action="" method="post">
+                    <button type="submit" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-pin-angle"></i><span class="button-description">Save</span>
+                    </button>
+                </form>
+            </span>
         </div>
 
-        <div class="card-body">
-            <p class="card-text">{{ recipe.description }}</p>
+        <div class="recipe-card-content">
+            <p>{{ recipe.description }}</p>
         </div>
 
-        <div class="card-footer">
-            <div>
-                <small class="text-muted">Posted at: {{ moment(recipe.timestamp).format('LLL') }}</small>
-                <br>
-                <small class="text-muted">Posted by: {{ recipe.writer.username }}</small>
-            </div>
-            <div>
-                {% if recipe.writer.id == current_user.id %}
-                    <form action="{{ url_for('main.delete', recipe_id=recipe.id) }}" method="post">
-                        <input type="submit" value="Delete" class="btn btn-danger btn-sm" style="width: 100%;">
-                    </form>
+        <div class="recipe-card-footer">
+            <span>
+                {% if recipe.servingSize > 1 %}
+                    <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h5>
                 {% else %}
-                    <form action="" method="post">
-                        <input type="submit" value="Save" class="btn btn-danger like btn-sm" style="width: 100%">
-                    </form>
+                    <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
                 {% endif %}
-                    <form action="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}" method="get">
-                        <input type="submit" value="View" class="btn btn-secondary btn-sm" style="width: 100%">
-                    </form>
-                
-            </div>
+                <h6 class="text-muted"> {{recipe.estimatedTime}} </h5>
+            </span>
+            <span>
+                {% if recipe.writer.id == current_user.id %}
+                    <span class="icon-button">
+                        <form action="{{ url_for('main.delete', recipe_id=recipe.id) }}" method="post">
+                            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top:1px; margin-bottom:1px;">
+                                <i class="bi bi-trash"></i><span class="button-description">Delete</span>
+                            </button>
+                        </form>
+                    </span>
+                {% endif %}
+            </span>
         </div>
-            <tr> 
-                    <div class = "card-tag">
-                        {% if recipe.get_num_tag() > 6 %}
-                            {% for tag in recipe.get_tags()[:5] %}
-                                <span class = "tagitem"> {{tag.name}} </span>
-                            {% endfor %}
-                            <span class="tagitem tag-more">
-                                +{{ recipe.get_num_tag()-5 }} more
-                            </span>
-                        {% else %}
-                            {% for tag in recipe.get_tags() %}
-                                <span class = "tagitem"> {{tag.name}} </span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-            </tr>
+    </a>
 </div>

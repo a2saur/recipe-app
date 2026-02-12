@@ -17,13 +17,12 @@
     </form>
 
 </div>
-
-    <!-- TODO: (milestone1) Format posts -->
-    <div class="recipelist">
+    <div class="recipe-card-collection">
         {% for recipe in recipes %}
-            <div class="recipe-box">{% include '_recipe.html' %} </div>
+            <div class="recipe-card">{% include '_recipe.html' %} </div>
         {% endfor %}
     </div>
+</div>
     
   
 {% endblock %}

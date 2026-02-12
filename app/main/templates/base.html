@@ -7,62 +7,63 @@
             rel="stylesheet"
             integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
             crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-       <!--TODO: (milestone 3)  Include `moment` library -->
-       <head>{{ moment.include_moment() }}</head>
+       <!-- <head>{{ moment.include_moment() }}</head> -->
     </head>
 
     <body>
-        
-        <nav class = "navbar navbar-dark navbar-expand-lg" style="background-color: black;">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">Meal Planner</a>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Meal Planner</a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
 
-                <button class="navbar-toggler" type="button" >
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        {% if not current_user.is_anonymous %}
-                            <li class="nav-item border border-light px-2 me-3 ">
-                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('main.index') }}">Main</a>
-                            </li>
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('main.createRecipe') }}">New Recipe</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-                        {% if not current_user.is_anonymous %}
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <!-- Add a button to the ingredients page here when it's implemented -->
-                            </li>
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <!-- Add a button to the saved recipes page here when it's implemented -->
-                            </li>
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('main.display_profile') }}">Profile</a>
-                            </li>
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('auth.logout') }}">Log out</a>
-                            </li>
-                            <li class="nav-item me-3">
-                                <span class="navbar-text text-light">
-                                    Current user is: <strong>{{ current_user.first_name }}</strong>
-                                </span>
-                            </li>
-                        {% else %}
-                            <li class="nav-item border border-light px-2 me-3 " >
-                                <a class="nav-link text-white" aria-current="page" href="{{ url_for('auth.login') }}">Log in</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-dark">
+                            <i class="bi bi-house-door-fill" style="margin-right:5px"></i>Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="dropdown-toggle btn btn-outline-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-fill" style="margin-right:5px"></i>Profile
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('main.display_profile') }}" class="dropdown-item">View Profile</a></li>
+                            <li><a href="{{ url_for('main.edit_profile') }}" class="dropdown-item">Edit Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a href="{{ url_for('auth.logout') }}" class="dropdown-item" style="color:#BB0000">Logout</a></li>
+                        </ul>
+                    </li>
+
+                    {% if current_user.is_certified %}
+                        <li class="nav-item dropdown">
+                            <a class="dropdown-toggle btn btn-outline-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Post
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{{ url_for('main.createRecipe') }}" class="dropdown-item">Recipe</a></li>
+                                <li><a href="#" class="dropdown-item">Cookbook</a></li> <!-- TODO: change to create cookbook -->
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('main.createRecipe') }}" class="btn btn-outline-dark">
+                                <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Recipe
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
+        </div>
         </nav>
-
-
+        
         <div class="container mt-3">
             {% with messages = get_flashed_messages() %}
             {% if messages %}
