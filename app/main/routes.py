@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table
-from app.main.forms import RecipeForm, IngredientForm, EmptyForm, SortForm, EditForm
+from app.main.forms import RecipeForm, IngredientSubmitForm, EmptyForm, SortForm, EditForm
 from app.auth.auth_forms import RegistrationForm
 
 from app.main import main_blueprint as bp_main
@@ -325,3 +325,31 @@ def edit_profile():
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
+
+
+@bp_main.route('/ingredients', methods=['GET','POST'])
+# @login_required
+def view_ingredients():
+    iform = IngredientSubmitForm()
+    gform = IngredientSubmitForm()
+
+    curr_ingredients = current_user.get_curr_ingredients()
+    if iform.validate_on_submit():
+        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == iform.ingredientName.data)).first()
+        if not ingredient:
+            ingredient = Ingredient(name=iform.ingredientName.data)
+            db.session.add(ingredient)
+            db.session.commit()
+        current_user.add_ingredient(ingredient, iform.quantity.data, iform.unit.data)
+        flash ('{} added to your ingredient list!'.format(iform.ingredientName.data))
+        return redirect(url_for('main.view_ingredients'))
+    
+    if gform.validate_on_submit():
+        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == gform.ingredientName.data)).first()
+        if not ingredient:
+            flash ('{} is not in your ingredient list!'.format(gform.ingredientName.data))
+        else:
+            current_user.add_ingredient(ingredient, 0, "unit")
+            flash ('{} removed from your ingredient list!'.format(gform.ingredientName.data))
+        return redirect(url_for('main.view_ingredients'))
+    return render_template('view_ingredients.html', title="Ingredients", ingredients=curr_ingredients, iform=iform, gform=gform)

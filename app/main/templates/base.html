@@ -41,6 +41,12 @@
                             <li><a href="{{ url_for('auth.logout') }}" class="dropdown-item" style="color:#BB0000">Logout</a></li>
                         </ul>
                     </li>
+                    
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.view_ingredients') }}" class="btn btn-outline-dark">
+                            <i class="bi" style="margin-right:5px"></i>Ingredients
+                        </a>
+                    </li>
 
                     {% if current_user.is_certified %}
                         <li class="nav-item dropdown">

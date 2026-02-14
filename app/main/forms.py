@@ -10,11 +10,16 @@ from app import db
 import sqlalchemy as sqla
 from app.main.models import Tag, User, UNIT_OPTIONS
 
+# Subform (no CSRF)
 class IngredientForm(Form):
     ingredient_id = HiddenField()
     ingredientName = StringField('Ingredient Name', default="")
     quantity = FloatField('Quantity', default=0.0, validators=[Optional()])
     unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
+
+# Standalone form
+class IngredientSubmitForm(IngredientForm, FlaskForm):
+    submit = SubmitField('Add Ingredient')
 
 class RecipeForm(FlaskForm):
     title = StringField('Title')

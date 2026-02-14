@@ -71,6 +71,33 @@ class User(db.Model, UserMixin):
     # TODO: update to multiple drafts in further iterations
     def get_drafted_recipe(self):
         return db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True).where(Recipe.user_id == self.id)).first()
+    
+    # gets all the current ingredients of the user
+    def get_curr_ingredients(self):
+        return db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id)).all()
+
+    # checks if the ingredient is already in the user's ingredient list
+    def is_already_ingredient(self, ingredient):
+        is_ingredient = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
+        return is_ingredient is not None
+    
+    # adds a new ingredient to the user's ingredient list if it is not already in the list; otherwise, does nothing
+    def add_ingredient(self, ingredient, quantity, unit):
+        if not self.is_already_ingredient(ingredient): # if ingredient is not already in user's ingredient list, add it
+            new_ingredient_use = UserIngredientListUse(
+                user_id = self.id,
+                ingredient_id = ingredient.id, 
+                amount = quantity,
+                unit = unit
+            )
+            db.session.add(new_ingredient_use)
+        else: # if ingredient is already in user's ingredient list, update the quantity and unit
+            ingredient_use = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
+            ingredient_use.amount = quantity
+            ingredient_use.unit = unit
+        db.session.commit()
+
+    
 
 
 class Recipe(db.Model):
@@ -207,3 +234,6 @@ class UserIngredientListUse(db.Model):
     # --- METHODS ---
     def __repr__(self):
         return '<User id: {} - ingredient: {} with {} {}>'.format(self.user_id, self.ingredient_id, self.amount, self.unit)
+    
+    def get_name(self):
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first()
