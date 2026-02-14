@@ -1,6 +1,6 @@
 <!-- We add an id for the table to update the HTML content of the table through JavaScript.  -->
 <div class="shine-effect">
-    <a class="hidden-link" href="{{ url_for('main.viewRecipe', recipe_id=recipe.id) }}">
+    <a class="hidden-link" href="{{ url_for('recipe.viewRecipe', recipe_id=recipe.id) }}">
         <div class="recipe-card-header bottom-line">
             <span>
                 <h5>{{ recipe.title }}</h5>
@@ -44,7 +44,7 @@
             <span>
                 {% if recipe.writer.id == current_user.id %}
                     <span class="icon-button">
-                        <form action="{{ url_for('main.delete', recipe_id=recipe.id) }}" method="post">
+                        <form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">
                             <button type="submit" class="btn btn-danger" style="width: 100%; margin-top:1px; margin-bottom:1px;">
                                 <i class="bi bi-trash"></i><span class="button-description">Delete</span>
                             </button>
