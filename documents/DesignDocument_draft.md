@@ -73,23 +73,23 @@ The purpose of this document is to describe the high-level software design for t
 
 ### 2.2.2 Interfaces
 
-#### 2.2.2.1 <main> Routes
+#### 2.2.2.1 Main Routes
 
 |  | Methods | URL Path | Description |
 | :---- | :---- | :---- | :---- |
 | 1. | GET, POST | /index | Displays the main page with a list of recipe posts and a filter/sorter |
 
-#### 2.2.2.2 <user> Routes
+#### 2.2.2.2 User Routes
 
 |  | Methods | URL Path | Description |
 | :---- | :---- | :---- | :---- |
 | 1. | GET, POST | /user/profile | Displays the user profile and information |
 | 2. | GET, POST | /user/profile/edit | Renders an edit form to edit profile information |
-| 3. | POST | /user/recipe/<recipe_id>/saverecipe | Adds a recipe to a user’s saved list |
+| 3. | POST | /user/<recipe_id>/saverecipe | Adds a recipe to a user’s saved list |
 | 4.  | POST | /user/<recipe_id>/removerecipe | Removes the recipe from the user’s saved recipes |
 | 5. | GET, POST | /user/ingredients | Renders the page with a list of current ingredients + grocery list |
 
-#### 2.2.2.3 <recipe> Routes
+#### 2.2.2.3 Recipe Routes
 
 |  | Methods | URL Path | Description |
 | :---- | :---- | :---- | :---- |
@@ -100,7 +100,7 @@ The purpose of this document is to describe the high-level software design for t
 
 #### 
 
-#### 2.2.2.4 <cookbook> Routes
+#### 2.2.2.4 Cookbook Routes
 
 #### 
 
@@ -111,7 +111,7 @@ The purpose of this document is to describe the high-level software design for t
 | 3. | GET, POST | /cookbook/<cookbook_id>/edit | Renders an edit form to edit cookbook information |
 | 4. | POST | /cookbook/<cookbook_id>/delete | Deletes a cookbook from the database |
 
-#### 2.2.2.5 <auth> Routes
+#### 2.2.2.5 Auth Routes
 
 |  | Methods | URL Path | Description |
 | :---- | :---- | :---- | :---- |

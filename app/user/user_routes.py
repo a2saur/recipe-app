@@ -36,3 +36,18 @@ def edit_profile():
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
+
+@bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
+# @login_required
+def save_recipe(recipe_id):
+    return
+
+@bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
+# @login_required
+def remove_saved_recipe(recipe_id):
+    return
+
+@bp_user.route('/user/ingredients', methods=['GET','POST'])
+# @login_required
+def view_ingredients():
+    return render_template('profile.html', title="User Profile", user=current_user)
