@@ -40,24 +40,38 @@ def viewRecipe(recipe_id):
     return redirect(url_for('main.index'))
 
 
-
-@bp_main.route('/recipe/create', methods=['GET'])
+@bp_main.route('/recipe/create', methods=['GET', 'POST'])
 # @login_required
-# createRecipe redirects to editing the user's recipe draft, if there
-# is no recipe draft, the system makes a new one
+# createRecipe shows the current recipe drafts and the option to create a new one
+# the user will select one of these options and the system will redirect correspondingly
 def createRecipe():
-    # get recipe draft
-    recipeDraft = current_user.get_drafted_recipe()
-    if recipeDraft is None:
-        # the user has no recipe draft, make new recipe draft
-        recipeDraft = Recipe(
-            is_draft=True,
-            user_id=current_user.id
-        )
-        db.session.add(recipeDraft)
-        db.session.commit()
-    # redirect to editing the recipe
-    return redirect(url_for('main.editRecipe', recipe_id=recipeDraft.id))
+    # get recipe drafts
+    if request.method == "GET":
+        recipeDrafts = current_user.get_drafted_recipes()
+        return render_template('select_recipe_to_edit.html', recipeOpts=recipeDrafts)
+    else:
+        # check if deleting a recipe
+        buttonVal = request.form.get('remove_button')
+        print("Remove:", buttonVal)
+        if buttonVal is None:
+            # check which recipe was selected or if it was the create new recipe option
+            buttonVal = request.form.get('select_button')
+            print("Select:", buttonVal)
+            if buttonVal == "new":
+                # new recipe
+                recipeDraft = Recipe(
+                    is_draft=True,
+                    user_id=current_user.id
+                )
+                db.session.add(recipeDraft)
+                db.session.commit()
+                return redirect(url_for('main.editRecipe', recipe_id=recipeDraft.id))
+            else:
+                # old recipe
+                return redirect(url_for('main.editRecipe', recipe_id=int(buttonVal)))
+        else:
+            # delete recipe
+            return url_for('main.delete', recipe_id=int(buttonVal))
 
 
 # checks that the ingredient form is valid, used before saving an ingredient use
@@ -197,7 +211,6 @@ def editRecipe(recipe_id):
             "unit": "",
         })
         # populate recipe form
-        print(recipeDraft.title)
         rform = RecipeForm(
             title = recipeDraft.title,
             description = recipeDraft.description,
@@ -289,7 +302,7 @@ def editRecipe(recipe_id):
 
 @bp_main.route('/recipe/<recipe_id>/delete', methods=['POST'])
 # @login_required
-def delete(recipe_id):
+def delete(recipe_id, redirectURL='main.index'):
     therecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if therecipe is not None:
         for t in therecipe.get_tags():
@@ -298,7 +311,7 @@ def delete(recipe_id):
         db.session.delete(therecipe)
         db.session.commit()
         flash('The recipe {} has been successfully deleted'.format(therecipe.title))
-        return redirect(url_for('main.index'))
+        return redirect(url_for(redirectURL))
     
 @bp_main.route('/user/profile', methods=['GET','POST'])
 # @login_required
