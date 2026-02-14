@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
+from flask import flash
 from werkzeug.security import generate_password_hash, check_password_hash  
 from flask_login import UserMixin
 
@@ -47,6 +48,9 @@ class User(db.Model, UserMixin):
     # helps keep track of the user's ingredient list
     curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_user')
 
+    # keep track of the user's grocery list
+    grocery_list: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_user')
+
     # --- METHODS ---
     def __repr__(self):
         return '<User id: {} - username: {} - email: {}>'.format(self.id, self.username, self.email)
@@ -91,13 +95,42 @@ class User(db.Model, UserMixin):
                 unit = unit
             )
             db.session.add(new_ingredient_use)
+            flash ('{} added to your ingredient list!'.format(ingredient.name))
         else: # if ingredient is already in user's ingredient list, update the quantity and unit
             ingredient_use = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
-            ingredient_use.amount = quantity
+            ingredient_use.amount += quantity
             ingredient_use.unit = unit
+            flash('{} is updated in your ingredient list!'.format(ingredient.name))
         db.session.commit()
 
+    # gets all the user's grocery list of the user
+    def get_grocery_list(self):
+        return db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id)).all()
     
+    # checks if the ingredient is already in the user's grocery list
+    def is_already_grocery(self, ingredient):
+        is_grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
+        return is_grocery is not None
+    
+    # adds a new ingredient to the user's grocery list if it is not already in the list AND not in the current ingredients list
+    def add_grocery(self, ingredient, quantity, unit):
+        if not self.is_already_grocery(ingredient) and not self.is_already_ingredient(ingredient): # if ingredient is not already in user's grocery list and not already in user's ingredient list, add it to grocery list
+            new_grocery = UserGroceryListUse(
+                user_id = self.id,
+                ingredient_id = ingredient.id, 
+                amount = quantity,
+                unit = unit
+            )
+            db.session.add(new_grocery)
+            flash ('{} is added to your grocery list!'.format(ingredient.name))
+        elif self.is_already_grocery(ingredient) and not self.is_already_ingredient(ingredient): # if ingredient is already in user's grocery list and not already in user's ingredient list, update the quantity and unit
+            grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
+            grocery.amount += quantity
+            grocery.unit = unit
+            flash('{} is updated in your grocery list!'.format(ingredient.name))
+        else:
+            flash('{} is already in your current ingredient list!'.format(ingredient.name))
+        db.session.commit()
 
 
 class Recipe(db.Model):
@@ -180,6 +213,9 @@ class Ingredient(db.Model):
     # helps keep track of ingredients + amounts in users' ingredient lists
     userlist_involvements: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_ingredient')
 
+    # helps keep track of ingredients + amounts in users' grocery lists
+    grocery_list_involvements: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_ingredient')
+
     # --- METHODS ---
     def __repr__(self):
         return '<Ingredient id: {} - name: {}>'.format(self.id, self.name)
@@ -230,6 +266,33 @@ class UserIngredientListUse(db.Model):
 
     # keeps track of the ingredient this ingredient use is using
     userlist_ingredient : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'userlist_involvements')
+
+    # --- METHODS ---
+    def __repr__(self):
+        return '<User id: {} - ingredient: {} with {} {}>'.format(self.user_id, self.ingredient_id, self.amount, self.unit)
+    
+    def get_name(self):
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first()
+    
+
+class UserGroceryListUse(db.Model):
+    # --- ATTRIBUTES ---
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    amount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(unit.in_(UNIT_OPTIONS), name='grocerylist_unit_check'),
+    )
+
+    # --- RELATIONSHIPS ---
+    # keeps track of the user who has a grocery list that this ingredient use is in
+    grocerylist_user : sqlo.Mapped[User] = sqlo.relationship(back_populates = 'grocery_list')
+
+    # keeps track of the ingredient this ingredient use is using
+    grocerylist_ingredient : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'grocery_list_involvements')
 
     # --- METHODS ---
     def __repr__(self):
