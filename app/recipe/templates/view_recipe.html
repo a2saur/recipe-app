@@ -20,6 +20,25 @@
 
         <div class="recipe-page-details">
             <span>Posted by: {{recipe.writer.username}}</span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>
+            <div class="recipe-page-details">
+                {% if recipe.writer.id == current_user.id %}
+                    <span style="margin-right:5px;"><form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i><span style="margin:5px">Delete</span>
+                        </button>
+                    </form></span>
+                    <span style="margin-right:5px;"><form action="{{ url_for('recipe.edit_recipe', recipe_id=recipe.id) }}" method="get">
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="bi bi-pencil-square"></i><span style="margin:5px">Edit</span>
+                        </button>
+                    </form></span>
+                {% endif %}
+                <span class="icon-button" style="margin-right:5px;"><form action="" method="post">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-pin-angle"></i><span style="margin:5px">Save</span>
+                        </button>
+                </form></span>
+            </div>
         </div>
     </div>
 

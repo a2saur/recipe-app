@@ -14,3 +14,6 @@ class Config(object):
     TEMPLATE_FOLDER_MAIN = os.path.join(basedir, 'app//main//templates')
     TEMPLATE_FOLDER_ERRORS = os.path.join(basedir, 'app//errors//templates')
     TEMPLATE_FOLDER_AUTH = os.path.join(basedir, 'app//auth//templates')    
+    TEMPLATE_FOLDER_USER = os.path.join(basedir, 'app//user//templates')
+    TEMPLATE_FOLDER_RECIPE = os.path.join(basedir, 'app//recipe//templates')
+    TEMPLATE_FOLDER_COOKBOOK = os.path.join(basedir, 'app//cookbook//templates')

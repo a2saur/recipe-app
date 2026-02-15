@@ -67,10 +67,9 @@ class User(db.Model, UserMixin):
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
     
-    # Returns the user's draft (NOTE: currently assumes only one draft is possible;)
-    # TODO: update to multiple drafts in further iterations
-    def get_drafted_recipe(self):
-        return db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True).where(Recipe.user_id == self.id)).first()
+    # Returns the user's recipe drafts
+    def get_drafted_recipes(self):
+        return db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True).where(Recipe.user_id == self.id)).all()
 
 
 class Recipe(db.Model):
@@ -103,6 +102,7 @@ class Recipe(db.Model):
         primaryjoin=(saved_recipes_table.c.recipe_id == id),
         back_populates='users_saved_recipes',
         passive_deletes=True)
+    
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
     def get_num_tag(self):
@@ -121,6 +121,9 @@ class Recipe(db.Model):
     
     def get_ingredient_use_cases(self):
         return db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all()
+    
+    def get_num_ingredients(self):
+        return len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all())
 
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
@@ -182,7 +185,7 @@ class RecipeIngredientUse(db.Model):
         return '<Recipe id: {} - ingredient: {} with {} {}>'.format(self.recipe_id, self.ingredient_id, self.amount, self.unit)
     
     def getName(self):
-        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first()
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
 
 
 class UserIngredientListUse(db.Model):
