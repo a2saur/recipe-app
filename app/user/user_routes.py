@@ -12,12 +12,12 @@ from app.user import user_blueprint as bp_user
 
 
 @bp_user.route('/user/profile', methods=['GET','POST'])
-# @login_required
+@login_required
 def display_profile():
     return render_template('profile.html', title="User Profile", user=current_user)
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
-# @login_required
+@login_required
 def edit_profile():
     eform = EditForm()
     if eform.validate_on_submit():
@@ -38,16 +38,16 @@ def edit_profile():
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
-# @login_required
+@login_required
 def save_recipe(recipe_id):
     return
 
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
-# @login_required
+@login_required
 def remove_saved_recipe(recipe_id):
     return
 
 @bp_user.route('/user/ingredients', methods=['GET','POST'])
-# @login_required
+@login_required
 def view_ingredients():
     return render_template('profile.html', title="User Profile", user=current_user)
