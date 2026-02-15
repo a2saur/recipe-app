@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-import sys
 from flask import render_template, flash, redirect, url_for, request, jsonify
 import sqlalchemy as sqla
 from flask_login import current_user, login_required
@@ -328,7 +326,7 @@ def edit_profile():
 
 
 @bp_main.route('/ingredients', methods=['GET','POST'])
-# @login_required
+@login_required
 def view_ingredients():
     iform = IngredientSubmitForm(prefix="curr")
     gform = IngredientSubmitForm(prefix="groc")
@@ -358,7 +356,7 @@ def view_ingredients():
     return render_template('view_ingredients.html', title="Ingredients", ingredients=curr_ingredients, grocery_list=grocery_list, iform=iform, gform=gform)
 
 @bp_main.route('/ingredients/move_or_delete_grocery', methods=['POST'])
-# @login_required
+@login_required
 def move_or_delete_grocery():
     action = request.form.get('action')
     selected_grocery_ids = request.form.getlist('grocery_ids')
@@ -385,7 +383,7 @@ def move_or_delete_grocery():
     return redirect(url_for('main.view_ingredients'))
 
 @bp_main.route('/ingredients/delete_ingredient', methods=['POST'])
-# @login_required
+@login_required
 def delete_ingredient():
     selected_ingredient_ids = request.form.getlist('ingredient_ids')
     if not selected_ingredient_ids:

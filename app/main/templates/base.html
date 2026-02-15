@@ -35,8 +35,8 @@
                             <i class="bi bi-person-fill" style="margin-right:5px"></i>Profile
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('main.display_profile') }}" class="dropdown-item">View Profile</a></li>
-                            <li><a href="{{ url_for('main.edit_profile') }}" class="dropdown-item">Edit Profile</a></li>
+                            <li><a href="{{ url_for('user.display_profile') }}" class="dropdown-item">View Profile</a></li>
+                            <li><a href="{{ url_for('user.edit_profile') }}" class="dropdown-item">Edit Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a href="{{ url_for('auth.logout') }}" class="dropdown-item" style="color:#BB0000">Logout</a></li>
                         </ul>
@@ -54,13 +54,13 @@
                                 <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Post
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('main.createRecipe') }}" class="dropdown-item">Recipe</a></li>
+                                <li><a href="{{ url_for('recipe.create_recipe') }}" class="dropdown-item">Recipe</a></li>
                                 <li><a href="#" class="dropdown-item">Cookbook</a></li> <!-- TODO: change to create cookbook -->
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a href="{{ url_for('main.createRecipe') }}" class="btn btn-outline-dark">
+                            <a href="{{ url_for('recipe.create_recipe') }}" class="btn btn-outline-dark">
                                 <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Recipe
                             </a>
                         </li>

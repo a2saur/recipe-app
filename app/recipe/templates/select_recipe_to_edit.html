@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+
+<h1>Select Recipe</h1>
+<form action="" method="post">
+<table class="recipe-editing-table">
+    <tr>
+        <th class="info-col"></th>
+        <th class="remove-col"></th>
+    </tr>
+    <tr>
+        <td><button type="submit" name="select_button" value="new" class="btn btn-outline-success">
+            New Recipe Draft
+        </button></td>
+    </tr>
+    {% for recipeDraft in recipeOpts %}
+        <tr>
+            <td><button type="submit" name="select_button" value="{{recipeDraft.id}}" class="btn btn-outline-primary">
+                Edit 
+                {% if recipeDraft.title == "" %}
+                    Unnamed Recipe
+                {% else %}
+                    {{ recipeDraft.title }}
+                {% endif %}
+
+                - {{ recipeDraft.get_num_ingredients() }} Ingredients
+            </button></td>
+
+            <td><button type="submit" name="remove_button" value="{{recipeDraft.id}}" class="btn btn-danger"><i class="bi bi-trash-fill"></i></button></td>
+        </tr>
+    {% endfor %}
+</table>
+</form>
+  
+{% endblock %}
