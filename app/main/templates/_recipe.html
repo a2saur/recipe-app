@@ -3,7 +3,11 @@
     <a class="hidden-link" href="{{ url_for('recipe.view_recipe', recipe_id=recipe.id) }}">
         <div class="recipe-card-header bottom-line">
             <span>
+                {% if recipe.title | length <= 28 %}
                 <h5>{{ recipe.title }}</h5>
+                {% else %}
+                <h5>{{ recipe.title[:27] }}...</h5>
+                {% endif %}
                 <h7>Posted By: {{ recipe.writer.username }}</h7>
             </span>
             <span class="icon-button">
