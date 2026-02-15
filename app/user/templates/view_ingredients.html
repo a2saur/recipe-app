@@ -9,7 +9,7 @@
         <div class="col-md-6">
             <h3>Your Current Ingredients</h3>
             <div class="ingredient-form">
-            <form method="POST" action="{{ url_for('main.delete_ingredient') }}">
+            <form method="POST" action="{{ url_for('user.delete_ingredient') }}">
                 {{ iform.hidden_tag() }}
 
                 <table class="table">
@@ -56,7 +56,7 @@
         <div class="col-md-6">
             <h3>Grocery List</h3>
             <div class="grocery-form">
-            <form method="POST" action="{{ url_for('main.move_or_delete_grocery') }}">
+            <form method="POST" action="{{ url_for('user.move_or_delete_grocery') }}">
                 {{ gform.hidden_tag() }}
 
                 <table class="table">
