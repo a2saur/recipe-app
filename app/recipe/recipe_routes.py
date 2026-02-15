@@ -14,7 +14,7 @@ from app.recipe import recipe_blueprint as bp_recipe
 
 @bp_recipe.route('/recipe/<recipe_id>/view', methods=['GET'])
 # @login_required
-def viewRecipe(recipe_id):
+def view_recipe(recipe_id):
     theRecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if not (theRecipe is None):
         theIngredients = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()
@@ -47,10 +47,10 @@ def create_recipe():
                 )
                 db.session.add(recipeDraft)
                 db.session.commit()
-                return redirect(url_for('recipe.editRecipe', recipe_id=recipeDraft.id))
+                return redirect(url_for('recipe.edit_recipe', recipe_id=recipeDraft.id))
             else:
                 # old recipe
-                return redirect(url_for('recipe.editRecipe', recipe_id=int(buttonVal)))
+                return redirect(url_for('recipe.edit_recipe', recipe_id=int(buttonVal)))
         else:
             # delete recipe
             deleteRecipe(recipe_id=int(buttonVal))
@@ -59,7 +59,7 @@ def create_recipe():
 
 @bp_recipe.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
 # @login_required
-def editRecipe(recipe_id):
+def edit_recipe(recipe_id):
     # get the associated recipe draft
     recipeDraft = db.session.get(Recipe, recipe_id)
 
@@ -69,7 +69,7 @@ def editRecipe(recipe_id):
         ingredient_data = []
         for ingUseCase in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
             ingredient_data.append({
-                "ingredientName": ingUseCase.recipe_usecase_ingredient.name,
+                "ingredientName": ingUseCase.recipe_usecase_ingredient.name.capitalize(),
                 "quantity": ingUseCase.amount,
                 "unit": ingUseCase.unit,
                 "ingredient_id": ingUseCase.ingredient_id
@@ -120,7 +120,7 @@ def editRecipe(recipe_id):
             saveRecipeDraft(recipe_id=recipe_id, rform=rform)
 
             # redirect back to the edit recipe page
-            return redirect(url_for('recipe.editRecipe', recipe_id=recipe_id))
+            return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
         elif buttonVal == "save":
             # save changes + return to main
             saveRecipeDraft(recipe_id=recipe_id, rform=rform)
@@ -144,7 +144,7 @@ def editRecipe(recipe_id):
                 pass
 
             # redirect back to the edit recipe page
-            return redirect(url_for('recipe.editRecipe', recipe_id=recipe_id))
+            return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
     if recipeDraft.is_draft:
         return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True)
     else:

@@ -185,7 +185,7 @@ class RecipeIngredientUse(db.Model):
         return '<Recipe id: {} - ingredient: {} with {} {}>'.format(self.recipe_id, self.ingredient_id, self.amount, self.unit)
     
     def getName(self):
-        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first()
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
 
 
 class UserIngredientListUse(db.Model):

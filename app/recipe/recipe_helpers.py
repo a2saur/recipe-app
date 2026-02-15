@@ -43,14 +43,15 @@ def saveRecipeDraft(recipe_id, rform):
 
     # go through the ingredient fields in the form to check if the ingredients have been changed or added
     for ingredientRel in rform.ingredients:
+        ingredientName = ingredientRel.ingredientName.data.lower()
         # if statement to ignore blank ingredients
         if validRecipeIngredientUseForm(ingredientRel):
             # check if an ingredient with this name exists in the db
-            ingredientItem = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == ingredientRel.ingredientName.data)).first()
+            ingredientItem = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == ingredientName)).first()
             if ingredientItem is None:
                 # ingredient doesn't exist, so add it
                 # create and commit ingredient object to db
-                ingredientItem = Ingredient(name=ingredientRel.ingredientName.data)
+                ingredientItem = Ingredient(name=ingredientName)
                 db.session.add(ingredientItem)
                 db.session.commit()
                 # create and commit the ingredient use case to the db
@@ -129,6 +130,8 @@ def deleteRecipe(recipe_id):
     if therecipe is not None:
         for t in therecipe.get_tags():
             therecipe.tags.remove(t)
+        for ingredient in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
+            db.session.delete(ingredient)
         db.session.commit()
         db.session.delete(therecipe)
         db.session.commit()
