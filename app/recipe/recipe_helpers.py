@@ -123,3 +123,14 @@ def removeIngredient(recipe_id, ingredient_id):
         db.session.delete(ingredientToRemove)
         db.session.commit()
         flash("Successfully removed ingredient")
+
+def deleteRecipe(recipe_id):
+    therecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
+    if therecipe is not None:
+        for t in therecipe.get_tags():
+            therecipe.tags.remove(t)
+        db.session.commit()
+        db.session.delete(therecipe)
+        db.session.commit()
+        return True
+    return False

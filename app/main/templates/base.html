@@ -48,13 +48,13 @@
                                 <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Post
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('recipe.createRecipe') }}" class="dropdown-item">Recipe</a></li>
+                                <li><a href="{{ url_for('recipe.create_recipe') }}" class="dropdown-item">Recipe</a></li>
                                 <li><a href="#" class="dropdown-item">Cookbook</a></li> <!-- TODO: change to create cookbook -->
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a href="{{ url_for('recipe.createRecipe') }}" class="btn btn-outline-dark">
+                            <a href="{{ url_for('recipe.create_recipe') }}" class="btn btn-outline-dark">
                                 <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Recipe
                             </a>
                         </li>

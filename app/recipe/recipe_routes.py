@@ -24,9 +24,9 @@ def viewRecipe(recipe_id):
 
 @bp_recipe.route('/recipe/create', methods=['GET', 'POST'])
 # @login_required
-# createRecipe shows the current recipe drafts and the option to create a new one
+# create_recipe shows the current recipe drafts and the option to create a new one
 # the user will select one of these options and the system will redirect correspondingly
-def createRecipe():
+def create_recipe():
     # get recipe drafts
     if request.method == "GET":
         recipeDrafts = current_user.get_drafted_recipes()
@@ -53,7 +53,8 @@ def createRecipe():
                 return redirect(url_for('recipe.editRecipe', recipe_id=int(buttonVal)))
         else:
             # delete recipe
-            return url_for('recipe.delete', recipe_id=int(buttonVal))
+            deleteRecipe(recipe_id=int(buttonVal))
+            return redirect(url_for('recipe.create_recipe'))
 
 
 @bp_recipe.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
@@ -152,12 +153,9 @@ def editRecipe(recipe_id):
 @bp_recipe.route('/recipe/<recipe_id>/delete', methods=['POST'])
 # @login_required
 def delete(recipe_id):
-    therecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
-    if therecipe is not None:
-        for t in therecipe.get_tags():
-            therecipe.tags.remove(t)
-        db.session.commit()
-        db.session.delete(therecipe)
-        db.session.commit()
-        flash('The recipe {} has been successfully deleted'.format(therecipe.title))
-        return redirect(url_for('main.index'))
+    result = deleteRecipe(recipe_id)
+    if result:
+        flash('Recipe has been successfully deleted')
+    else:
+        flash('Error: recipe failed to delete')
+    return redirect(url_for('main.index'))
