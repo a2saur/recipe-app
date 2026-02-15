@@ -46,23 +46,19 @@ def become_certified():
     db.session.commit()
     return redirect(url_for('user.display_profile'))
 
-@bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST', 'GET'])
+@bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required
 def save_recipe(recipe_id):
     theRecipe = db.session.get(Recipe, recipe_id)
     is_saved = theRecipe in current_user.get_saved()
     if is_saved:
         flash('You have already saved this recipe!')
-        return redirect(url_for('main.index'))
     else:
         current_user.saved_recipes.add(theRecipe)
         db.session.commit()
         theRecipe.save_count += 1
         db.session.commit()
-        new_recipe = db.session.get(Recipe, recipe_id)
-        data = {'recipe_id': new_recipe.id,
-                'saved_count': new_recipe.save_count}
-        return jsonify(data)
+    return redirect(url_for('main.index'))
 
     
 

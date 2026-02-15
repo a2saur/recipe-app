@@ -147,11 +147,18 @@
         display: none;
         margin-left: 5px;
     }
+    .button-count {
+        display: inline;
+    }
 }
 
 .icon-button:hover {
     .button-description {
         display: inline;
+    }
+    .button-count {
+        display: none;
+        margin-left: 5px;
     }
 }
 
