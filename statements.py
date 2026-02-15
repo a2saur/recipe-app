@@ -5,3 +5,5 @@ import sqlalchemy as sqla
 theUser = db.session.scalars(sqla.select(User).where(User.username == "Insert Username")).first()
 theUser.is_certified = False
 db.session.commit()
+
+# Change save count 

@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse
+from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
 from app.user.user_forms import EditForm
 from app.recipe.recipe_forms import IngredientSubmitForm
@@ -46,10 +46,25 @@ def become_certified():
     db.session.commit()
     return redirect(url_for('user.display_profile'))
 
-@bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
+@bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST', 'GET'])
 @login_required
 def save_recipe(recipe_id):
-    return
+    theRecipe = db.session.get(Recipe, recipe_id)
+    is_saved = theRecipe in current_user.get_saved()
+    if is_saved:
+        flash('You have already saved this recipe!')
+        return redirect(url_for('main.index'))
+    else:
+        current_user.saved_recipes.add(theRecipe)
+        db.session.commit()
+        theRecipe.save_count += 1
+        db.session.commit()
+        new_recipe = db.session.get(Recipe, recipe_id)
+        data = {'recipe_id': new_recipe.id,
+                'saved_count': new_recipe.save_count}
+        return jsonify(data)
+
+    
 
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
 @login_required
