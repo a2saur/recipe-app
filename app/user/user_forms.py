@@ -29,3 +29,4 @@ class EditForm(FlaskForm):
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
+        
