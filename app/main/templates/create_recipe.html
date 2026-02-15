@@ -15,35 +15,41 @@
         {{ wtf.form_field(form.tags) }}
 
 
-        <table class="ingredients-form">
-            <tr>
-                <th>Ingredient Name</th>
-                <th>Quantity</th>
-                <th>Units</th>
-                <th></th>
-            </tr>
-        {% for ingredient in form.ingredients %}
-            <tr>
-                {% if ingredient.ingredientName.data %}
-                <td>{{ ingredient.ingredientName.data }}</td>
-                {% else %}
-                <td>{{ ingredient.ingredientName() }}</td>
-                {% endif %}
-                <td>{{ ingredient.quantity() }}</td>
-                <td>{{ ingredient.unit() }}</td>
-                <td><button type="submit" name="action_button" value="{{ingredient.ingredient_id.data}}" class="form-ingredient-remove">Remove</button></td>
-            </tr>
-        {% endfor %}
-        </table>
-        <button type="submit" name="action_button" value="add" class="form-ingredient-add">Add ingredient</button>
+        <div class="ingredient-form">
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Ingredient Name</th>
+                    <th>Quantity</th>
+                    <th>Units</th>
+                    <th></th>
+                </tr>
+                {% for ingredient in form.ingredients %}
+                    <tr>
+                        <td><button type="submit" name="action_button" value="{{ingredient.ingredient_id.data}}" class="btn btn-outline-danger remove-btn">X</button></td>
+                        {% if ingredient.ingredientName.data %}
+                        <td>{{ ingredient.ingredientName.data }}</td>
+                        {% else %}
+                        <td>{{ ingredient.ingredientName() }}</td>
+                        {% endif %}
+                        <td>{{ ingredient.quantity() }}</td>
+                        <td>{{ ingredient.unit() }}</td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <th></th>
+                    <th><button type="submit" name="action_button" value="add" class="btn btn-outline-primary">Add ingredient</button></th>
+                </tr>
+            </table>
+        </div>
         
         {{ wtf.form_field(form.steps) }}
         <!-- {{ wtf.form_field(form.submit) }} -->
         {% if is_draft %}
-            <button type="submit" name="action_button" value="save" class="form-ingredient-save">Save Draft and Return</button>
-            <button type="submit" name="action_button" value="post" class="form-ingredient-post">Post</button>
+            <button type="submit" name="action_button" value="save" class="btn btn-outline-success">Save Draft and Return</button>
+            <button type="submit" name="action_button" value="post" class="btn btn-primary">Post</button>
         {% else %}
-            <button type="submit" name="action_button" value="post" class="form-ingredient-post">Save and Return to Main</button>
+            <button type="submit" name="action_button" value="post" class="btn btn-primary">Save and Return to Main</button>
         {% endif %}
     </form>
 
