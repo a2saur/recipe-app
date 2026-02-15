@@ -21,8 +21,14 @@
     </div>
      
     {% if user.id == current_user.id %}
+        <div class="d-flex">
         <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mt-3 fs-5">Edit profile</a></p>
+        {%if not user.is_certified%}
+        <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mt-3 mx-3 fs-5">Become Certified</a></p>
+        {%endif%}
+        </div>
     {% endif %}
+
 
     <hr class="solid">
 

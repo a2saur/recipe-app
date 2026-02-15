@@ -5,6 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
+from app.main.models import User
 
 from app.user.user_forms import EditForm
 
@@ -36,6 +37,13 @@ def edit_profile():
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
+
+@bp_user.route('/user/profile/certify', methods=['GET'])
+@login_required
+def become_certified():
+    current_user.is_certified = True
+    db.session.commit()
+    return redirect(url_for('user.display_profile'))
 
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required
