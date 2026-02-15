@@ -76,7 +76,7 @@ class Recipe(db.Model):
     # --- ATTRIBUTES ---
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
-    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(1500), default="")
+    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
     servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
     estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
     steps : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String, default="")

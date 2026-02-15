@@ -19,12 +19,15 @@
             <p>{{ recipe.description }}</p>
         </div>
 
+        
         <div class = "recipe-card-tags bottom-line">
             {% if recipe.get_num_tag() > 6 %}
                 {% for tag in recipe.get_tags()[:5] %}
                     {{tag.name}} 
                 {% endfor %}
                 +{{ recipe.get_num_tag()-5 }} more
+            {% elif recipe.get_num_tag() == 0%}
+                No Tags
             {% else %}
                 {% for tag in recipe.get_tags() %}
                     {{tag.name}} 

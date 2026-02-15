@@ -17,7 +17,7 @@ class IngredientForm(Form):
 
 class RecipeForm(FlaskForm):
     title = StringField('Title')
-    description = TextAreaField('Description', validators=[Length(max=1500)])
+    description = TextAreaField('Description', validators=[Length(max=215)])
     servingSize = FloatField('Serving Size', default=0.0, validators=[Optional()])
     estimatedTime = StringField('Estimated Time', validators=[Length(max=25)])
     tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
