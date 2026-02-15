@@ -23,7 +23,7 @@ def view_recipe(recipe_id):
 
 
 @bp_recipe.route('/recipe/create', methods=['GET', 'POST'])
-# @login_required
+@login_required
 # create_recipe shows the current recipe drafts and the option to create a new one
 # the user will select one of these options and the system will redirect correspondingly
 def create_recipe():

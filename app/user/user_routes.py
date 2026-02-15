@@ -5,6 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
+from app.main.models import User
 
 from app.user.user_forms import EditForm
 
@@ -12,12 +13,12 @@ from app.user import user_blueprint as bp_user
 
 
 @bp_user.route('/user/profile', methods=['GET','POST'])
-# @login_required
+@login_required
 def display_profile():
     return render_template('profile.html', title="User Profile", user=current_user)
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
-# @login_required
+@login_required
 def edit_profile():
     eform = EditForm()
     if eform.validate_on_submit():
@@ -37,17 +38,24 @@ def edit_profile():
         eform.email.data = current_user.email
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
+@bp_user.route('/user/profile/certify', methods=['GET'])
+@login_required
+def become_certified():
+    current_user.is_certified = True
+    db.session.commit()
+    return redirect(url_for('user.display_profile'))
+
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
-# @login_required
+@login_required
 def save_recipe(recipe_id):
     return
 
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
-# @login_required
+@login_required
 def remove_saved_recipe(recipe_id):
     return
 
 @bp_user.route('/user/ingredients', methods=['GET','POST'])
-# @login_required
+@login_required
 def view_ingredients():
     return render_template('profile.html', title="User Profile", user=current_user)
