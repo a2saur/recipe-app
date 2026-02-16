@@ -15,17 +15,15 @@
 
         {{ sortform.refresh(class="btn btn-primary btn-sm ms-2") }}
     </form>
-    <button onclick="toggleBlock()">Filter</button>
-        <form method="POST" class="d-flex align-items-center gap-1">
-            {{ filterform.hidden_tag() }}
+    <form method="POST" class="d-flex align-items-center gap-1">
+        {{ filterform.hidden_tag() }}
 
-            <div class="d-flex align-items-center">
-                <label class="me-2 mb-0 small text-secondary text-nowrap">Filter Tags: </label>
-                {{ filterform.tags(class="form-select form-select-sm", style="width: auto;") }}
-            </div>
-
-            {{ sortform.refresh(class="btn btn-primary btn-sm ms-2") }}
-        </form>
+        <div class="d-flex align-items-center">
+            <label class="me-2 mb-0 small text-secondary text-nowrap">Filter Tags: </label>
+            {{ filterform.tags(class="form-select form-select-sm", style="width: auto;") }}
+        </div>
+        {{ filterform.refresh(class="btn btn-primary btn-sm ms-2") }}
+    </form>
 
 </div>
     <div class="recipe-card-collection">

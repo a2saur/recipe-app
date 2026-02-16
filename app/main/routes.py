@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
-from app.main.forms import RecipeForm, IngredientSubmitForm, EmptyForm, SortForm, EditForm
+from app.main.forms import RecipeForm, IngredientSubmitForm, EmptyForm, SortForm, EditForm, FilterForm
 from app.auth.auth_forms import RegistrationForm
 
 from app.main import main_blueprint as bp_main
@@ -18,8 +18,13 @@ def index():
     sort_form = SortForm()
     filter_form = FilterForm()
     if request.method == 'POST':
+        base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
+        if filter_form.validate_on_submit():
+            
+            base_query = sqla.select(Recipe).where(Recipe).join(Recipe.tags).filter(Tag.id.in_())
+            # for t in filter_form.tags.data :
+            #     .tags.add(t)
         if sort_form.validate_on_submit():
-            base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
             if sort_form.sortby.data == "Title":
                 recipes = base_query.order_by(Recipe.title)
             else:
@@ -27,4 +32,4 @@ def index():
     if request.method == 'GET':
         recipes = sqla.select(Recipe).where(Recipe.is_draft == False).order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
-    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form)
+    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form, filterform = filter_form)
