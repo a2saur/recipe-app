@@ -10,18 +10,24 @@ from app.auth.auth_forms import RegistrationForm
 from app.main import main_blueprint as bp_main
 
 
-@bp_main.route('/', methods=['GET'])
+@bp_main.route('/', methods=['GET', 'POST'])
 @bp_main.route('/index', methods=['GET', 'POST'])
 # @login_required
 def index():
     empty_form = EmptyForm()
     sort_form = SortForm()
     filter_form = FilterForm()
+    base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
     if request.method == 'POST':
-        base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
         if filter_form.validate_on_submit():
-            
-            base_query = sqla.select(Recipe).where(Recipe).join(Recipe.tags).filter(Tag.id.in_())
+            tag_list = [tag.name for tag in filter_form.tags.data]
+            if len(tag_list) > 0:
+                if filter_form.all_selected.data:
+                    for tag in tag_list:
+                        base_query = base_query.filter(Recipe.tags.any(Tag.name == tag))
+                else:
+                    base_query = base_query.filter(Recipe.tags.any(Tag.name.in_(tag_list)))
+            recipes = base_query.order_by(Recipe.timestamp.desc())
             # for t in filter_form.tags.data :
             #     .tags.add(t)
         if sort_form.validate_on_submit():
@@ -30,6 +36,6 @@ def index():
             else:
                 recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
-        recipes = sqla.select(Recipe).where(Recipe.is_draft == False).order_by(Recipe.timestamp.desc())
+        recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
     return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form, filterform = filter_form)

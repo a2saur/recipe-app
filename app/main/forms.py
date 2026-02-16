@@ -45,6 +45,7 @@ class FilterForm(FlaskForm):
     tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
                                     get_label= lambda tag: tag.name,
                                     render_kw={"class": "form-control", "size": "1"})
+    all_selected = BooleanField('All Selected')
     # date
     # likes
     # certifieduser
