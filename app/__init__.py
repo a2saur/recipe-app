@@ -33,6 +33,18 @@ def create_app(config_class=Config):
     auth.template_folder = Config.TEMPLATE_FOLDER_AUTH
     app.register_blueprint(auth)
 
+    from app.user import user_blueprint as user
+    user.template_folder = Config.TEMPLATE_FOLDER_USER
+    app.register_blueprint(user)
+
+    from app.recipe import recipe_blueprint as recipe
+    recipe.template_folder = Config.TEMPLATE_FOLDER_RECIPE
+    app.register_blueprint(recipe)
+
+    from app.cookbook import cookbook_blueprint as cookbook
+    cookbook.template_folder = Config.TEMPLATE_FOLDER_COOKBOOK
+    app.register_blueprint(cookbook)
+
     from app.errors import error_blueprint as errors
     errors.template_folder = Config.TEMPLATE_FOLDER_ERRORS
     app.register_blueprint(errors)

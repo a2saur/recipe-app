@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+    
+    <div class="d-flex align-items-center"> 
+        {% if user.is_certified %}
+        <!-- Bootrstrap star ICON -->
+        <i class="bi bi-star-fill fs-3 me-2 mb-2"></i>
+        {% endif %}
+        <h1>{{ user.first_name }} {{ user.last_name }}'s Profile</h1>
+    </div>
+    
+    <br>
+    <div class="border rounded-3 bg-light p-3">
+        <p> <b>Username:</b>  {{ user.username }} </p>
+        <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
+        <p> <b> Email: </b> {{ user.email }}</p>
+    </div>
+     
+    {% if user.id == current_user.id %}
+        <div class="d-flex">
+        <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mt-3 fs-5">Edit profile</a></p>
+        {%if not user.is_certified%}
+        <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mt-3 mx-3 fs-5">Become Certified</a></p>
+        {%endif%}
+        </div>
+    {% endif %}
+
+    <hr class="solid">
+    
+    <div class="d-flex"> 
+        <i class="bi bi-pin-angle-fill mt-1 mb-2 fs-5"></i><h4 style="margin-left: 5px;">{{user.first_name}}'s Saved Recipes</h4>
+    </div>
+    <div class="recipe-card-collection">
+        {% for recipe in recipes %}
+            <div class="recipe-card">{% include '_recipe.html' %} </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

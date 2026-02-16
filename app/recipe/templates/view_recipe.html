@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+
+<div class="recipe-page">
+    <div class="recipe-page-header bottom-line">
+        <div class="recipe-page-details">
+            <span class="d-flex">
+                {% if recipe.writer.is_certified %}
+                <i class="bi bi-star-fill fs-1 me-3 mb-3"></i>
+                {%endif%}
+                <h1 class="recipe-page-title"> {{recipe.title}} </h1>
+            </span>
+            <span style="text-align:right;">
+                {{recipe.servingSize}}<i class="bi bi-person-fill" style="padding-left:5px"></i>
+                <br>
+                {{recipe.estimatedTime}}<i class="bi bi-stopwatch" style="padding-left:5px"></i>
+            </span>
+        </div>
+
+        <div class="recipe-page-description">
+            {{recipe.description}}
+        </div>
+
+        <div class="recipe-page-details">
+            <span>Posted by: {{recipe.writer.username}}</span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>
+            <div class="recipe-page-details">
+                {% if recipe.writer.id == current_user.id %}
+                    <span style="margin-right:5px;"><form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i><span style="margin:5px">Delete</span>
+                        </button>
+                    </form></span>
+                    <span style="margin-right:5px;"><form action="{{ url_for('recipe.edit_recipe', recipe_id=recipe.id) }}" method="get">
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="bi bi-pencil-square"></i><span style="margin:5px">Edit</span>
+                        </button>
+                    </form></span>
+                {% endif %}
+                {% if recipe in current_user.get_saved()%}
+                <span class="icon-button" style="margin-right:5px;"><form action="{{url_for('user.remove_saved_recipe', recipe_id=recipe.id)}}" method="post">
+                        <button type="submit" class="btn btn-danger pink">
+                            <i style="margin-right:1px;">{{recipe.save_count}}</i><i class="bi bi-pin-angle-fill"></i><span style="margin-left:5px;">Remove</span>
+                        </button>
+                </form></span>
+                {%else%}
+                <span class="icon-button" style="margin-right:5px;"><form action="{{url_for('user.save_recipe', recipe_id=recipe.id)}}" method="post">
+                        <button type="submit" class="btn btn-success">
+                            <i style="margin-right:1px;">{{recipe.save_count}}</i><i class="bi bi-pin-angle"></i><span style="margin-left:5px;">Save</span>
+                        </button>
+                </form></span>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+
+    <div class="recipe-page-content">
+        <div class="recipe-page-steps">
+            <h3 class="recipe-page-subtitle">Directions</h3>
+            <p>
+                {{recipe.steps}}
+            </p>
+        </div>
+
+        <div class="recipe-page-ingredients">
+            <h3 class="recipe-page-subtitle">Ingredients</h3>
+            <ul>
+                {% for ingredient in ingredients %}
+                    <li class="recipe-page-ingredient-item"> {{ingredient.amount}} {{ingredient.unit}} of {{ingredient.getName()}} </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+    
+  
+{% endblock %}
