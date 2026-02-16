@@ -16,7 +16,8 @@ from app.user import user_blueprint as bp_user
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
 def display_profile():
-    return render_template('profile.html', title="User Profile", user=current_user)
+    recipes = current_user.get_saved()
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes)
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
 @login_required
@@ -58,7 +59,11 @@ def save_recipe(recipe_id):
         db.session.commit()
         theRecipe.save_count += 1
         db.session.commit()
-    return redirect(url_for('main.index'))
+
+    if request.referrer is not None:
+        return redirect(request.referrer)
+    else:
+        return redirect(url_for('main.index'))
 
     
 
