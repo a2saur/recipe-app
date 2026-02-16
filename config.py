@@ -17,3 +17,4 @@ class Config(object):
     TEMPLATE_FOLDER_USER = os.path.join(basedir, 'app//user//templates')
     TEMPLATE_FOLDER_RECIPE = os.path.join(basedir, 'app//recipe//templates')
     TEMPLATE_FOLDER_COOKBOOK = os.path.join(basedir, 'app//cookbook//templates')
+    IMG_UPLOAD_FOLDER = os.path.join(basedir, 'app//static//img//recipe-imgs')

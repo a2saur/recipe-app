@@ -5,16 +5,18 @@
 
     <h1>{{ title }}</h1>
 
-    <form action="{{ url_for('recipe.edit_recipe', recipe_id=recipe_id) }}" method="post">
+    <form action="{{ url_for('recipe.edit_recipe', recipe_id=recipe_id) }}" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         {{ wtf.form_field(form.title) }}
+        {{ wtf.form_field(form.pictFile) }}
         {{ wtf.form_field(form.description) }}
         {{ wtf.form_field(form.servingSize) }}
         {{ wtf.form_field(form.estimatedTime) }}
         {{ wtf.form_field(form.tags) }}
 
 
+        Ingredients*
         <div class="ingredient-form">
             <table>
                 <tr>
@@ -43,6 +45,7 @@
             </table>
         </div>
         
+        <br>
         {{ wtf.form_field(form.steps) }}
         <!-- {{ wtf.form_field(form.submit) }} -->
         {% if is_draft %}

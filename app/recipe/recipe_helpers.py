@@ -10,6 +10,11 @@ from app.recipe.recipe_forms import RecipeForm
 
 from app.recipe import recipe_blueprint as bp_recipe
 
+# for file upload
+from werkzeug.utils import secure_filename
+import uuid
+import os
+
 
 # checks that the ingredient form is valid, used before saving an ingredient use
 def validRecipeIngredientUseForm(ingredientRel):
@@ -24,12 +29,16 @@ def validRecipeIngredientUseForm(ingredientRel):
 
 
 # saves the data in the recipe form
-def saveRecipeDraft(recipe_id, rform):
+def saveRecipeDraft(recipe_id, rform, pictFilePath=""):
     # get recipe object from the db
     recipeDraft = db.session.get(Recipe, recipe_id)
 
     # change and commit basic recipe data from the form
     recipeDraft.title = rform.title.data
+    if pictFilePath == "":
+        pass
+    else:
+        recipeDraft.pictFile = pictFilePath
     recipeDraft.description = rform.description.data
     recipeDraft.servingSize = rform.servingSize.data
     recipeDraft.estimatedTime = rform.estimatedTime.data

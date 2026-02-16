@@ -143,6 +143,7 @@ class Recipe(db.Model):
     # --- ATTRIBUTES ---
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
+    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
     servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
     estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
