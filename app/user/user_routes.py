@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse
+from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
 from app.user.user_forms import EditForm
 from app.recipe.recipe_forms import IngredientSubmitForm
@@ -16,7 +16,8 @@ from app.user import user_blueprint as bp_user
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
 def display_profile():
-    return render_template('profile.html', title="User Profile", user=current_user)
+    recipes = current_user.get_saved()
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes)
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
 @login_required
@@ -49,7 +50,22 @@ def become_certified():
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required
 def save_recipe(recipe_id):
-    return
+    theRecipe = db.session.get(Recipe, recipe_id)
+    is_saved = theRecipe in current_user.get_saved()
+    if is_saved:
+        flash('You have already saved this recipe!')
+    else:
+        current_user.saved_recipes.add(theRecipe)
+        db.session.commit()
+        theRecipe.save_count += 1
+        db.session.commit()
+
+    if request.referrer is not None:
+        return redirect(request.referrer)
+    else:
+        return redirect(url_for('main.index'))
+
+    
 
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
 @login_required

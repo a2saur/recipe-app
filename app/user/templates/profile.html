@@ -29,7 +29,15 @@
         </div>
     {% endif %}
 
-
     <hr class="solid">
+    
+    <div class="d-flex"> 
+        <i class="bi bi-pin-angle-fill mt-2 fs-5"></i><h4 style="margin-left: 5px;">{{user.first_name}}'s Saved Recipes</h4>
+    </div>
+    <div class="recipe-card-collection">
+        {% for recipe in recipes %}
+            <div class="recipe-card">{% include '_recipe.html' %} </div>
+        {% endfor %}
+    </div>
 
 {% endblock %}
