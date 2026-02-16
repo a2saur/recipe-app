@@ -33,11 +33,19 @@
                         </button>
                     </form></span>
                 {% endif %}
-                <span class="icon-button" style="margin-right:5px;"><form action="" method="post">
+                {% if recipe in current_user.get_saved()%}
+                <span class="icon-button" style="margin-right:5px;"><form action="{{url_for('user.remove_saved_recipe', recipe_id=recipe.id)}}" method="post">
+                        <button type="submit" class="btn btn-danger pink">
+                            <i style="margin-right:1px;">{{recipe.save_count}}</i><i class="bi bi-pin-angle-fill"></i><span style="margin-left:5px;">Remove</span>
+                        </button>
+                </form></span>
+                {%else%}
+                <span class="icon-button" style="margin-right:5px;"><form action="{{url_for('user.save_recipe', recipe_id=recipe.id)}}" method="post">
                         <button type="submit" class="btn btn-success">
                             <i style="margin-right:1px;">{{recipe.save_count}}</i><i class="bi bi-pin-angle"></i><span style="margin-left:5px;">Save</span>
                         </button>
                 </form></span>
+                {%endif%}
             </div>
         </div>
     </div>

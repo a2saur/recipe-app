@@ -175,6 +175,17 @@
     color: white;
 }
 
+.btn-danger.pink{
+    border-color: palevioletred;
+    background-color: palevioletred;
+    color: white;
+}
+
+.btn-danger:hover.pink{
+    border-color: rgb(155, 72, 99);;
+    background-color: rgb(155, 72, 99);
+}
+
 
 /* Recipe page */
 .recipe-page {
