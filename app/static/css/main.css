@@ -162,6 +162,20 @@
     }
 }
 
+/* Pink Button */
+.btn-outline-danger.pink {
+    border-color: palevioletred;
+    background-color: palevioletred;
+    color: white;
+}
+
+.btn-outline-danger:hover.pink {
+    border-color: rgb(155, 72, 99);;
+    background-color: rgb(155, 72, 99);
+    color: white;
+}
+
+
 /* Recipe page */
 .recipe-page {
     border: 1px solid;
