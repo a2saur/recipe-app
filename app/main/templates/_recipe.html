@@ -11,11 +11,19 @@
                 <h7>Posted By: {{ recipe.writer.username }}</h7>
             </span>
             <span class="icon-button">
+                {% if recipe in current_user.get_saved()%}
+                <form action="{{ url_for('user.remove_saved_recipe', recipe_id=recipe.id)}}" method="post">
+                    <button type="submit" class="btn btn-outline-danger pink btn-sm">
+                        <i class="bi bi-pin-angle-fill"></i><span class="button-count"> {{ recipe.save_count }} </span><span class="button-description">Remove</span>
+                    </button>
+                </form>
+                {%else%}
                 <form action="{{ url_for('user.save_recipe', recipe_id=recipe.id)}}" method="post">
                     <button type="submit" class="btn btn-outline-success btn-sm">
                         <i class="bi bi-pin-angle"></i><span class="button-count"> {{ recipe.save_count }} </span><span class="button-description">Save</span>
                     </button>
                 </form>
+                {%endif%}
             </span>
         </div>
 

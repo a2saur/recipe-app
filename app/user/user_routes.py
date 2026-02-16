@@ -65,15 +65,26 @@ def save_recipe(recipe_id):
     else:
         return redirect(url_for('main.index'))
 
-    
-
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
 @login_required
 def remove_saved_recipe(recipe_id):
-    return
+    theRecipe = db.session.get(Recipe, recipe_id)
+    is_saved = theRecipe in current_user.get_saved()
+    if not is_saved:
+        flash("You haven't saved this recipe yet!")
+    else:
+        current_user.saved_recipes.remove(theRecipe)
+        db.session.commit()
+        theRecipe.save_count -= 1
+        db.session.commit()
+
+    if request.referrer is not None:
+        return redirect(request.referrer)
+    else:
+        return redirect(url_for('main.index'))
 
 @bp_user.route('/user/ingredients', methods=['GET','POST'])
-# @login_required
+@login_required
 def view_ingredients():
     iform = IngredientSubmitForm(prefix="curr")
     gform = IngredientSubmitForm(prefix="groc")
