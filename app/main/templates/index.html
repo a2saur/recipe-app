@@ -5,6 +5,12 @@
 
 <div class="d-flex justify-content-between align-items-center">
     <h1 >Welcome!</h1>
+
+    <ul class="pagination pagination-sm">
+        <li class="page-item active" id="recipe-tab"><a class="page-link" aria-current="page">Recipes</a></li>
+        <li class="page-item" id="cookbook-tab"><a class="page-link" href="{{url_for('main.index', view_recipes=False)}}">Cookbooks</a></li>
+    </ul>
+
     <form method="POST" class="d-flex align-items-center gap-1">
         {{ sortform.hidden_tag() }}
 
@@ -17,12 +23,44 @@
     </form>
 
 </div>
-    <div class="recipe-card-collection">
+    <div class="recipe-card-collection" id="recipe-display">
         {% for recipe in recipes %}
             <div class="recipe-card">{% include '_recipe.html' %} </div>
         {% endfor %}
     </div>
+    <div class="cookbook-collection d-none" id="cookbook-display">
+        {% for recipe in recipes %}
+            <div class="cookbook-card">{% include '_cookbook.html' %} </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+window.onload = function() {
+    var recipeBtn = document.getElementById("recipe-tab");
+    var cookbookBtn = document.getElementById("cookbook-tab");
     
+    var recipes = document.getElementById("recipe-display");
+    var cookbooks = document.getElementById("cookbook-display");
+
+    recipeBtn.addEventListener("click", function(e){
+        e.preventDefault();
+        recipeBtn.classList.add("active");
+        cookbookBtn.classList.remove("active");
+
+        recipes.classList.remove("d-none");
+        cookbooks.classList.add("d-none");
+    })
+
+    cookbookBtn.addEventListener("click", function(e){
+        e.preventDefault();
+        recipeBtn.classList.remove("active");
+        cookbookBtn.classList.add("active");
+
+        recipes.classList.add("d-none");
+        cookbooks.classList.remove("d-none");
+    })
+}
+</script>
   
 {% endblock %}

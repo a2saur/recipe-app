@@ -20,7 +20,7 @@ def index(sort_data="Date"):
     if request.method == 'POST':
         sort_data = sort_form.sortby.data
         if sort_form.validate_on_submit():
-            if sort_data== "# of likes":
+            if sort_data== "# of saves":
                 recipes = base_query.order_by(Recipe.save_count.desc())
             elif sort_data == "Certified":
                 recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
