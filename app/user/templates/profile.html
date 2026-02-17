@@ -16,6 +16,10 @@
         <p> <b>Username:</b>  {{ user.username }} </p>
         <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
         <p> <b> Email: </b> {{ user.email }}</p>
+        <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
+        {% if user.is_certified %}
+            <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
+        {% endif %}
     </div>
      
     {% if user.id == current_user.id %}
