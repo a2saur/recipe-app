@@ -9,7 +9,17 @@
         {{ form.hidden_tag() }}
 
         {{ wtf.form_field(form.title) }}
+
         {{ wtf.form_field(form.pictFile) }}
+        {% if pictFile %}
+        <span style="color:green">Current uploaded image:<br></span>
+        <img src="{{url_for('static', filename=pictFile)}}" style="height:200px">
+        {% else %}
+        <span style="color:red">No image currently uploaded</span>
+        {% endif %}
+        <br>
+        <br>
+        
         {{ wtf.form_field(form.description) }}
         {{ wtf.form_field(form.servingSize) }}
         {{ wtf.form_field(form.estimatedTime) }}

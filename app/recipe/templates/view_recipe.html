@@ -20,7 +20,7 @@
         </div>
 
         <div class="recipe-page-description">
-            <img src="{{url_for('static', filename=img_path)}}" class="recipe-page-image">
+            <img src="{{url_for('static', filename=recipe.get_pict_path())}}" class="recipe-page-image">
             {{recipe.description}}
         </div>
 

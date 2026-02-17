@@ -17,7 +17,7 @@ def view_recipe(recipe_id):
     theRecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if not (theRecipe is None):
         theIngredients = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()
-        return render_template('view_recipe.html', recipe = theRecipe, ingredients = theIngredients, img_path=os.path.join("img/recipe-imgs", theRecipe.pictFile))
+        return render_template('view_recipe.html', recipe = theRecipe, ingredients = theIngredients)
     return redirect(url_for('main.index'))
 
 
@@ -97,11 +97,8 @@ def edit_recipe(recipe_id):
         buttonVal = request.form.get('action_button') # get which button was pressed
         if buttonVal == "post":
             # post recipe
-            # save uploaded image filename
-            picture = request.files['pictFile']
-            pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
             # save changes
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform, pictFilePath=pictName)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
             errors = validateRecipeDraftForPost(recipe_id)
             # validate recipe draft, check that there are no errors
             if len(errors) == 0:
@@ -109,12 +106,6 @@ def edit_recipe(recipe_id):
                 newRecipe = db.session.get(Recipe, recipe_id)
                 newRecipe.is_draft = False
                 db.session.commit()
-
-                # save uploaded image
-                basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
-                img_path = os.path.join(basedir, pictName)
-                print(img_path)
-                picture.save(img_path)
 
                 # redirect to main
                 return redirect(url_for('main.index'))
@@ -125,13 +116,13 @@ def edit_recipe(recipe_id):
             # add ingredient
 
             # save changes
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
 
             # redirect back to the edit recipe page
             return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
         elif buttonVal == "save":
             # save changes + return to main
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
             return redirect(url_for('main.index'))
         else:
             try:
@@ -139,7 +130,7 @@ def edit_recipe(recipe_id):
                 buttonVal = int(buttonVal)
 
                 # save changes
-                saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+                saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
 
                 # remove ingredient
                 if recipeDraft.is_draft: # if recipe is posted, make sure there's still one ingredient
@@ -154,9 +145,9 @@ def edit_recipe(recipe_id):
             # redirect back to the edit recipe page
             return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
     if recipeDraft.is_draft:
-        return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True)
+        return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True, pictFile=recipeDraft.get_pict_path())
     else:
-        return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False)
+        return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False, pictFile=recipeDraft.get_pict_path())
 
 @bp_recipe.route('/recipe/<recipe_id>/delete', methods=['POST'])
 # @login_required

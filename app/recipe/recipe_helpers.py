@@ -29,16 +29,12 @@ def validRecipeIngredientUseForm(ingredientRel):
 
 
 # saves the data in the recipe form
-def saveRecipeDraft(recipe_id, rform, pictFilePath=""):
+def saveRecipeDraft(recipe_id, rform, picture=None):
     # get recipe object from the db
     recipeDraft = db.session.get(Recipe, recipe_id)
 
     # change and commit basic recipe data from the form
     recipeDraft.title = rform.title.data
-    if pictFilePath == "":
-        pass
-    else:
-        recipeDraft.pictFile = pictFilePath
     recipeDraft.description = rform.description.data
     recipeDraft.servingSize = rform.servingSize.data
     recipeDraft.estimatedTime = rform.estimatedTime.data
@@ -91,6 +87,16 @@ def saveRecipeDraft(recipe_id, rform, pictFilePath=""):
                     ingredientUse.amount = ingredientRel.quantity.data
                     ingredientUse.unit = ingredientRel.unit.data
                     db.session.commit()
+
+    # save uploaded image
+    basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
+    # save uploaded image filename
+    if picture is not None and picture.filename != "":
+        pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
+        img_path = os.path.join(basedir, pictName)
+        recipeDraft.pictFile = pictName
+        picture.save(img_path)
+    db.session.commit()
 
 # check if the recipe draft is publishable
 def validateRecipeDraftForPost(recipe_id):
