@@ -16,8 +16,12 @@ from app.user import user_blueprint as bp_user
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
 def display_profile():
-    recipes = current_user.get_saved()
-    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes)
+    view = request.args.get('view', 'saved')
+    if view =='mine':
+        recipes = current_user.get_user_recipes()
+    else:
+        recipes = current_user.get_saved()
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view)
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
 @login_required
@@ -154,3 +158,4 @@ def delete_ingredient():
     db.session.commit()
     flash("Selected ingredients deleted.")
     return redirect(url_for('user.view_ingredients'))
+
