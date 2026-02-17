@@ -7,7 +7,7 @@ import sqlalchemy as sqla
 from app import db
 from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
-from app.user.user_forms import EditForm
+from app.user.user_forms import EditForm, BusinessForm
 from app.recipe.recipe_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
@@ -50,6 +50,39 @@ def become_certified():
     current_user.is_certified = True
     db.session.commit()
     return redirect(url_for('user.display_profile'))
+
+@bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
+@login_required
+def add_business():
+    if not current_user.is_certified:
+        flash('You must be a certified user to add a business')
+        return redirect(url_for('user.display_profile'))
+    bform = BusinessForm()
+    if bform.validate_on_submit():
+        current_user.business_name = bform.business_name.data
+        current_user.business_website = bform.business_website.data
+        db.session.commit()
+        flash('Your Business has been added!')
+        return redirect(url_for('user.display_profile'))
+    return render_template('business_form.html', title="Add Business Information", form=bform, form_action='user.add_business')
+
+@bp_user.route('/user/profile/business/edit', methods = ['GET', 'POST'])
+@login_required
+def edit_business():
+    if not current_user.is_certified:
+        flash('You must be a certified user to add a business')
+        return redirect(url_for('user.display_profile'))
+    bform = BusinessForm()
+    if request.method == 'GET':
+        bform.business_name.data = current_user.business_name
+        bform.business_website.data = current_user.business_website
+    if bform.validate_on_submit():
+        current_user.business_name = bform.business_name.data
+        current_user.business_website = bform.business_website.data
+        db.session.commit()
+        flash('Your Business has been updated!')
+        return redirect(url_for('user.display_profile'))
+    return render_template('business_form.html', title="Edit Business", form=bform, form_action='user.edit_business')
 
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required

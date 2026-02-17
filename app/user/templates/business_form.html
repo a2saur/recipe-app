@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+    <h1>{{title}}</h1>
+    <form action="{{url_for(form_action)}}" method = "POST">
+        {{form.hidden_tag()}}
+        {{wtf.form_field(form.business_name)}}
+        {{wtf.form_field(form.business_website)}}
+        <br>
+        
+        <div class="d-flex align-items-center gap-2 mt-3"> 
+            {{form.submit(class="btn btn-outline-success")}}
+            <a href="{{url_for('user.display_profile')}}" class = 'btn btn-outline-danger'>Cancel</a>
+        </div>
+    </form>
+{% endblock %}

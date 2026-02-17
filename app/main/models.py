@@ -38,6 +38,8 @@ class User(db.Model, UserMixin):
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
     # only true for certified users
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
+    business_name: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(120))
+    business_website: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(256))
 
     # --- RELATIONSHIPS ---
     # keeps track of what recipes this user has written
