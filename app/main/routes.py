@@ -27,9 +27,9 @@ def index():
                         base_query = base_query.filter(Recipe.tags.any(Tag.name == tag))
                 else:
                     base_query = base_query.filter(Recipe.tags.any(Tag.name.in_(tag_list)))
+            if filter_form.certified.data:
+                base_query = base_query.join(Recipe.writer).where(User.is_certified)
             recipes = base_query.order_by(Recipe.timestamp.desc())
-            # for t in filter_form.tags.data :
-            #     .tags.add(t)
         if sort_form.validate_on_submit():
             if sort_form.sortby.data == "Title":
                 recipes = base_query.order_by(Recipe.title)
