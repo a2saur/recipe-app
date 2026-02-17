@@ -12,24 +12,27 @@
     </div>
     
     <br>
-    <div class="border rounded-3 bg-light p-3">
-        <p> <b>Username:</b>  {{ user.username }} </p>
-        <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
-        <p> <b> Email: </b> {{ user.email }}</p>
-        <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
-        {% if user.is_certified %}
-            <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
+    <div class="border rounded-3 bg-light p-3 d-flex justify-content-between align-items-start">
+        <div> 
+            <p> <b>Username:</b>  {{ user.username }} </p>
+            <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
+            <p> <b> Email: </b> {{ user.email }}</p>
+            <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
+            {% if user.is_certified %}
+                <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
+            {% endif %}
+        </div>
+        {% if user.id == current_user.id %}
+            <div class = "d-flex flex-column align-items-stretch">
+            <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mb-2 w-100" >Edit profile</a></p>
+        {%if not user.is_certified%}
+            <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
+        {%endif%}
+            </div>
         {% endif %}
     </div>
      
-    {% if user.id == current_user.id %}
-        <div class="d-flex">
-        <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mt-3 fs-5">Edit profile</a></p>
-        {%if not user.is_certified%}
-        <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mt-3 mx-3 fs-5">Become Certified</a></p>
-        {%endif%}
-        </div>
-    {% endif %}
+    
 
     <hr class="solid">
     
