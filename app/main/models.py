@@ -42,6 +42,7 @@ class User(db.Model, UserMixin):
     # --- RELATIONSHIPS ---
     # keeps track of what recipes this user has written
     written_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
+    written_cookbooks: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(back_populates='cookbook_writer')
 
     # keeps track of what recipes this user has saved
     saved_recipes : sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
@@ -77,6 +78,9 @@ class User(db.Model, UserMixin):
     
     def get_user_recipes(self):
         return db.session.scalars(self.written_recipes.select()).all()
+    
+    def get_user_cookbooks(self):
+        return db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == self.id)).all()
     
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
@@ -243,12 +247,16 @@ class Cookbook(db.Model):
     pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
 
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('user.id'))
+
     # --- RELATIONSHIPS --
     included_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
         secondary=cookbook_recipes_table, 
         primaryjoin=(cookbook_recipes_table.c.cookbook_id == id),
         back_populates='cookbook_appearances', 
         passive_deletes=True)
+    
+    cookbook_writer : sqlo.Mapped['User'] = sqlo.relationship(back_populates='written_cookbooks')
     
     # --- METHODS --
     def __repr__(self):

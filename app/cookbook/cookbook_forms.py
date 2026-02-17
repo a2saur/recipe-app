@@ -5,7 +5,19 @@ from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, Length
 from wtforms.widgets import ListWidget, CheckboxInput, Select
 from wtforms.validators import DataRequired, EqualTo, Email, Optional
+from flask_wtf.file import FileField
 
 from app import db
 import sqlalchemy as sqla
 from app.main.models import Tag, User, UNIT_OPTIONS
+
+
+class CookbookForm(FlaskForm):
+    title = StringField('Title*', validators=[DataRequired()])
+    pictFile = FileField("Cover Picture (optional)", validators=[Optional()])
+    description = TextAreaField('Description*', validators=[DataRequired(), Length(max=215)])
+    recipes = QuerySelectMultipleField('Recipes*', 
+                                    get_label= lambda recipe: recipe.title,
+                                    render_kw={"class": "form-control", "size": "1"}, validators=[DataRequired()])
+
+    submit = SubmitField('Post')
