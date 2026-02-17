@@ -1,5 +1,43 @@
 <!-- We add an id for the table to update the HTML content of the table through JavaScript.  -->
-<div class="shine-effect">
+{% if recipe.has_image() %}
+<div class="recipe-double-sided-card">
+<div class="recipe-card-front">
+    <div class="recipe-card-image-holder bottom-line">
+        <img src="{{url_for('static', filename=recipe.get_pict_path())}}" class="recipe-card-image">
+    </div>
+    <div class="recipe-card-footer">
+        <span><div class="d-flex">
+            {% if recipe.writer.is_certified %}
+                <!-- Bootrstrap star ICON -->
+                <i class="bi bi-star-fill fs-5 me-2"></i>
+                {% if recipe.title | length <= 24 %}
+                    <h5>{{ recipe.title }}</h5>
+                {% else %}
+                    <h5>{{ recipe.title[:23] }}...</h5>
+                {% endif %}
+            {%else%}
+                {% if recipe.title | length < 28 %}
+                    <h5>{{ recipe.title }}</h5>
+                {% else %}
+                    <h5>{{ recipe.title[:27] }}...</h5>
+                {% endif %}
+            {% endif %}
+        </div></span>
+        <span>
+            {% if recipe.servingSize > 1 %}
+            <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h5>
+            {% else %}
+            <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
+            {% endif %}
+            <h6 class="text-muted"> {{recipe.estimatedTime}} </h5>
+        </span>
+
+    </div>
+</div>
+<div class="recipe-card-back">
+{% else %}
+<div>
+{% endif %}
     <a class="hidden-link" href="{{ url_for('recipe.view_recipe', recipe_id=recipe.id) }}">
         <div class="recipe-card-header bottom-line">
             <span>
@@ -82,3 +120,6 @@
         </div>
     </a>
 </div>
+{% if recipe.has_image() %}
+</div>
+{% endif %}

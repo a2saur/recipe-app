@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from typing import Optional
-from flask import flash
+from flask import flash, url_for
 from werkzeug.security import generate_password_hash, check_password_hash  
 from flask_login import UserMixin
 
 from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+import os
 
 # types of ingredient units users can select
 UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
@@ -143,6 +144,7 @@ class Recipe(db.Model):
     # --- ATTRIBUTES ---
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
+    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
     servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
     estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
@@ -195,6 +197,22 @@ class Recipe(db.Model):
 
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
+    def has_image(self):
+        if self.pictFile is None or self.pictFile == "":
+            return False
+        else:
+            basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
+            if os.path.exists(os.path.join(basedir, self.pictFile)):
+                return True
+            else:
+                return False
+        
+    def get_pict_path(self):
+        if self.has_image():
+            return 'img/recipe-imgs/'+self.pictFile
+        else:
+            return None
 
 
 class Tag(db.Model):

@@ -11,7 +11,6 @@ from app.recipe.recipe_helpers import *
 
 from app.recipe import recipe_blueprint as bp_recipe
 
-
 @bp_recipe.route('/recipe/<recipe_id>/view', methods=['GET'])
 # @login_required
 def view_recipe(recipe_id):
@@ -99,7 +98,7 @@ def edit_recipe(recipe_id):
         if buttonVal == "post":
             # post recipe
             # save changes
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
             errors = validateRecipeDraftForPost(recipe_id)
             # validate recipe draft, check that there are no errors
             if len(errors) == 0:
@@ -117,13 +116,13 @@ def edit_recipe(recipe_id):
             # add ingredient
 
             # save changes
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
 
             # redirect back to the edit recipe page
             return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
         elif buttonVal == "save":
             # save changes + return to main
-            saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+            saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
             return redirect(url_for('main.index'))
         else:
             try:
@@ -131,7 +130,7 @@ def edit_recipe(recipe_id):
                 buttonVal = int(buttonVal)
 
                 # save changes
-                saveRecipeDraft(recipe_id=recipe_id, rform=rform)
+                saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
 
                 # remove ingredient
                 if recipeDraft.is_draft: # if recipe is posted, make sure there's still one ingredient
@@ -146,9 +145,9 @@ def edit_recipe(recipe_id):
             # redirect back to the edit recipe page
             return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
     if recipeDraft.is_draft:
-        return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True)
+        return render_template('create_recipe.html', title="Create New Recipe", form=rform, recipe_id=recipe_id, is_draft=True, pictFile=recipeDraft.get_pict_path())
     else:
-        return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False)
+        return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False, pictFile=recipeDraft.get_pict_path())
 
 @bp_recipe.route('/recipe/<recipe_id>/delete', methods=['POST'])
 # @login_required
