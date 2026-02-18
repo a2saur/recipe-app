@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
 from app.user.user_forms import EditForm, BusinessForm
 from app.recipe.recipe_forms import IngredientSubmitForm
@@ -104,6 +104,24 @@ def save_recipe(recipe_id):
         db.session.commit()
         theRecipe.save_count += 1
         db.session.commit()
+
+        # save the ingredients of the recipe to the user's grocery list
+        selected_ids = request.form.getlist("ingredient_ids")
+
+        for ing_id in selected_ids:
+            ingredient = db.session.get(Ingredient, ing_id)
+            recipe_ing = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.ingredient_id == ing_id).where(RecipeIngredientUse.recipe_id == recipe_id)).first()
+        
+            current_user.add_grocery(
+                ingredient,
+                recipe_ing.amount,
+                recipe_ing.unit
+            )
+
+    db.session.commit()
+    flash("Recipe saved and selected ingredients added to grocery list.")
+    return redirect(url_for('recipe.view_recipe', recipe_id=recipe_id))
+
 
     if request.referrer is not None:
         return redirect(request.referrer)

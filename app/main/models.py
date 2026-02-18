@@ -135,7 +135,22 @@ class User(db.Model, UserMixin):
     
     # adds a new ingredient to the user's grocery list if it is not already in the list AND not in the current ingredients list
     def add_grocery(self, ingredient, quantity, unit):
-        if not self.is_already_grocery(ingredient) and not self.is_already_ingredient(ingredient): # if ingredient is not already in user's grocery list and not already in user's ingredient list, add it to grocery list
+        grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
+        curr_ingredient = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
+        if grocery:
+            grocery.amount += quantity
+            grocery.unit = unit
+            flash('{} is updated in your grocery list!'.format(ingredient.name))
+        elif curr_ingredient is not None and curr_ingredient.amount < quantity:
+            new_grocery = UserGroceryListUse(
+                user_id = self.id,
+                ingredient_id = ingredient.id, 
+                amount = quantity - curr_ingredient.amount, # quantity needed is the difference between the quantity in the recipe and the quantity the user already has
+                unit = unit
+            )
+            db.session.add(new_grocery)
+            flash ('{} is added to your grocery list!'.format(ingredient.name))
+        else:
             new_grocery = UserGroceryListUse(
                 user_id = self.id,
                 ingredient_id = ingredient.id, 
@@ -144,13 +159,6 @@ class User(db.Model, UserMixin):
             )
             db.session.add(new_grocery)
             flash ('{} is added to your grocery list!'.format(ingredient.name))
-        elif self.is_already_grocery(ingredient) and not self.is_already_ingredient(ingredient): # if ingredient is already in user's grocery list and not already in user's ingredient list, update the quantity and unit
-            grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
-            grocery.amount += quantity
-            grocery.unit = unit
-            flash('{} is updated in your grocery list!'.format(ingredient.name))
-        else:
-            flash('{} is already in your current ingredient list!'.format(ingredient.name))
         db.session.commit()
     
 
