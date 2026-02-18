@@ -64,7 +64,7 @@ def add_business():
         db.session.commit()
         flash('Your Business has been added!')
         return redirect(url_for('user.display_profile'))
-    return render_template('business_form.html', title="Add Business Information", form=bform, form_action='user.add_business')
+    return render_template('business_form.html', title="Add Business Information", form=bform, form_action='user.add_business', edit=False)
 
 @bp_user.route('/user/profile/business/edit', methods = ['GET', 'POST'])
 @login_required
@@ -76,13 +76,21 @@ def edit_business():
     if request.method == 'GET':
         bform.business_name.data = current_user.business_name
         bform.business_website.data = current_user.business_website
+
+    if 'delete_business' in request.form:
+        current_user.business_name = None
+        current_user.business_website = None
+        db.session.commit()
+        flash('Business Information was Deleted')
+        return redirect(url_for('user.display_profile'))
+    
     if bform.validate_on_submit():
         current_user.business_name = bform.business_name.data
         current_user.business_website = bform.business_website.data
         db.session.commit()
         flash('Your Business has been updated!')
         return redirect(url_for('user.display_profile'))
-    return render_template('business_form.html', title="Edit Business", form=bform, form_action='user.edit_business')
+    return render_template('business_form.html', title="Edit Business", form=bform, form_action='user.edit_business', edit=True)
 
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required

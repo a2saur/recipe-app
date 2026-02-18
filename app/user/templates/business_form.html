@@ -11,7 +11,12 @@
         
         <div class="d-flex align-items-center gap-2 mt-3"> 
             {{form.submit(class="btn btn-outline-success")}}
-            <a href="{{url_for('user.display_profile')}}" class = 'btn btn-outline-danger'>Cancel</a>
+            <a href="{{url_for('user.display_profile')}}" class = 'btn btn-outline-secondary'>Cancel</a>
+            {% if edit %}
+                <button type ='submit' name="delete_business" class = "btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete your business?');">
+                    Delete Business
+                </button>
+            {% endif %}
         </div>
     </form>
 {% endblock %}
