@@ -1,8 +1,8 @@
-"""Added user relation to cookbook
+"""added business name and website holders in the user model.
 
-Revision ID: 2f9b4862c62e
+Revision ID: ee63e3fb5055
 Revises: 
-Create Date: 2026-02-17 10:31:42.002972
+Create Date: 2026-02-17 18:04:30.100187
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2f9b4862c62e'
+revision = 'ee63e3fb5055'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -39,6 +39,8 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=256), nullable=False),
     sa.Column('is_certified', sa.Boolean(), nullable=False),
+    sa.Column('business_name', sa.String(length=120), nullable=True),
+    sa.Column('business_website', sa.String(length=256), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('cookbook',

@@ -12,20 +12,39 @@
     </div>
     
     <br>
-    <div class="border rounded-3 bg-light p-3">
-        <p> <b>Username:</b>  {{ user.username }} </p>
-        <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
-        <p> <b> Email: </b> {{ user.email }}</p>
+    <div class="border rounded-3 bg-light p-3 d-flex justify-content-between align-items-start">
+        <div> 
+            <p> <b>Username:</b>  {{ user.username }} </p>
+            <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
+            <p> <b> Email: </b> {{ user.email }}</p>
+            {% if user.business_name%}
+                <p> <b> Business Name: </b> {{ user.business_name }}</p>
+            {% endif %}
+            {% if user.business_website %}
+                <p> <b> Business Website: </b> <a href="{{ user.business_website }}" target="_blank">{{ user.business_website }}</a></p>
+            {% endif %}
+            <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
+            {% if user.is_certified %}
+                <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
+            {% endif %}
+        </div>
+        {% if user.id == current_user.id %}
+            <div class = "d-flex flex-column align-items-stretch">
+            <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mb-2 w-100" >Edit Profile</a></p>
+        {%if not user.is_certified%}
+            <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
+        {% else %}
+            {% if not user.business_name %}
+                <p><a href="{{ url_for('user.add_business') }}" class="btn btn-primary mb-2 w-100" >Add Business</a></p>
+            {% else %}
+                <p><a href="{{ url_for('user.edit_business') }}" class="btn btn-primary mb-2 w-100" >Edit Business</a></p>
+            {% endif %}
+        {%endif%}
+            </div>
+        {% endif %}
     </div>
      
-    {% if user.id == current_user.id %}
-        <div class="d-flex">
-        <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mt-3 fs-5">Edit profile</a></p>
-        {%if not user.is_certified%}
-        <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mt-3 mx-3 fs-5">Become Certified</a></p>
-        {%endif%}
-        </div>
-    {% endif %}
+    
 
     <hr class="solid">
     

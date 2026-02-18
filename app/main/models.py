@@ -38,6 +38,8 @@ class User(db.Model, UserMixin):
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
     # only true for certified users
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
+    business_name: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(120))
+    business_website: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(256))
 
     # --- RELATIONSHIPS ---
     # keeps track of what recipes this user has written
@@ -77,11 +79,17 @@ class User(db.Model, UserMixin):
         return saved
     
     def get_user_recipes(self):
-        return db.session.scalars(self.written_recipes.select()).all()
+        return db.session.scalars(self.written_recipes.select().where(Recipe.is_draft == False)).all()
+    
+    def user_recipe_count(self):
+        return len(db.session.scalars(self.written_recipes.select().where(Recipe.is_draft == False)).all())
     
     def get_user_cookbooks(self):
         return db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == self.id)).all()
     
+    def user_cookbook_count(self):
+        return len(db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == self.id)).all())
+
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
         
@@ -144,6 +152,7 @@ class User(db.Model, UserMixin):
         else:
             flash('{} is already in your current ingredient list!'.format(ingredient.name))
         db.session.commit()
+    
 
 
 

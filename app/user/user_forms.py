@@ -1,8 +1,7 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import  ValidationError, DataRequired
-from wtforms.validators import DataRequired, EqualTo, Email
+from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired
 
 from app import db
 import sqlalchemy as sqla
@@ -29,4 +28,8 @@ class EditForm(FlaskForm):
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
-        
+
+class BusinessForm(FlaskForm):
+    business_name = StringField('Business Name', validators=[DataRequired()])
+    business_website = StringField('Business Website', validators=[DataRequired(), URL()])
+    submit = SubmitField('Save Business Information')
