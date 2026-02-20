@@ -18,7 +18,7 @@ class IngredientForm(Form):
 
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
-    submit = SubmitField('Add Ingredient')
+    submit = SubmitField('Add')
 
 class RecipeForm(FlaskForm):
     title = StringField('Title*')

@@ -71,7 +71,7 @@ class User(db.Model, UserMixin):
     
     @login.user_loader
     def load_user(id):
-        return db.session.get(User, int(id))
+        return db.session.get(User, id)
     
     # Returns a list of the user's saved recipes
     def get_saved(self):
