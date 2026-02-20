@@ -21,7 +21,20 @@ def display_profile():
         recipes = current_user.get_user_recipes()
     else:
         recipes = current_user.get_saved()
-    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view)
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view, read_only=False)
+
+@bp_user.route('/user/<user_id>/viewprofile')
+@login_required
+def view_other_profile(user_id):
+    user=db.session.get(User, user_id)
+    if user is None:
+        flash("User not found")
+        return redirect(url_for('main.index'))
+    if user.id==current_user.id:
+        return redirect(url_for('user.display_profile'))
+    recipes = user.get_user_recipes()
+    return render_template('profile.html', title="{user.username}'s Profile", user=user, recipes=recipes, view='mine', read_only=True)
+
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
 @login_required
