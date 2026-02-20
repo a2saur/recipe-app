@@ -22,26 +22,32 @@
     </form>
 
 </div>
-    <h2 class="text-secondary">Recommended based on your current ingredients</h2>
-    <div class="recipe-card-collection">
-        {% for recipe in rec_recipes %}
-            <div class="recipe-card">{% include '_recipe.html' %} </div>
-        {% endfor %}
-    </div>
+    <div id="recipe-display">
+        <h2 class="text-secondary">Recommended based on your current ingredients</h2>
+        <div class="recipe-card-collection">
+            {% for recipe in rec_recipes %}
+                <div class="recipe-card">{% include '_recipe.html' %} </div>
+            {% endfor %}
+        </div>
 
-    <h2 class="text-secondary">All recipes ({{ recipe_len }})</h2>
-    <div class="recipe-card-collection" id="recipe-display">
-        {% for recipe in recipes %}
-            <div class="recipe-card">{% include '_recipe.html' %} </div>
-        {% endfor %}
+        <h2 class="text-secondary">All recipes ({{ recipe_len }})</h2>
+        <div class="recipe-card-collection">
+            {% for recipe in recipes %}
+                <div class="recipe-card">{% include '_recipe.html' %} </div>
+            {% endfor %}
+        </div>
     </div>
+    
 
-    <h2 class="text-secondary">Cookbooks</h2>
-    <div class="cookbook-collection d-none" id="cookbook-display">
-        {% for cookbook in cookbooks %}
-            <div class="cookbook-card">{% include '_cookbook.html' %} </div>
-        {% endfor %}
+    <div id="cookbook-display">
+        <h2 class="text-secondary">Cookbooks</h2>
+        <div class="cookbook-collection d-none" >
+            {% for cookbook in cookbooks %}
+                <div class="cookbook-card">{% include '_cookbook.html' %} </div>
+            {% endfor %}
+        </div>
     </div>
+    
 </div>
 
 <script>
