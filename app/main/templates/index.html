@@ -31,7 +31,7 @@
             {% endfor %}
         </div>
 
-        <h2 class="text-secondary">All recipes ({{ recipe_len }})</h2>
+        <h2 class="text-secondary">All recipes ({{ recipe_count }})</h2>
         <div class="recipe-card-collection">
             {% for recipe in recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>
