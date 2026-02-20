@@ -281,6 +281,29 @@ class Cookbook(db.Model):
     
     def get_recipes(self):
         return db.session.scalars(self.included_recipes.select()).all()
+    
+    def get_num_recipes(self):
+        return len(db.session.scalars(self.included_recipes.select()).all())
+    
+    def get_writer(self):
+        return self.cookbook_writer.username
+    
+    def has_image(self):
+        if self.pictFile is None or self.pictFile == "":
+            return False
+        else:
+            basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
+            if os.path.exists(os.path.join(basedir, self.pictFile)):
+                return True
+            else:
+                return False
+        
+    def get_pict_path(self):
+        if self.has_image():
+            return 'img/recipe-imgs/'+self.pictFile
+        else:
+            return None
+
 
 
 class Ingredient(db.Model):

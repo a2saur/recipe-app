@@ -3,7 +3,7 @@ import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
+from app.main.models import Cookbook, Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
 from app.main.forms import EmptyForm, SortForm
 from app.auth.auth_forms import RegistrationForm
 from app.main.helpers import get_recommended_recipes
@@ -26,7 +26,7 @@ def index(sort_data="Date"):
     if request.method == 'POST':
         sort_data = sort_form.sortby.data
         if sort_form.validate_on_submit():
-            if sort_data== "# of likes":
+            if sort_data== "# of saves":
                 recipes = base_query.order_by(Recipe.save_count.desc())
             elif sort_data == "Certified":
                 recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
@@ -38,7 +38,8 @@ def index(sort_data="Date"):
             recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
     recipe_len = len(all_recipes)
-
-
-
-    return render_template('index.html', title="", recipe_len=recipe_len, rec_recipes=rec_recipes, recipes=all_recipes, form=empty_form, sortform = sort_form)
+  
+    # get all cookbooks to display
+    all_cookbooks  = db.session.scalars(sqla.select(Cookbook)).all()
+    
+    return render_template('index.html', title="", recipe_len=recipe_len, rec_recipes=rec_recipes, recipes=all_recipes, cookbooks=all_cookbooks, form=empty_form, sortform = sort_form)
