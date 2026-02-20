@@ -3,7 +3,7 @@ import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
+from app.main.models import Cookbook, Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
 from app.main.forms import EmptyForm, SortForm
 from app.auth.auth_forms import RegistrationForm
 
@@ -29,4 +29,5 @@ def index(sort_data="Date"):
     if request.method == 'GET':
             recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
-    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form)
+    all_cookbooks  = db.session.scalars(sqla.select(Cookbook)).all()
+    return render_template('index.html', title="", recipes=all_recipes, cookbooks=all_cookbooks, form=empty_form, sortform = sort_form)

@@ -8,7 +8,7 @@
 
     <ul class="pagination pagination-sm">
         <li class="page-item active" id="recipe-tab"><a class="page-link" aria-current="page">Recipes</a></li>
-        <li class="page-item" id="cookbook-tab"><a class="page-link" href="{{url_for('main.index', view_recipes=False)}}">Cookbooks</a></li>
+        <li class="page-item" id="cookbook-tab"><a class="page-link" href="#">Cookbooks</a></li>
     </ul>
 
     <form method="POST" class="d-flex align-items-center gap-1">
@@ -29,7 +29,7 @@
         {% endfor %}
     </div>
     <div class="cookbook-collection d-none" id="cookbook-display">
-        {% for recipe in recipes %}
+        {% for cookbook in cookbooks %}
             <div class="cookbook-card">{% include '_cookbook.html' %} </div>
         {% endfor %}
     </div>
@@ -44,7 +44,6 @@ window.onload = function() {
     var cookbooks = document.getElementById("cookbook-display");
 
     recipeBtn.addEventListener("click", function(e){
-        e.preventDefault();
         recipeBtn.classList.add("active");
         cookbookBtn.classList.remove("active");
 
@@ -53,7 +52,6 @@ window.onload = function() {
     })
 
     cookbookBtn.addEventListener("click", function(e){
-        e.preventDefault();
         recipeBtn.classList.remove("active");
         cookbookBtn.classList.add("active");
 
