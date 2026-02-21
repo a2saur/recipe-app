@@ -16,7 +16,7 @@
         <div> 
             <p> <b>Username:</b>  {{ user.username }} </p>
             <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
-            {% if read_only %}
+            {% if not read_only %}
                 <p> <b> Email: </b> {{ user.email }}</p>
             {% endif %}
             {% if user.business_name%}

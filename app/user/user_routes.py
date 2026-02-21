@@ -23,7 +23,7 @@ def display_profile():
         recipes = current_user.get_saved()
     return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view, read_only=False)
 
-@bp_user.route('/user/<user_id>/viewprofile')
+@bp_user.route('/user/<user_id>/viewprofile', methods = ['GET'])
 @login_required
 def view_other_profile(user_id):
     user=db.session.get(User, user_id)
