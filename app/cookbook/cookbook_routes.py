@@ -47,7 +47,7 @@ def create_cookbook():
         db.session.commit()
         flash('Cookbook {} has been created'.format(cb.title))
         return redirect(url_for('main.index'))
-    return render_template('create_cookbook.html', title='Create Cookbook', form=cform)
+    return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=False)
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET', 'POST'])
 # @login_required
@@ -56,8 +56,50 @@ def view_cookbook():
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/edit', methods=['GET', 'POST'])
 # @login_required
-def edit_cookbook():
-    return redirect(url_for('main.index'))
+def edit_cookbook(cookbook_id):
+    cookbookObj = db.session.get(Cookbook, cookbook_id)
+    if cookbookObj is None:
+        flash('Could not find cookbook')
+        return redirect(url_for('main.index'))
+    
+    if request.method == "GET":
+        cform = CookbookForm(
+            title = cookbookObj.title,
+            description = cookbookObj.description,
+        )
+        cform.recipes.query_factory = current_user.get_user_recipes
+        cform.recipes.data = cookbookObj.get_recipes()
+    else:
+        cform = CookbookForm()
+        cform.recipes.query_factory = current_user.get_user_recipes
+
+    if cform.validate_on_submit():
+        cookbookObj.title = cform.title.data
+        cookbookObj.description = cform.description.data
+        
+        # remove old recipes
+        for r in cookbookObj.get_recipes():
+            cookbookObj.included_recipes.remove(r)
+
+        for r in cform.recipes.data:
+            cookbookObj.included_recipes.add(r)
+        
+        db.session.commit()
+
+        # save uploaded image
+        basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
+        # save uploaded image filename
+        picture = request.files['pictFile']
+        if picture is not None and picture.filename != "":
+            pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
+            img_path = os.path.join(basedir, pictName)
+            cookbookObj.pictFile = pictName
+            picture.save(img_path)
+
+        db.session.commit()
+        flash('Cookbook {} has been modified'.format(cookbookObj.title))
+        return redirect(url_for('main.index'))
+    return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=True, pictFile=cookbookObj.pictFile, cookbook_id=cookbookObj.id)
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
 # @login_required
