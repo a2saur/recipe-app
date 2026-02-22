@@ -16,7 +16,9 @@
         <div> 
             <p> <b>Username:</b>  {{ user.username }} </p>
             <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
-            <p> <b> Email: </b> {{ user.email }}</p>
+            {% if not read_only %}
+                <p> <b> Email: </b> {{ user.email }}</p>
+            {% endif %}
             {% if user.business_name%}
                 <p> <b> Business Name: </b> {{ user.business_name }}</p>
             {% endif %}
@@ -28,19 +30,19 @@
                 <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
             {% endif %}
         </div>
-        {% if user.id == current_user.id %}
+        {% if not read_only and user.id == current_user.id %}
             <div class = "d-flex flex-column align-items-stretch">
             <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mb-2 w-100" >Edit Profile</a></p>
-        {%if not user.is_certified%}
-            <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
-        {% else %}
-            {% if not user.business_name %}
-                <p><a href="{{ url_for('user.add_business') }}" class="btn btn-primary mb-2 w-100" >Add Business</a></p>
+            {%if not user.is_certified%}
+                <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
             {% else %}
-                <p><a href="{{ url_for('user.edit_business') }}" class="btn btn-primary mb-2 w-100" >Edit Business</a></p>
-            {% endif %}
-        {%endif%}
-            </div>
+                {% if not user.business_name %}
+                    <p><a href="{{ url_for('user.add_business') }}" class="btn btn-primary mb-2 w-100" >Add Business</a></p>
+                {% else %}
+                    <p><a href="{{ url_for('user.edit_business') }}" class="btn btn-primary mb-2 w-100" >Edit Business</a></p>
+                {% endif %}
+            {%endif%}
+                </div>
         {% endif %}
     </div>
      
@@ -50,21 +52,30 @@
     
     <div class="d-flex"> 
         <!-- <i class="bi bi-pin-angle-fill mt-1 mb-2 fs-5"></i><h4 style="margin-left: 5px;">{{user.first_name}}'s Saved Recipes</h4> -->
-        <div class="nav-item dropdown">
-            <a class="dropdown-toggle btn btn-outline-dark fs-5" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {% if view != 'mine' and view !='saved'%}
-                <i style="margin-right:5px" class ="bi bi-fork-knife"></i>View Recipes
-            {% elif view == 'saved' %}
-                <i style="margin-right:5px" class ="bi bi-pin-angle-fill"></i> My Saved Posts
-            {% else %}
-                <i style="margin-right:5px" class="bi bi-pen-fill"></i> My Posts
-            {% endif %}
-            </a>
-            <ul class="dropdown-menu">
-                <li><a href="{{ url_for('user.display_profile', view='saved') }}"  class="bi bi-pin-angle-fill mt-1 mb-2 dropdown-item"> My Saved Posts</a></li>
-                <li><a href="{{ url_for('user.display_profile', view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> My Posts</a></li>
-            </ul>
-        </div>
+        {% if not read_only and user.id==current_user.id %}
+            <div class="nav-item dropdown">
+                <a class="dropdown-toggle btn btn-outline-dark fs-5" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if view != 'mine' and view !='saved'%}
+                    <i style="margin-right:5px" class ="bi bi-fork-knife"></i>View Recipes
+                {% elif view == 'saved' %}
+                    <i style="margin-right:5px" class ="bi bi-pin-angle-fill"></i> My Saved Posts
+                {% else %}
+                    <i style="margin-right:5px" class="bi bi-pen-fill"></i> My Posts
+                {% endif %}
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('user.display_profile', view='saved') }}"  class="bi bi-pin-angle-fill mt-1 mb-2 dropdown-item"> My Saved Posts</a></li>
+                    <li><a href="{{ url_for('user.display_profile', view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> My Posts</a></li>
+                </ul>
+            </div>
+        {% else %}
+            <div>
+              <button class = "btn btn-outline-dark fs-5 disabled">
+                <i class="bi bi-pin-angle-fill me-2"></i>
+                {{user.first_name}}'s Posts
+              </button>  
+            </div>
+        {% endif %}
     </div>
     <div class="recipe-card-collection">
         {% for recipe in recipes %}

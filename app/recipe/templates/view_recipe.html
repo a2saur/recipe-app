@@ -27,7 +27,7 @@
         </div>
 
         <div class="recipe-page-details">
-            <span>Posted by: {{recipe.writer.username}}</span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>
+            <span>Posted by: <a href="{{ url_for('user.view_other_profile', user_id=recipe.writer.id)}}" class="fw-bold">{{recipe.writer.username}}</a></span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>
             <div class="recipe-page-details">
                 {% if recipe.writer.id == current_user.id %}
                     <span style="margin-right:5px;"><form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">
