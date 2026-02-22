@@ -34,6 +34,12 @@
     color: red;
 }
 
+.evenly-spaced {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /* Create recipe form */
 .remove-btn {
     margin: 1px;

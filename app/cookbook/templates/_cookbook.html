@@ -65,11 +65,20 @@
     </div>
 
     <div class="cookbook-info-bar-description">
-        <b>Title: </b> {{cookbook.title}}
-        <br>
-        <b>By: </b> {{cookbook.get_writer()}}
-        <br>
-        <b>Containing: </b> {{cookbook.get_num_recipes()}} Recipes
+        <div class="evenly-spaced">
+            <span><b>Title: </b> {{cookbook.title}}
+            <br>
+            <b>By: </b> {{cookbook.get_writer()}}
+            <br>
+            <b>Containing: </b> {{cookbook.get_num_recipes()}} Recipes
+            </span>
+            <span style="margin-right:5px;"><form action="{{ url_for('cookbook.edit_cookbook', cookbook_id=cookbook.id) }}" method="get">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="bi bi-pencil-square"></i><span style="margin:5px">Edit</span>
+                </button>
+            </form></span>
+        </div>
+        
         <br>
         <hr>
         {{cookbook.description}}

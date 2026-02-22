@@ -77,7 +77,7 @@ class User(db.Model, UserMixin):
         return saved
     
     def get_user_recipes(self):
-        return db.session.scalars(self.written_recipes.select()).all()
+        return db.session.scalars(self.written_recipes.select().where(Recipe.is_draft == False)).all()
     
     def get_user_cookbooks(self):
         return db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == self.id)).all()
