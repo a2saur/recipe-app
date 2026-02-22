@@ -6,6 +6,7 @@ from app import db
 from app.main.models import Cookbook, Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
 from app.main.forms import EmptyForm, SortForm
 from app.auth.auth_forms import RegistrationForm
+from app.main.helpers import get_recommended_recipes
 
 from app.main import main_blueprint as bp_main
 
@@ -16,6 +17,10 @@ from app.main import main_blueprint as bp_main
 def index(sort_data="Date"):
     empty_form = EmptyForm()
     sort_form = SortForm()
+
+    # get recommended recipes
+    rec_recipes = get_recommended_recipes(current_user.id)
+    # sort form
     base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
     if request.method == 'POST':
         sort_data = sort_form.sortby.data
@@ -29,5 +34,10 @@ def index(sort_data="Date"):
     if request.method == 'GET':
             recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
+
+    # get all cookbooks
     all_cookbooks  = db.session.scalars(sqla.select(Cookbook)).all()
-    return render_template('index.html', title="", recipes=all_recipes, cookbooks=all_cookbooks, form=empty_form, sortform = sort_form)
+
+    recipe_count = len(all_recipes)
+
+    return render_template('index.html', title="", rec_recipes=rec_recipes, recipe_count=recipe_count, recipes=all_recipes, cookbooks=all_cookbooks, form=empty_form, sortform = sort_form)

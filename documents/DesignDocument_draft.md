@@ -57,7 +57,9 @@ The purpose of this document is to describe the high-level software design for t
 
 **RecipeIngredientUse:** Stores an instance of an ingredient being used in a recipe, including the recipe and ingredient ids as well as the amount with units of the ingredient.
 
-**UserIngredientListUse:** Stores an instance of an ingredient being used in a user’s ingredient list, including the user and ingredient ids as well as the amount with units of the ingredient.
+**UserIngredientListUse:** Stores an instance of an ingredient being used in a user’s current ingredient list, including the user and ingredient ids as well as the amount with units of the ingredient.
+
+**UserGroceryListUse:** Stores an instance of an ingredient being used in a user’s grocery list, including the user and ingredient ids as well as the amount with units of the ingredient.
 
 <kbd>  
       <img src=images/uml_diagram.png  border=2>  
@@ -85,9 +87,12 @@ The purpose of this document is to describe the high-level software design for t
 | :---- | :---- | :---- | :---- |
 | 1. | GET, POST | /user/profile | Displays the user profile and information |
 | 2. | GET, POST | /user/profile/edit | Renders an edit form to edit profile information |
-| 3. | POST | /user/<recipe_id>/saverecipe | Adds a recipe to a user’s saved list |
-| 4.  | POST | /user/<recipe_id>/removerecipe | Removes the recipe from the user’s saved recipes |
-| 5. | GET, POST | /user/ingredients | Renders the page with a list of current ingredients + grocery list |
+| 3. | GET | /user/profile/certify | |
+| 4. | POST | /user/<recipe_id>/saverecipe | Adds a recipe to a user’s saved list, adds selected ingredients from the recipe to the user's grocery list |
+| 5.  | POST | /user/<recipe_id>/removerecipe | Removes the recipe from the user’s saved recipes |
+| 6. | GET, POST | /user/ingredients | Renders the page with a list of current ingredients + grocery list |
+| 7. | POST | /user/move_or_delete_grocery | moves selected ingredients from the grocery list to the current ingredients list or deletes them from the grocery list |
+| 8. | POST | /user/delete_ingredient | deletes selected ingredients from the current ingredients list |
 
 #### 2.2.2.3 Recipe Routes
 
@@ -98,11 +103,7 @@ The purpose of this document is to describe the high-level software design for t
 | 3. | GET, POST | /recipe/<recipe_id>/edit | Renders an edit form similar to the create recipe form  |
 | 4. | POST | /recipe/<recipe_id>/delete | Deletes a recipe from the database |
 
-#### 
-
 #### 2.2.2.4 Cookbook Routes
-
-#### 
 
 |  | Methods | URL Path | Description |
 | :---- | :---- | :---- | :---- |

@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<div class="container mt-5">
+<div class="container-fluid mt-5">
     <div class="row">
         <!-- Current Ingredients List -->
         <div class="col-md-6">
@@ -12,21 +12,21 @@
             <form method="POST" action="{{ url_for('user.delete_ingredient') }}">
                 {{ iform.hidden_tag() }}
 
-                <table class="table">
+                <table class="table w-100" style="table-layout: fixed;">
                     <tr>
-                        <th class="align-middle" style="width: 40%;">Name</th>
+                        <th class="align-middle" style="width: 45%;">Name</th>
                         <th class="align-middle" style="width: 20%;">Quantity</th>
-                        <th class="align-middle" style="width: 20%;">Unit</th>
-                        <th class="align-middle" style="width: 5%;">
-                            <button type="submit" name="action" value="delete" class="btn btn-primary btn-sm"> Delete </button>
+                        <th class="align-middle" style="width: 15%;">Unit</th>
+                        <th class="align-middle text-center" style="width: 20%;">
+                            <button type="submit" name="action" value="delete" class="btn btn-primary btn-sm"><i class="bi bi-trash3"></i></button>
                         </tr>
 
                     {% for ingredient in ingredients %}
                     <tr>
-                        <td style="width: 40%;">{{ ingredient.get_name() }}</td>
+                        <td style="width: 45%;">{{ ingredient.get_name() }}</td>
                         <td style="width: 20%;">{{ ingredient.amount }}</td>
-                        <td style="width: 20%;">{{ ingredient.unit }}</td>
-                        <td class="text-center">
+                        <td style="width: 15%;">{{ ingredient.unit }}</td>
+                        <td class="text-center" style="width: 20%;">
                             <input type="checkbox"
                                 name="ingredient_ids"
                                 value="{{ ingredient.ingredient_id }}">
@@ -38,16 +38,15 @@
             
             <form method="POST">
                 {{ iform.hidden_tag() }}
-                <table class = 'table'>
-                    <!-- Form to add new ingredient -->
+
+                <table class='table w-100' style="table-layout: fixed;">
                     <tr>
-                        <td>{{ iform.ingredientName() }}</td>
-                        <td>{{ iform.quantity() }}</td>
-                        <td>{{ iform.unit() }}</td>
-                        <td></td>
+                        <td style="width: 45%;">{{ iform.ingredientName(class="form-control w-100") }}</td>
+                        <td style="width: 20%;">{{ iform.quantity(class="form-control w-100") }}</td>
+                        <td style="width: 15%;">{{ iform.unit(class="form-control w-100") }}</td>
+                        <td style="width: 20%;">{{ iform.submit(class="form-control w-100") }}</td>
                     </tr>
                 </table>
-                <div class="mt-3 ms-2">{{ iform.submit() }}</div>
             </form>
             </div>
         </div>
@@ -61,20 +60,20 @@
 
                 <table class="table">
                     <tr>
-                        <th class="align-middle" style="width: 30%;">Name</th>
-                        <th class="align-middle" style="width: 10%;">Quantity</th>
-                        <th class="align-middle" style="width: 10%;">Unit</th>
-                        <th class="align-middle" style="width: 20%;">
-                            <button type="submit" name="action" value="purchased" class="btn btn-primary btn-sm"> Purchased </button>
-                            <button type="submit" name="action" value="delete" class="btn btn-primary btn-sm"> Delete </button>
+                        <th class="align-middle" style="width: 45%;">Name</th>
+                        <th class="align-middle" style="width: 20%;">Quantity</th>
+                        <th class="align-middle" style="width: 15%;">Unit</th>
+                        <th class="align-middle text-center" style="width: 20%;">
+                            <button type="submit" name="action" value="purchased" class="btn btn-primary btn-sm"><i class="bi bi-cart-check-fill"></i></button>
+                            <button type="submit" name="action" value="delete" class="btn btn-primary btn-sm"><i class="bi bi-trash3"></i></button>
                         </tr>
 
                     {% for grocery in grocery_list %}
                     <tr>
-                        <td style="width: 30%;">{{ grocery.get_name() }}</td>
-                        <td style="width: 10%;">{{ grocery.amount }}</td>
-                        <td style="width: 10%;">{{ grocery.unit }}</td>
-                        <td class="text-center">
+                        <td style="width: 45%;">{{ grocery.get_name() }}</td>
+                        <td style="width: 20%;">{{ grocery.amount }}</td>
+                        <td style="width: 15%;">{{ grocery.unit }}</td>
+                        <td class="text-center" style="width: 20%;">
                             <input type="checkbox"
                                 name="grocery_ids"
                                 value="{{ grocery.ingredient_id }}">
@@ -89,13 +88,12 @@
                 <table class = 'table'>
                     <!-- Form to add new ingredient -->
                     <tr>
-                        <td>{{ gform.ingredientName() }}</td>
-                        <td>{{ gform.quantity() }}</td>
-                        <td>{{ gform.unit() }}</td>
-                        <td></td>
+                        <td style="width: 45%;">{{ gform.ingredientName(class="form-control w-100") }}</td>
+                        <td style="width: 20%;">{{ gform.quantity(class="form-control w-100") }}</td>
+                        <td style="width: 15%;">{{ gform.unit(class="form-control w-100") }}</td>
+                        <td style="width: 20%;">{{ gform.submit(class="form-control w-100") }}</td>
                     </tr>
                 </table>
-                <div class="mt-3 ms-2">{{ gform.submit() }}</div>
             </form>
             </div>
         </div>
