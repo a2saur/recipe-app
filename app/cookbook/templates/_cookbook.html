@@ -68,7 +68,7 @@
         <div class="evenly-spaced">
             <span><b>Title: </b> {{cookbook.title}}
             <br>
-            <b>By: </b> {{cookbook.get_writer()}}
+            <b>By: <a href="{{ url_for('user.view_other_profile', user_id=cookbook.cookbook_writer.id)}}" class="fw-bold">{{cookbook.get_writer()}}</a> </b>
             <br>
             <b>Containing: </b> {{cookbook.get_num_recipes()}} Recipes
             </span>
