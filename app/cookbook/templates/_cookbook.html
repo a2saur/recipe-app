@@ -1,6 +1,6 @@
 <div class="cookbook-info-bar">
     <div id="cookbook-{{cookbook.id}}" class="cookbook-card-collection">
-        <button id="btn-{{cookbook.id}}" onclick="prevPage({{cookbook.get_num_recipes()}})">
+        <button id="btn-{{cookbook.id}}" onclick="prevPage({{cookbook.id}}, {{cookbook.get_num_recipes()}})">
             <i class="bi bi-caret-left-fill"></i>
         </button>
 
@@ -59,7 +59,7 @@
         </div>
         {% endfor %}
 
-        <button id="btn-{{cookbook.id}}" onclick="nextPage({{cookbook.get_num_recipes()}})">
+        <button id="btn-{{cookbook.id}}" onclick="nextPage({{cookbook.id}},{{cookbook.get_num_recipes()}})">
             <i class="bi bi-caret-right-fill"></i>
         </button>
     </div>
@@ -107,13 +107,13 @@
 </div>
 
 <script>
-function nextPage(numPages){
+function nextPage(cookbookID, numPages){
     // for card in cards
     console.log("AAA");
     console.log(numPages);
     for (let i = 0; i <= numPages; i++){
-        var cookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+i.toString());
-        if (cookbookCard.classList.contains("d-none")){
+        var cookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-"+i.toString());
+        if (cookbookCard.classList.contains("d-none")){ 
             // hidden, keep going
         } else {
             // found the showing one, hide this one and show the next one
@@ -122,9 +122,9 @@ function nextPage(numPages){
             var nextCookbookCard;
             if (i+1 > numPages){
                 // loop around
-                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-0");
+                nextCookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-0");
             } else {
-                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+(i+1).toString());
+                nextCookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-"+(i+1).toString());
             }
             nextCookbookCard.classList.remove("d-none");
             return;
@@ -132,10 +132,10 @@ function nextPage(numPages){
     }
 }
 
-function prevPage(numPages){
+function prevPage(cookbookID, numPages){
     // for card in cards
     for (let i = 0; i <= numPages; i++){
-        var cookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+i.toString());
+        var cookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-"+i.toString());
         if (cookbookCard.classList.contains("d-none")){
             // hidden, keep going
         } else {
@@ -144,9 +144,9 @@ function prevPage(numPages){
             var nextCookbookCard;
             if (i-1 < 0){
                 // loop around
-                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+numPages.toString());
+                nextCookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-"+numPages.toString());
             } else {
-                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+(i-1).toString());
+                nextCookbookCard = document.getElementById("cookbook-"+cookbookID+"-recipe-card-"+(i-1).toString());
             }
             nextCookbookCard.classList.remove("d-none");
             return;
