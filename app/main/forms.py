@@ -14,7 +14,8 @@ class SortForm(FlaskForm):
     sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified"])
     refresh = SubmitField('Refresh')
 
-class FilterForm(FlaskForm):
+class FilterSortForm(FlaskForm):
+    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified"])
     tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
                                     get_label= lambda tag: tag.name,
                                     render_kw={"class": "form-control", "size": "1", "placeholder": "Select Tags"})
@@ -22,6 +23,6 @@ class FilterForm(FlaskForm):
     certified = BooleanField('Certified Only')
     likes = IntegerField('Likes', render_kw={"placeholder": "Min # of Saves"}, validators=[Optional(), NumberRange(min=0, message="Input must be positive")])
     min_date = DateField('Posted After', validators=[Optional()])
-    refresh = SubmitField('Filter')
+    refresh = SubmitField('Sort / Filter')
 
 
