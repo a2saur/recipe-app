@@ -101,7 +101,9 @@ def edit_cookbook(cookbook_id):
         return redirect(url_for('main.index'))
     return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=True, pictFile=cookbookObj.pictFile, cookbook_id=cookbookObj.id)
 
+
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
 # @login_required
-def delete_cookbook():
+def delete_cookbook(cookbook_id):
+    
     return

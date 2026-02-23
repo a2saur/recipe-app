@@ -40,9 +40,9 @@
     </div>
     
 
-    <div id="cookbook-display">
+    <div id="cookbook-display" class="d-none">
         <h2 class="text-secondary">Cookbooks</h2>
-        <div class="cookbook-collection d-none" >
+        <div class="cookbook-collection" >
             {% for cookbook in cookbooks %}
                 <div class="cookbook-card">{% include '_cookbook.html' %} </div>
             {% endfor %}
