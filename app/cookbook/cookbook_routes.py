@@ -105,5 +105,11 @@ def edit_cookbook(cookbook_id):
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
 # @login_required
 def delete_cookbook(cookbook_id):
-    
-    return
+    cookbookObj = db.session.get(Cookbook, cookbook_id)
+    if cookbookObj is None:
+        flash('Could not find cookbook')
+        return redirect(url_for('main.index'))
+    db.session.delete(cookbookObj)
+    db.session.commit()
+    flash("Cookbook successfully deleted")
+    return redirect(url_for('main.index'))
