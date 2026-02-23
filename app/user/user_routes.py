@@ -5,9 +5,10 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
-from app.user.user_forms import EditForm, IngredientSubmitForm
+from app.user.user_forms import EditForm, BusinessForm
+from app.recipe.recipe_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
 
@@ -20,7 +21,20 @@ def display_profile():
         recipes = current_user.get_user_recipes()
     else:
         recipes = current_user.get_saved()
-    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view)
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view, read_only=False)
+
+@bp_user.route('/user/<user_id>/viewprofile', methods = ['GET'])
+@login_required
+def view_other_profile(user_id):
+    user=db.session.get(User, user_id)
+    if user is None:
+        flash("User not found")
+        return redirect(url_for('main.index'))
+    if user.id==current_user.id:
+        return redirect(url_for('user.display_profile'))
+    recipes = user.get_user_recipes()
+    return render_template('profile.html', title="{user.username}'s Profile", user=user, recipes=recipes, view='mine', read_only=True)
+
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])
 @login_required
@@ -50,6 +64,47 @@ def become_certified():
     db.session.commit()
     return redirect(url_for('user.display_profile'))
 
+@bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
+@login_required
+def add_business():
+    if not current_user.is_certified:
+        flash('You must be a certified user to add a business')
+        return redirect(url_for('user.display_profile'))
+    bform = BusinessForm()
+    if bform.validate_on_submit():
+        current_user.business_name = bform.business_name.data
+        current_user.business_website = bform.business_website.data
+        db.session.commit()
+        flash('Your Business has been added!')
+        return redirect(url_for('user.display_profile'))
+    return render_template('business_form.html', title="Add Business Information", form=bform, form_action='user.add_business', edit=False)
+
+@bp_user.route('/user/profile/business/edit', methods = ['GET', 'POST'])
+@login_required
+def edit_business():
+    if not current_user.is_certified:
+        flash('You must be a certified user to add a business')
+        return redirect(url_for('user.display_profile'))
+    bform = BusinessForm()
+    if request.method == 'GET':
+        bform.business_name.data = current_user.business_name
+        bform.business_website.data = current_user.business_website
+
+    if 'delete_business' in request.form:
+        current_user.business_name = None
+        current_user.business_website = None
+        db.session.commit()
+        flash('Business Information was Deleted')
+        return redirect(url_for('user.display_profile'))
+    
+    if bform.validate_on_submit():
+        current_user.business_name = bform.business_name.data
+        current_user.business_website = bform.business_website.data
+        db.session.commit()
+        flash('Your Business has been updated!')
+        return redirect(url_for('user.display_profile'))
+    return render_template('business_form.html', title="Edit Business", form=bform, form_action='user.edit_business', edit=True)
+
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required
 def save_recipe(recipe_id):
@@ -62,6 +117,24 @@ def save_recipe(recipe_id):
         db.session.commit()
         theRecipe.save_count += 1
         db.session.commit()
+
+        # save the ingredients of the recipe to the user's grocery list
+        selected_ids = request.form.getlist("ingredient_ids")
+
+        for ing_id in selected_ids:
+            ingredient = db.session.get(Ingredient, ing_id)
+            recipe_ing = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.ingredient_id == ing_id).where(RecipeIngredientUse.recipe_id == recipe_id)).first()
+        
+            current_user.add_grocery(
+                ingredient,
+                recipe_ing.amount,
+                recipe_ing.unit
+            )
+
+    db.session.commit()
+    flash("Recipe saved and selected ingredients added to grocery list.")
+    return redirect(url_for('recipe.view_recipe', recipe_id=recipe_id))
+
 
     if request.referrer is not None:
         return redirect(request.referrer)

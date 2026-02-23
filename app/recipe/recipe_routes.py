@@ -208,3 +208,5 @@ def delete(recipe_id):
     else:
         flash('Error: recipe failed to delete')
     return redirect(url_for('main.index'))
+
+

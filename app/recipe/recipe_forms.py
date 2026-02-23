@@ -20,6 +20,9 @@ class IngredientForm(Form):
 class StepForm(Form):
     step_id = HiddenField()
     stepDescription = TextAreaField('', default="", validators=[Length(max=1000)])
+# Standalone form
+class IngredientSubmitForm(IngredientForm, FlaskForm):
+    submit = SubmitField('Add')
 
 class RecipeForm(FlaskForm):
     title = StringField('Title*')
