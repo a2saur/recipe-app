@@ -59,13 +59,16 @@
                     <i style="margin-right:5px" class ="bi bi-fork-knife"></i>View Recipes
                 {% elif view == 'saved' %}
                     <i style="margin-right:5px" class ="bi bi-pin-angle-fill"></i> My Saved Posts
-                {% else %}
+                {% elif view == 'mine' %}
                     <i style="margin-right:5px" class="bi bi-pen-fill"></i> My Posts
                 {% endif %}
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="{{ url_for('user.display_profile', view='saved') }}"  class="bi bi-pin-angle-fill mt-1 mb-2 dropdown-item"> My Saved Posts</a></li>
                     <li><a href="{{ url_for('user.display_profile', view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> My Posts</a></li>
+                    {% if current_user.is_certified %}
+                        <li><a href="{{ url_for('user.display_profile', view='cookbook') }}" class="bi bi-fork-knife mt-1 mb-2 dropdown-item"> My Cookbooks</a></li>
+                    {% endif %}
                 </ul>
             </div>
         {% else %}
@@ -77,10 +80,19 @@
             </div>
         {% endif %}
     </div>
-    <div class="recipe-card-collection">
-        {% for recipe in recipes %}
-            <div class="recipe-card">{% include '_recipe.html' %} </div>
-        {% endfor %}
+        {% if view == 'cookbook' %}
+        <div class = "mt-4 ">
+            {% for cookbook in cookbooks %}
+                <div class = "cookbook mt-4"> {% include '_cookbook.html' %}</div>
+            {% endfor %}
+         </div>
+        {% else %}
+            <div class="recipe-card-collection">
+                {% for recipe in recipes %}
+                    <div class="recipe-card">{% include '_recipe.html' %} </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
     
 {% endblock %}

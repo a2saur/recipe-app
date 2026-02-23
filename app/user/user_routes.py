@@ -16,12 +16,16 @@ from app.user import user_blueprint as bp_user
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
 def display_profile():
-    view = request.args.get('view', 'saved')
+    recipes=0
+    cookbooks=0
+    view = request.args.get('view', default = 'mine')
     if view =='mine':
         recipes = current_user.get_user_recipes()
+    elif view == 'cookbook':
+        cookbooks = current_user.get_user_cookbooks()
     else:
         recipes = current_user.get_saved()
-    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view, read_only=False)
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, cookbooks=cookbooks, view=view, read_only=False)
 
 @bp_user.route('/user/<user_id>/viewprofile', methods = ['GET'])
 @login_required
