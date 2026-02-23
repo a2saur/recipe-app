@@ -22,6 +22,13 @@ def create_cookbook():
     cform = CookbookForm()
     cform.recipes.query_factory = current_user.get_user_recipes
     if cform.validate_on_submit():
+        if not cform.recipes.data:
+            flash("At least one recipe must be selected!")
+            return render_template('create_cookbook.html',
+                                   title = 'Create Cookbook',
+                                   form=cform,
+                                   editing_cookbook=False)
+
         cb = Cookbook(
             title=cform.title.data,
             description=cform.description.data,
@@ -42,7 +49,6 @@ def create_cookbook():
             img_path = os.path.join(basedir, pictName)
             cb.pictFile = pictName
             picture.save(img_path)
-
         db.session.add(cb)
         db.session.commit()
         flash('Cookbook {} has been created'.format(cb.title))
