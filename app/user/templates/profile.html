@@ -72,11 +72,20 @@
                 </ul>
             </div>
         {% else %}
-            <div>
-              <button class = "btn btn-outline-dark fs-5 disabled">
-                <i class="bi bi-pin-angle-fill me-2"></i>
-                {{user.first_name}}'s Posts
-              </button>  
+            <div class = "nav-item dropdown">
+                <a class="dropdown-toggle btn btn-outline-dark fs 5" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if view == 'mine' %}
+                        <i style="margin-right:5px" class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Posts
+                    {% elif user.is_certified %}
+                        <i style = "margin-right:5px"class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Cookbooks
+                    {% endif %}
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('user.view_other_profile',user_id=user.id, view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> Posts</a></li>
+                    {% if user.is_certified %}
+                        <li><a href="{{ url_for('user.view_other_profile',user_id=user.id, view='cookbook') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> Cookbooks</a></li>
+                    {% endif %}
+                </ul>
             </div>
         {% endif %}
     </div>
