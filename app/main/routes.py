@@ -17,6 +17,7 @@ def index(sort_data="Date"):
     sort_form = SortForm()
     fs_form = FilterSortForm()
     base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
+    text = ""
     if request.method == 'POST':
         if fs_form.validate_on_submit():
             tag_list = [tag.name for tag in fs_form.tags.data]
@@ -26,32 +27,26 @@ def index(sort_data="Date"):
                         base_query = base_query.filter(Recipe.tags.any(Tag.name == tag))
                 else:
                     base_query = base_query.filter(Recipe.tags.any(Tag.name.in_(tag_list)))
+                text = "Filters/Sorting Applied"
             if fs_form.certified.data:
                 base_query = base_query.join(Recipe.writer).where(User.is_certified)
+                text = "Filters/Sorting Applied"
             if fs_form.likes.data:
                 base_query = base_query.where(Recipe.save_count >= fs_form.likes.data)
+                text = "Filters/Sorting Applied"
             if fs_form.min_date.data:
                 base_query = base_query.where(Recipe.timestamp >= fs_form.min_date.data)
+                text = "Filters/Sorting Applied"
             recipes = base_query.order_by(Recipe.timestamp.desc())
             if sort_data := fs_form.sortby.data:
+                text = "Filters/Sorting Applied"
                 if sort_data== "# of likes":
                     recipes = base_query.order_by(Recipe.save_count.desc())
                 elif sort_data == "Certified":
                     recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
                 else:
                     recipes = base_query.order_by(Recipe.timestamp.desc())
-
-        # if sort_form.validate_on_submit():
-        #     sort_data = sort_form.sortby.data
-        #     if sort_data== "# of likes":
-        #         recipes = base_query.order_by(Recipe.save_count.desc())
-        #     elif sort_data == "Certified":
-        #         recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
-        #     else:
-        #         recipes = base_query.order_by(Recipe.timestamp.desc())
-        # else:
-        #     recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
         recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
-    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, sortform = sort_form, filterform = fs_form)
+    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, filterform = fs_form, filter_text=text)

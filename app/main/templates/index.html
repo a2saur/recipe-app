@@ -6,8 +6,12 @@
 <div class="d-flex justify-content-between align-items-center">
     <h1 >Welcome!</h1>
     <div id ="sort_filter">
-        <div id="sort_filter_button" class="align-items-center" style="display: flex; justify-content: flex-end;">
-            <button onclick="toggleBlock()" class="btn btn-primary brown" id="sort_filter_button">Sort / Filter</button>
+        <div id="sort_filter_button" class="icon-button" style="display: flex; justify-content: flex-end;">
+            <span style="margin-inline: 10px; margin-block: 5px; color: #80604a;"> {{ filter_text }} </span>
+            <button onclick="toggleBlock()" class="btn btn-primary brown" id="sort_filter_button">
+                <i class="bi bi-sliders"></i>
+                <span class="button-description">Sort / Filter</span>
+            </button>
         </div>
         <div id="sort_filter_box" style="margin-top: 20px; display: none;">
             <form method="POST" class="align-items-center gap-1">
