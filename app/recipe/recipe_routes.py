@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
 
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, RecipeStep
 from app.recipe.recipe_forms import RecipeForm
 from app.recipe.recipe_helpers import *
 
@@ -79,15 +79,29 @@ def edit_recipe(recipe_id):
             "quantity": 0.0,
             "unit": "",
         })
+        
+        # populate stepss
+        step_data = []
+        for step in recipeDraft.get_steps():
+            step_data.append({
+                "stepDescription": step.description,
+                "step_id": step.id
+            })
+        # add an extra empty step form for a new step
+        step_data.append({
+            "stepDescription":"",
+        })
+
         # populate recipe form
         rform = RecipeForm(
             title = recipeDraft.title,
             description = recipeDraft.description,
             servingSize = recipeDraft.servingSize,
-            estimatedTime = recipeDraft.estimatedTime,
+            estimatedHrs = recipeDraft.estimatedHrs,
+            estimatedMins = recipeDraft.estimatedMins,
             tags = recipeDraft.get_tags(),
             ingredients = ingredient_data,
-            steps = recipeDraft.steps
+            steps = step_data
         )
 
     else:
@@ -95,7 +109,45 @@ def edit_recipe(recipe_id):
         rform = RecipeForm()
     if rform.validate_on_submit():
         buttonVal = request.form.get('action_button') # get which button was pressed
-        if buttonVal == "post":
+        if buttonVal is None:
+            # some other button was pressed
+            buttonVal = request.form.get('step_up_button')
+            if buttonVal is None:
+                # other button
+                buttonVal = request.form.get('step_down_button') # get which button was pressed
+                if buttonVal is None:
+                    # remove step
+                    buttonVal = request.form.get('step_remove_button') # get which button was pressed
+                    try:
+                        stepObj = db.session.get(RecipeStep, int(buttonVal))
+                        recipeDraft.recipe_steps.remove(stepObj)
+                        db.session.delete(stepObj)
+                        db.session.commit()
+                    except ValueError:
+                        # tried to remove the only step
+                        pass
+                else:
+                    # move step down
+                    stepObj = db.session.get(RecipeStep, int(buttonVal))
+                    nextStepObj = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == stepObj.recipe_id).where(RecipeStep.stepNum == stepObj.stepNum+1)).first()
+                    if nextStepObj is None or stepObj is None:
+                        flash("Couldn't reorder steps")
+                    else:
+                        stepObj.stepNum += 1
+                        nextStepObj.stepNum -= 1
+                        db.session.commit()
+            else:
+                # move step up
+                stepObj = db.session.get(RecipeStep, int(buttonVal))
+                prevStepObj = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == stepObj.recipe_id).where(RecipeStep.stepNum == stepObj.stepNum-1)).first()
+                if prevStepObj is None or stepObj is None:
+                    flash("Couldn't reorder steps")
+                else:
+                    stepObj.stepNum -= 1
+                    prevStepObj.stepNum += 1
+                    db.session.commit()
+            return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
+        elif buttonVal == "post":
             # post recipe
             # save changes
             saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
@@ -113,11 +165,9 @@ def edit_recipe(recipe_id):
                 # show first error
                 flash('Error posting draft: {}'.format(errors[0]))
         elif buttonVal == "add":
-            # add ingredient
-
+            # add ingredient or step
             # save changes
             saveRecipeDraft(recipe_id=recipe_id, rform=rform, picture=request.files['pictFile'])
-
             # redirect back to the edit recipe page
             return redirect(url_for('recipe.edit_recipe', recipe_id=recipe_id))
         elif buttonVal == "save":

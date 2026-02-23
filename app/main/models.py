@@ -155,8 +155,8 @@ class Recipe(db.Model):
     pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
     servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
-    estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
-    steps : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String, default="")
+    estimatedHrs : sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
+    estimatedMins : sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
     timestamp : sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc)) 
     is_draft : sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=True)
     save_count : sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
@@ -166,6 +166,7 @@ class Recipe(db.Model):
     # --- RELATIONSHIPS ---
     # keeps track of what user wrote this recipe
     writer : sqlo.Mapped['User'] = sqlo.relationship(back_populates='written_recipes')
+    recipe_steps: sqlo.WriteOnlyMapped['RecipeStep'] = sqlo.relationship(back_populates='recipe_appearance', passive_deletes=True)
 
     # keeps track of what tags are on this recipe
     tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
@@ -182,7 +183,7 @@ class Recipe(db.Model):
         passive_deletes=True)
     
     cookbook_appearances: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(
-        secondary=cookbook_recipes_table, primaryjoin=(cookbook_recipes_table.c.recipe_id == id), back_populates='included_recipes')
+        secondary=cookbook_recipes_table, primaryjoin=(cookbook_recipes_table.c.recipe_id == id), back_populates='included_recipes', passive_deletes=True)
 
     # keeps track of what ingredients + amounts are used in this recipe
     ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe', passive_deletes=True)
@@ -208,6 +209,9 @@ class Recipe(db.Model):
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
     
+    def get_steps(self):
+        return db.session.scalars(self.recipe_steps.select().order_by(RecipeStep.stepNum)).all()
+    
     def has_image(self):
         if self.pictFile is None or self.pictFile == "":
             return False
@@ -223,6 +227,14 @@ class Recipe(db.Model):
             return 'img/recipe-imgs/'+self.pictFile
         else:
             return None
+
+class RecipeStep(db.Model):
+    id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    stepNum: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
+    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(500))
+    recipe_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('recipe.id'))
+
+    recipe_appearance : sqlo.Mapped['Recipe'] = sqlo.relationship(back_populates='recipe_steps')
 
 
 class Tag(db.Model):

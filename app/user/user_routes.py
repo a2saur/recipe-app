@@ -7,8 +7,7 @@ import sqlalchemy as sqla
 from app import db
 from app.main.models import User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
-from app.user.user_forms import EditForm
-from app.recipe.recipe_forms import IngredientSubmitForm
+from app.user.user_forms import EditForm, IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
 

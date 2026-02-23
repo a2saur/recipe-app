@@ -29,7 +29,9 @@
             {% else %}
             <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
             {% endif %}
-            <h6 class="text-muted"> {{recipe.estimatedTime}} </h5>
+            <h6 class="text-muted"> 
+                {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
+                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h5>
         </span>
 
     </div>
@@ -104,7 +106,9 @@
                 {% else %}
                     <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
                 {% endif %}
-                <h6 class="text-muted"> {{recipe.estimatedTime}} </h5>
+                <h6 class="text-muted"> 
+                {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
+                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h5>
             </span>
             <span>
                 {% if recipe.writer.id == current_user.id %}
