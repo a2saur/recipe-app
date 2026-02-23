@@ -3,9 +3,8 @@ import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
-from app.main.forms import EmptyForm, SortForm
-from app.auth.auth_forms import RegistrationForm
+from app.main.models import Recipe, Tag, User
+from app.main.forms import EmptyForm, SortForm, FilterForm
 
 from app.main import main_blueprint as bp_main
 
@@ -29,7 +28,10 @@ def index(sort_data="Date"):
                     base_query = base_query.filter(Recipe.tags.any(Tag.name.in_(tag_list)))
             if filter_form.certified.data:
                 base_query = base_query.join(Recipe.writer).where(User.is_certified)
-            recipes = base_query.order_by(Recipe.timestamp.desc())
+            if filter_form.likes.data:
+                base_query = base_query.where(Recipe.save_count >= filter_form.likes.data)
+            if filter_form.min_date.data:
+                base_query = base_query.where(Recipe.timestamp >= filter_form.min_date.data)
         if sort_form.validate_on_submit():
             sort_data = sort_form.sortby.data
             if sort_data== "# of likes":
@@ -38,6 +40,8 @@ def index(sort_data="Date"):
                 recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
             else:
                 recipes = base_query.order_by(Recipe.timestamp.desc())
+        else:
+            recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':
         recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 

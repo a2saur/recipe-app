@@ -5,36 +5,52 @@
 
 <div class="d-flex justify-content-between align-items-center">
     <h1 >Welcome!</h1>
-    <div>
-        <form method="POST" class="d-flex align-items-center gap-1">
-            {{ sortform.hidden_tag() }}
-                <div class="d-flex align-items-center">
-                    <label class="me-2 mb-0 small text-secondary text-nowrap">Sort by: </label>
-                    {{ sortform.sortby(class="form-select form-select-sm", style="width: auto;") }}
-                </div>
-            {{ sortform.refresh(class="btn btn-primary btn-sm ms-2") }}
-            </form>
-        <form method="POST" class="d-flex align-items-center gap-1">
-            {{ filterform.hidden_tag() }}
-            <div class="d-flex align-items-center gap-2">
-                <label class="me-2 mb-0 small text-secondary text-nowrap">Filter: </label>
-                <span class="mb-0 mt-3">
-                    <span> {{ filterform.tags(class="form-select form-select-sm") }} </span>
-                    <div class="form-check mb-1">
-                        {{ filterform.all_selected(class='form-check-input') }}
-                        {{ filterform.all_selected.label(class='form-check-label small text-secondary') }}
+    <div id ="sort_filter">
+        <div id="sort_filter_button" class="align-items-center" style="display: flex; justify-content: flex-end;">
+            <button onclick="toggleBlock()" class="btn btn-primary brown">Sort / Filter</button>
+        </div>
+        <div id="sort_filter_box" style="margin-top: 20px; display: none;">
+            <form method="POST" class="d-flex align-items-center gap-1">
+                {{ sortform.hidden_tag() }}
+                    <div class="d-flex align-items-center">
+                        <label class="me-4 mb-0 text-secondary text-nowrap">Sort: </label>
+                        {{ sortform.sortby(class="form-select", style="width: auto;") }}
                     </div>
-                </span>
-                <span>
-                    {{ filterform.certified(class='form-check-input') }}
-                    {{ filterform.certified.label(class='form-check-label') }}
-                </span>
-                <span> {{wtf.form_field(filterform.likes)}} </span>
-            </div>
-            {{ filterform.refresh(class="btn btn-primary btn-sm ms-2") }}
-        </form>
+                {{ sortform.refresh(class="btn btn-primary brown ms-2") }}
+                </form>
+            <form method="POST" class="d-flex align-items-center gap-1">
+                {{ filterform.hidden_tag() }}
+                <div class="d-flex align-items-center gap-2">
+                    <label class="me-2 mb-0 text-secondary text-nowrap">Filter: </label>
+                    <div>
+                        <span> 
+                        {{ filterform.likes.label(class='form-control-label')}}
+                        {{ filterform.likes(class="form-control") }}
+                        </span>
+                        <span> 
+                        {{ filterform.min_date.label(class='form-control-label')}}
+                        {{ filterform.min_date(class="form-control") }}
+                        </span>
+                    </div>
+                    <div>
+                        <span> 
+                            {{ filterform.tags.label(class="form-select-label")}}
+                            {{ filterform.tags(class="form-select") }} 
+                        </span>
+                        <div class="form-check" style="margin-bottom: 7px;">
+                            {{ filterform.all_selected(class='form-check-input') }}
+                            {{ filterform.all_selected.label(class='form-check-label small text-secondary') }}
+                        </div>
+                        <div style="margin-bottom: 7px;">
+                            {{ filterform.certified(class='form-check-input')}}
+                            {{ filterform.certified.label(class='form-check-label') }}
+                        </div>
+                    </div>               
+                </div>
+                {{ filterform.refresh(class="btn btn-primary brown ms-3") }}
+            </form>
+        </div>
     </div>
-
 </div>
     <div class="recipe-card-collection">
         {% for recipe in recipes %}
@@ -43,14 +59,17 @@
     </div>
 </div>
     
-  
+<script>
+    function toggleBlock(){
+        const div = document.getElementById("sort_filter_box");
+        if (div.style.display === "none") {
+            div.style.display = "block";
+        } else {
+            div.style.display = "none";
+        }
+    }   
+</script>
 {% endblock %}
 
-function toggleBlock() {
-    var x = document.getElementById("myBlock");
-    if (x.style.display === "none") {
-        x.style.display = "block"; // Show the block
-    } else {
-        x.style.display = "none"; // Hide the block
-    }
-}
+
+
