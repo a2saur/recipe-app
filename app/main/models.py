@@ -1,15 +1,20 @@
 from datetime import datetime, timezone
 from typing import Optional
-from flask import flash
+from flask import flash, url_for
 from werkzeug.security import generate_password_hash, check_password_hash  
 from flask_login import UserMixin
 
 from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+import os
 
 # types of ingredient units users can select
 UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
+
+# keeps track of which recipes are in which cookbooks
+cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Column('cookbook_id', sqla.Integer, sqla.ForeignKey('cookbook.id'), primary_key=True), 
+                                 sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True))
 
 # keeps track of which tags are on which recipes
 recipe_tags_table = db.Table('recipe_tags_table', db.metadata, sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True), 
@@ -37,6 +42,7 @@ class User(db.Model, UserMixin):
     # --- RELATIONSHIPS ---
     # keeps track of what recipes this user has written
     written_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
+    written_cookbooks: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(back_populates='cookbook_writer')
 
     # keeps track of what recipes this user has saved
     saved_recipes : sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
@@ -72,6 +78,9 @@ class User(db.Model, UserMixin):
     
     def get_user_recipes(self):
         return db.session.scalars(self.written_recipes.select()).all()
+    
+    def get_user_cookbooks(self):
+        return db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == self.id)).all()
     
     def get_user_recipes_query(self):
         return sqla.select(Recipe).where(Recipe.user_id == self.id)
@@ -143,6 +152,7 @@ class Recipe(db.Model):
     # --- ATTRIBUTES ---
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
+    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
     servingSize : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float, default=0)
     estimatedTime : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(25), default="")
@@ -171,11 +181,8 @@ class Recipe(db.Model):
         back_populates='saved_recipes',
         passive_deletes=True)
     
-    def get_tags(self):
-        return db.session.scalars(self.tags.select()).all()
-    def get_num_tag(self):
-        return len(self.get_tags())
-
+    cookbook_appearances: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(
+        secondary=cookbook_recipes_table, primaryjoin=(cookbook_recipes_table.c.recipe_id == id), back_populates='included_recipes')
 
     # keeps track of what ingredients + amounts are used in this recipe
     ingredients_used: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_recipe', passive_deletes=True)
@@ -187,6 +194,11 @@ class Recipe(db.Model):
         else:
             return '<Recipe id: {} - title: {} (last edited {})>'.format(self.id, self.title, self.timestamp)
     
+    def get_tags(self):
+        return db.session.scalars(self.tags.select()).all()
+    def get_num_tag(self):
+        return len(self.get_tags())
+
     def get_ingredient_use_cases(self):
         return db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all()
     
@@ -195,6 +207,22 @@ class Recipe(db.Model):
 
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
+    def has_image(self):
+        if self.pictFile is None or self.pictFile == "":
+            return False
+        else:
+            basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
+            if os.path.exists(os.path.join(basedir, self.pictFile)):
+                return True
+            else:
+                return False
+        
+    def get_pict_path(self):
+        if self.has_image():
+            return 'img/recipe-imgs/'+self.pictFile
+        else:
+            return None
 
 
 class Tag(db.Model):
@@ -210,6 +238,32 @@ class Tag(db.Model):
     # --- METHODS ---
     def __repr__(self):
         return '<Tag id: {} - name: {}>'.format(self.id, self.name)
+
+
+class Cookbook(db.Model):
+    # --- ATTRIBUTES --
+    id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
+    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
+    description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
+
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('user.id'))
+
+    # --- RELATIONSHIPS --
+    included_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
+        secondary=cookbook_recipes_table, 
+        primaryjoin=(cookbook_recipes_table.c.cookbook_id == id),
+        back_populates='cookbook_appearances', 
+        passive_deletes=True)
+    
+    cookbook_writer : sqlo.Mapped['User'] = sqlo.relationship(back_populates='written_cookbooks')
+    
+    # --- METHODS --
+    def __repr__(self):
+        return '<Cookbook {} - name: {}>'.format(self.id, self.title)
+    
+    def get_recipes(self):
+        return db.session.scalars(self.included_recipes.select()).all()
 
 
 class Ingredient(db.Model):

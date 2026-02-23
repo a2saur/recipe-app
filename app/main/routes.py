@@ -4,7 +4,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
-from app.main.forms import RecipeForm, IngredientSubmitForm, EmptyForm, SortForm, EditForm, FilterForm
+from app.main.forms import EmptyForm, SortForm
 from app.auth.auth_forms import RegistrationForm
 
 from app.main import main_blueprint as bp_main
@@ -13,7 +13,7 @@ from app.main import main_blueprint as bp_main
 @bp_main.route('/', methods=['GET', 'POST'])
 @bp_main.route('/index', methods=['GET', 'POST'])
 # @login_required
-def index():
+def index(sort_data="Date"):
     empty_form = EmptyForm()
     sort_form = SortForm()
     filter_form = FilterForm()
@@ -31,8 +31,11 @@ def index():
                 base_query = base_query.join(Recipe.writer).where(User.is_certified)
             recipes = base_query.order_by(Recipe.timestamp.desc())
         if sort_form.validate_on_submit():
-            if sort_form.sortby.data == "Title":
-                recipes = base_query.order_by(Recipe.title)
+            sort_data = sort_form.sortby.data
+            if sort_data== "# of likes":
+                recipes = base_query.order_by(Recipe.save_count.desc())
+            elif sort_data == "Certified":
+                recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
             else:
                 recipes = base_query.order_by(Recipe.timestamp.desc())
     if request.method == 'GET':

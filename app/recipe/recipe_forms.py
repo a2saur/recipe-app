@@ -3,6 +3,7 @@ from wtforms import Form, FormField, FieldList, StringField, SubmitField, Select
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  Length
 from wtforms.validators import Optional
+from flask_wtf.file import FileField
 
 from app import db
 import sqlalchemy as sqla
@@ -20,14 +21,15 @@ class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add Ingredient')
 
 class RecipeForm(FlaskForm):
-    title = StringField('Title')
-    description = TextAreaField('Description', validators=[Length(max=215)])
-    servingSize = FloatField('Serving Size', default=0.0, validators=[Optional()])
-    estimatedTime = StringField('Estimated Time', validators=[Length(max=25)])
-    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
+    title = StringField('Title*')
+    pictFile = FileField("Picture (optional)", validators=[Optional()])
+    description = TextAreaField('Description*', validators=[Length(max=215)])
+    servingSize = FloatField('Serving Size*', default=0.0, validators=[Optional()])
+    estimatedTime = StringField('Estimated Time*', validators=[Length(max=25)])
+    tags = QuerySelectMultipleField('Tags (optional)', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
                                     get_label= lambda tag: tag.name,
                                     render_kw={"class": "form-control", "size": "1"})
     ingredients = FieldList(FormField(IngredientForm))
-    steps = TextAreaField('Steps')
+    steps = TextAreaField('Steps*')
 
     submit = SubmitField('Post')

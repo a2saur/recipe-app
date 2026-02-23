@@ -20,6 +20,9 @@
         </div>
 
         <div class="recipe-page-description">
+            {% if recipe.has_image() %}
+                <img src="{{url_for('static', filename=recipe.get_pict_path())}}" class="recipe-page-image">
+            {% endif %}
             {{recipe.description}}
         </div>
 

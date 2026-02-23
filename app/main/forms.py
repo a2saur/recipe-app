@@ -10,35 +10,11 @@ from app import db
 import sqlalchemy as sqla
 from app.main.models import Tag, User, UNIT_OPTIONS
 
-# Subform (no CSRF)
-class IngredientForm(Form):
-    ingredient_id = HiddenField()
-    ingredientName = StringField('Ingredient Name', default="")
-    quantity = FloatField('Quantity', default=0.0, validators=[Optional()])
-    unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
-
-# Standalone form
-class IngredientSubmitForm(IngredientForm, FlaskForm):
-    submit = SubmitField('Add Ingredient')
-
-class RecipeForm(FlaskForm):
-    title = StringField('Title')
-    description = TextAreaField('Description', validators=[Length(max=1500)])
-    servingSize = FloatField('Serving Size', default=0.0, validators=[Optional()])
-    estimatedTime = StringField('Estimated Time', validators=[Length(max=25)])
-    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
-                                    get_label= lambda tag: tag.name,
-                                    render_kw={"class": "form-control", "size": "1"})
-    ingredients = FieldList(FormField(IngredientForm))
-    steps = TextAreaField('Steps')
-
-    submit = SubmitField('Post')
-
 class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class SortForm(FlaskForm):
-    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified User"])
+    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified"])
     refresh = SubmitField('Refresh')
 
 class FilterForm(FlaskForm):
