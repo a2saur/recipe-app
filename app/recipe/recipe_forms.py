@@ -16,6 +16,10 @@ class IngredientForm(Form):
     quantity = FloatField('Quantity', default=0.0, validators=[Optional()])
     unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
 
+# Subform
+class StepForm(Form):
+    step_id = HiddenField()
+    stepDescription = TextAreaField('', default="", validators=[Length(max=1000)])
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add')
@@ -24,12 +28,13 @@ class RecipeForm(FlaskForm):
     title = StringField('Title*')
     pictFile = FileField("Picture (optional)", validators=[Optional()])
     description = TextAreaField('Description*', validators=[Length(max=215)])
-    servingSize = FloatField('Serving Size*', default=0.0, validators=[Optional()])
-    estimatedTime = StringField('Estimated Time*', validators=[Length(max=25)])
+    servingSize = FloatField('Serving Size*', default=0.0)
+    estimatedHrs = StringField('Estimated Hrs*', default=0)
+    estimatedMins = StringField('Estimated Mins*', default=0)
     tags = QuerySelectMultipleField('Tags (optional)', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
                                     get_label= lambda tag: tag.name,
                                     render_kw={"class": "form-control", "size": "1"})
     ingredients = FieldList(FormField(IngredientForm))
-    steps = TextAreaField('Steps*')
+    steps = FieldList(FormField(StepForm))
 
     submit = SubmitField('Post')

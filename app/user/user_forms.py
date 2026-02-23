@@ -6,7 +6,11 @@ from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationErro
 from app import db
 import sqlalchemy as sqla
 from app.main.models import User
+from app.recipe.recipe_forms import IngredientForm
 
+# Standalone form
+class IngredientSubmitForm(IngredientForm, FlaskForm):
+    submit = SubmitField('Add Ingredient')
 
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

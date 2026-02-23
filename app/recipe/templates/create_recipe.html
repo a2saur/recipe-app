@@ -22,7 +22,8 @@
         
         {{ wtf.form_field(form.description) }}
         {{ wtf.form_field(form.servingSize) }}
-        {{ wtf.form_field(form.estimatedTime) }}
+        {{ wtf.form_field(form.estimatedHrs) }}
+        {{ wtf.form_field(form.estimatedMins) }}
         {{ wtf.form_field(form.tags) }}
 
 
@@ -38,7 +39,7 @@
                 </tr>
                 {% for ingredient in form.ingredients %}
                     <tr>
-                        <td><button type="submit" name="action_button" value="{{ingredient.ingredient_id.data}}" class="btn btn-outline-danger remove-btn">X</button></td>
+                        <td>{% if not loop.last %} <button type="submit" name="action_button" value="{{ingredient.ingredient_id.data}}" class="btn btn-outline-danger remove-btn">X</button>{% endif %}</td>
                         {% if ingredient.ingredientName.data %}
                         <td>{{ ingredient.ingredientName.data }}</td>
                         {% else %}
@@ -56,7 +57,33 @@
         </div>
         
         <br>
-        {{ wtf.form_field(form.steps) }}
+        Steps*
+        <div class="step-form">
+            <table>
+                <tr>
+                    <th></th>
+                    <th style="width:50px"></th>
+                    <th>Step Description</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% for step in form.steps %}
+                <tr>
+                    <td>{% if loop.index != 1 %}{% if not loop.last %}<button type="submit" name="step_up_button" value="{{step.step_id.data}}" class="btn btn-outline-secondary remove-btn"><i class="bi bi-caret-up-fill"></i></button>{% endif %}{% endif %}</td>
+                    <td style="text-align:right">{{loop.index}}</td>
+                    <td>{{step.stepDescription()}}</td>
+                    <td>{% if loop.index < loop.length-1 %}<button type="submit" name="step_down_button" value="{{step.step_id.data}}" class="btn btn-outline-secondary remove-btn"><i class="bi bi-caret-down-fill"></i></button>{% endif %}</td>
+                    <td>{% if not loop.last %}<button type="submit" name="step_remove_button" value="{{step.step_id.data}}" class="btn btn-outline-danger remove-btn">X</button>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th><button type="submit" name="action_button" value="add" class="btn btn-outline-primary">Add step</button></th>
+                    <th></th>
+                </tr>
+            </table>
+        </div>
         <!-- {{ wtf.form_field(form.submit) }} -->
         {% if is_draft %}
             <button type="submit" name="action_button" value="save" class="btn btn-outline-success">Save Draft and Return</button>

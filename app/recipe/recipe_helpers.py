@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
 
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, RecipeStep
 from app.recipe.recipe_forms import RecipeForm
 
 from app.recipe import recipe_blueprint as bp_recipe
@@ -37,12 +37,30 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
     recipeDraft.title = rform.title.data
     recipeDraft.description = rform.description.data
     recipeDraft.servingSize = rform.servingSize.data
-    recipeDraft.estimatedTime = rform.estimatedTime.data
-    recipeDraft.steps = rform.steps.data
+    recipeDraft.estimatedHrs = rform.estimatedHrs.data
+    recipeDraft.estimatedMins = rform.estimatedMins.data
+    # recipeDraft.steps = rform.steps.data
+    for s in recipeDraft.get_steps():
+        db.session.delete(s)
+        db.session.commit()#recipeDraft.recipe_steps.remove(s)
+    i = 1
+    for s in rform.steps:
+        if s.stepDescription.data != "":
+            recipeStep = RecipeStep(
+                stepNum = i,
+                description = s.stepDescription.data,
+                recipe_id = recipe_id,
+            )
+            print("--")
+            print(i)
+            print(s.stepDescription.data)
+            recipeDraft.recipe_steps.add(recipeStep)
+            i += 1
+
     for t in recipeDraft.get_tags():
         recipeDraft.tags.remove(t)
-    for t in rform.tags.data :
-            recipeDraft.tags.add(t)
+    for t in rform.tags.data:
+        recipeDraft.tags.add(t)
     recipeDraft.timestamp = datetime.now(timezone.utc)
     db.session.commit()
 
@@ -116,11 +134,15 @@ def validateRecipeDraftForPost(recipe_id):
         errors.append("Please put in a serving size")
 
     # check estimated time is not blank
-    if recipeDraft.estimatedTime == "":
+    if recipeDraft.estimatedHrs == 0 and recipeDraft.estimatedMins == 0:
         errors.append("Please add an estimated time")
+    if recipeDraft.estimatedHrs < 0:
+        errors.append("Please add a valid time")
+    if recipeDraft.estimatedMins < 0:
+        errors.append("Please add a valid time")
 
     # check steps is not blank
-    if recipeDraft.steps == "":
+    if len(recipeDraft.get_steps()) == 0:
         errors.append("Please add steps")
 
     # check that there are ingredients
@@ -141,13 +163,16 @@ def removeIngredient(recipe_id, ingredient_id):
         flash("Successfully removed ingredient")
 
 def deleteRecipe(recipe_id):
-    therecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
+    therecipe = db.session.get(Recipe, recipe_id)
     if therecipe is not None:
         for t in therecipe.get_tags():
             therecipe.tags.remove(t)
-        for ingredient in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
-            db.session.delete(ingredient)
-        db.session.commit()
+        for recipeIngredient in db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all():
+            db.session.delete(recipeIngredient)
+        for step in db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == recipe_id)).all():
+            therecipe.recipe_steps.remove(step)
+            db.session.delete(step)
+        db.session.execute(sqla.delete(RecipeStep).where(RecipeStep.recipe_id == recipe_id))
         db.session.delete(therecipe)
         db.session.commit()
         return True

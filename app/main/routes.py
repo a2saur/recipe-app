@@ -15,6 +15,8 @@ from app.main import main_blueprint as bp_main
 @bp_main.route('/index', methods=['GET', 'POST'])
 # @login_required
 def index(sort_data="Date"):
+    if current_user.is_anonymous:
+        return redirect(url_for('auth.login'))
     empty_form = EmptyForm()
     sort_form = SortForm()
 
