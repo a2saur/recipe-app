@@ -1,0 +1,148 @@
+<div class="cookbook-info-bar">
+    <div id="cookbook-{{cookbook.id}}" class="cookbook-card-collection">
+        <button id="btn-{{cookbook.id}}" onclick="prevPage({{cookbook.get_num_recipes()}})">
+            <i class="bi bi-caret-left-fill"></i>
+        </button>
+
+        <div id="cookbook-{{cookbook.id}}-recipe-card-0" class="cookbook-recipe-card">
+            <div class="recipe-card-image-holder bottom-line">
+                {% if cookbook.has_image() %}
+                    <img src="{{url_for('static', filename=cookbook.get_pict_path())}}" class="recipe-card-image" style="object-fit:contain;">
+                {% else %}
+                    <div style="width:100%; height:100%; background-color: rgb(43, 58, 151);"></div>
+                {% endif %}
+            </div>
+            <div class="recipe-card-footer">
+                <span><div class="d-flex">
+                    {% if cookbook.title | length < 28 %}
+                        <h5>{{ cookbook.title }}</h5>
+                    {% else %}
+                        <h5>{{ cookbook.title[:27] }}...</h5>
+                    {% endif %}
+                </div></span>
+                <span>
+                    {{cookbook.get_num_recipes()}} Recipes
+                    <br>
+                    By {{cookbook.get_writer()}}
+                </span>
+            </div>
+        </div>
+
+        {% for recipe in cookbook.get_recipes() %}
+        <div id="cookbook-{{cookbook.id}}-recipe-card-{{loop.index}}" class="cookbook-recipe-card hover-scale d-none">
+            <a class="hidden-link" href="{{ url_for('recipe.view_recipe', recipe_id=recipe.id) }}">
+                <div class="recipe-card-image-holder bottom-line">
+                    {% if recipe.has_image() %}
+                        <img src="{{url_for('static', filename=recipe.get_pict_path())}}" class="recipe-card-image" style="object-fit:contain">
+                    {% else %}
+                        <div style="width:100%; height:100%; background-color: rgb(43, 58, 151);"></div>
+                    {% endif %}
+                </div>
+                <div class="recipe-card-footer">
+                    <span><div class="d-flex">
+                        {% if recipe.title | length < 28 %}
+                            <h5>{{ recipe.title }}</h5>
+                        {% else %}
+                            <h5>{{ recipe.title[:27] }}...</h5>
+                        {% endif %}
+                    </div></span>
+                    <span>
+                        {% if recipe.servingSize > 1 %}
+                        <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h5>
+                        {% else %}
+                        <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
+                        {% endif %}
+                        <h6 class="text-muted"> {{recipe.estimatedTime}} </h5>
+                    </span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+
+        <button id="btn-{{cookbook.id}}" onclick="nextPage({{cookbook.get_num_recipes()}})">
+            <i class="bi bi-caret-right-fill"></i>
+        </button>
+    </div>
+
+    <div class="cookbook-info-bar-description">
+        <div class="evenly-spaced">
+            <span><b>Title: </b> {{cookbook.title}}
+            <br>
+            <b>By: </b> {{cookbook.get_writer()}}
+            <br>
+            <b>Containing: </b> {{cookbook.get_num_recipes()}} Recipes
+            </span>
+            <span style="margin-right:5px;"><form action="{{ url_for('cookbook.edit_cookbook', cookbook_id=cookbook.id) }}" method="get">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="bi bi-pencil-square"></i><span style="margin:5px">Edit</span>
+                </button>
+            </form></span>
+        </div>
+        
+        <br>
+        <hr>
+        {{cookbook.description}}
+        <br>
+        <hr>
+        
+        <b>Included recipes: </b>
+        <div class="cookbook-info-recipe-btns">
+        {% for recipe in cookbook.get_recipes() %}
+        <form action="{{ url_for('recipe.view_recipe', recipe_id=recipe.id) }}" method="get">
+            <button type="submit" class="btn btn-secondary">
+                {{recipe.title}}
+            </button>
+        </form>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function nextPage(numPages){
+    // for card in cards
+    console.log("AAA");
+    console.log(numPages);
+    for (let i = 0; i <= numPages; i++){
+        var cookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+i.toString());
+        if (cookbookCard.classList.contains("d-none")){
+            // hidden, keep going
+        } else {
+            // found the showing one, hide this one and show the next one
+            cookbookCard.classList.add("d-none");
+
+            var nextCookbookCard;
+            if (i+1 > numPages){
+                // loop around
+                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-0");
+            } else {
+                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+(i+1).toString());
+            }
+            nextCookbookCard.classList.remove("d-none");
+            return;
+        }
+    }
+}
+
+function prevPage(numPages){
+    // for card in cards
+    for (let i = 0; i <= numPages; i++){
+        var cookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+i.toString());
+        if (cookbookCard.classList.contains("d-none")){
+            // hidden, keep going
+        } else {
+            // found the showing one, hide this one and show the next one
+            cookbookCard.classList.add("d-none");
+            var nextCookbookCard;
+            if (i-1 < 0){
+                // loop around
+                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+numPages.toString());
+            } else {
+                nextCookbookCard = document.getElementById("cookbook-{{cookbook.id}}-recipe-card-"+(i-1).toString());
+            }
+            nextCookbookCard.classList.remove("d-none");
+            return;
+        }
+    }
+}
+</script>

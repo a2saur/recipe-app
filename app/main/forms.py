@@ -11,7 +11,7 @@ class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class SortForm(FlaskForm):
-    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified"])
+    sortby = SelectField('Sort by', choices=['Date', "# of saves", "Certified"])
     refresh = SubmitField('Refresh')
 
 class FilterSortForm(FlaskForm):

@@ -3,8 +3,10 @@ import sqlalchemy as sqla
 from flask_login import current_user, login_required
 
 from app import db
-from app.main.models import Recipe, Tag, User
-from app.main.forms import EmptyForm, SortForm, FilterSortForm
+from app.main.models import Cookbook, Recipe, RecipeIngredientUse, Ingredient, Tag, User, recipe_tags_table, UserGroceryListUse, UserIngredientListUse
+from app.main.forms import EmptyForm, FilterSortForm
+from app.auth.auth_forms import RegistrationForm
+from app.main.helpers import get_recommended_recipes
 
 from app.main import main_blueprint as bp_main
 
@@ -14,7 +16,9 @@ from app.main import main_blueprint as bp_main
 # @login_required
 def index(sort_data="Date"):
     empty_form = EmptyForm()
-    sort_form = SortForm()
+    # get recommended recipes
+    rec_recipes = get_recommended_recipes(current_user.id)
+    # sort form
     fs_form = FilterSortForm()
     base_query = sqla.select(Recipe).where(Recipe.is_draft == False)
     text = ""
@@ -49,4 +53,10 @@ def index(sort_data="Date"):
     if request.method == 'GET':
         recipes = base_query.order_by(Recipe.timestamp.desc())
     all_recipes  = db.session.scalars(recipes).all() 
-    return render_template('index.html', title="", recipes=all_recipes, form=empty_form, filterform = fs_form, filter_text=text)
+
+    # get all cookbooks
+    all_cookbooks  = db.session.scalars(sqla.select(Cookbook)).all()
+
+    recipe_count = len(all_recipes)
+
+    return render_template('index.html', title="", rec_recipes=rec_recipes, recipe_count=recipe_count, recipes=all_recipes, cookbooks=all_cookbooks, form=empty_form, filterform = fs_form, filter_text=text)
