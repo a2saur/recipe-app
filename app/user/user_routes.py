@@ -16,24 +16,35 @@ from app.user import user_blueprint as bp_user
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
 def display_profile():
-    view = request.args.get('view', 'saved')
+    recipes=0
+    cookbooks=0
+    view = request.args.get('view', default = 'mine')
     if view =='mine':
         recipes = current_user.get_user_recipes()
+    elif view == 'cookbook':
+        cookbooks = current_user.get_user_cookbooks()
     else:
         recipes = current_user.get_saved()
-    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, view=view, read_only=False)
+    return render_template('profile.html', title="User Profile", user=current_user, recipes=recipes, cookbooks=cookbooks, view=view, read_only=False)
 
 @bp_user.route('/user/<user_id>/viewprofile', methods = ['GET'])
 @login_required
 def view_other_profile(user_id):
+    view=request.args.get('view', default='mine')
     user=db.session.get(User, user_id)
     if user is None:
         flash("User not found")
         return redirect(url_for('main.index'))
     if user.id==current_user.id:
-        return redirect(url_for('user.display_profile'))
+        return redirect(url_for('user.display_profile', view=view))
+    recipes=0
+    cookbooks=0
+    if view=='mine':
+        recipes = user.get_user_recipes()
+    elif view=='cookbook':
+        cookbooks = user.get_user_cookbooks()
     recipes = user.get_user_recipes()
-    return render_template('profile.html', title="{user.username}'s Profile", user=user, recipes=recipes, view='mine', read_only=True)
+    return render_template('profile.html', title="{user.username}'s Profile", user=user, recipes=recipes, cookbooks=cookbooks, view=view, read_only=True)
 
 
 @bp_user.route('/user/profile/edit', methods=['GET','POST'])

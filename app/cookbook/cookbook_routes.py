@@ -22,6 +22,13 @@ def create_cookbook():
     cform = CookbookForm()
     cform.recipes.query_factory = current_user.get_user_recipes
     if cform.validate_on_submit():
+        if not cform.recipes.data:
+            flash("At least one recipe must be selected!")
+            return render_template('create_cookbook.html',
+                                   title = 'Create Cookbook',
+                                   form=cform,
+                                   editing_cookbook=False)
+
         cb = Cookbook(
             title=cform.title.data,
             description=cform.description.data,
@@ -42,7 +49,6 @@ def create_cookbook():
             img_path = os.path.join(basedir, pictName)
             cb.pictFile = pictName
             picture.save(img_path)
-
         db.session.add(cb)
         db.session.commit()
         flash('Cookbook {} has been created'.format(cb.title))
@@ -101,7 +107,15 @@ def edit_cookbook(cookbook_id):
         return redirect(url_for('main.index'))
     return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=True, pictFile=cookbookObj.pictFile, cookbook_id=cookbookObj.id)
 
+
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
 # @login_required
-def delete_cookbook():
-    return
+def delete_cookbook(cookbook_id):
+    cookbookObj = db.session.get(Cookbook, cookbook_id)
+    if cookbookObj is None:
+        flash('Could not find cookbook')
+        return redirect(url_for('main.index'))
+    db.session.delete(cookbookObj)
+    db.session.commit()
+    flash("Cookbook successfully deleted")
+    return redirect(url_for('main.index'))

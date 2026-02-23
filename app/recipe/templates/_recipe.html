@@ -114,7 +114,7 @@
                 {% if recipe.writer.id == current_user.id %}
                     <span class="icon-button">
                         <form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">
-                            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top:1px; margin-bottom:1px;">
+                            <button type="submit" class="btn btn-danger" style="width: 100%; margin-top:1px; margin-bottom:1px;" onclick="return confirm('Are you sure you want to delete this recipe?');">
                                 <i class="bi bi-trash"></i><span class="button-description">Delete</span>
                             </button>
                         </form>
