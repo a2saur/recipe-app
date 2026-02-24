@@ -237,6 +237,17 @@
     background-color: rgb(155, 72, 99);
 }
 
+/* Brown Button */
+.btn-primary.brown{
+    border-color: #aa7c5a;
+    background-color: #aa7c5a;
+}
+
+.btn-primary.brown:hover{
+    border-color: #80604a;
+    background-color: #80604a;
+}
+
 
 /* Recipe page */
 .recipe-page {

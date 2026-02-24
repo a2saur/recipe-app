@@ -1,14 +1,11 @@
-from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import Form, FormField, FieldList, StringField, SubmitField, SelectField, TextAreaField, BooleanField, PasswordField, FloatField, HiddenField
+from wtforms import SubmitField, SelectField, BooleanField, IntegerField, DateField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
-from wtforms.validators import  ValidationError, DataRequired, Length
-from wtforms.widgets import ListWidget, CheckboxInput, Select
-from wtforms.validators import DataRequired, EqualTo, Email, Optional
+from wtforms.validators import Optional, NumberRange
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import Tag, User, UNIT_OPTIONS
+from app.main.models import Tag
 
 class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
@@ -16,3 +13,16 @@ class EmptyForm(FlaskForm):
 class SortForm(FlaskForm):
     sortby = SelectField('Sort by', choices=['Date', "# of saves", "Certified"])
     refresh = SubmitField('Refresh')
+
+class FilterSortForm(FlaskForm):
+    sortby = SelectField('Sort by', choices=['Date', "# of likes", "Certified"])
+    tags = QuerySelectMultipleField('Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
+                                    get_label= lambda tag: tag.name,
+                                    render_kw={"class": "form-control", "size": "1", "placeholder": "Select Tags"})
+    all_selected = BooleanField('All Selected')
+    certified = BooleanField('Certified Only')
+    likes = IntegerField('Likes', render_kw={"placeholder": "Min # of Saves"}, validators=[Optional(), NumberRange(min=0, message="Input must be positive")])
+    min_date = DateField('Posted After', validators=[Optional()])
+    refresh = SubmitField('Sort / Filter')
+
+
