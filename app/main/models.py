@@ -273,7 +273,7 @@ class Cookbook(db.Model):
     # --- ATTRIBUTES --
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     title : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150), default="")
-    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String())
+    pictFile : sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(), default="")
     description: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(215), default="")
 
     user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey('user.id'))

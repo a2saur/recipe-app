@@ -156,14 +156,15 @@
 }
 
 .recipe-card-content {
-    height: 40%;
+    height: 45%;
     width: 100%;
     padding: 5%;
     background-color: var(--blank-bg-color);
+    overflow: hidden;
 }
 
 .recipe-card-tags {
-    height: 20%;
+    height: 15%;
     width: 100%;
     padding: 5%;
     color: #888;
@@ -287,6 +288,15 @@
     max-height:15vw;
 }
 
+.recipe-page-tag{
+    color: var(--blank-bg-color);
+    border: 1px solid;
+    border-color: var(--blank-bg-color);
+    background-color: var(--outline-color);
+    border-radius: 5px;
+    padding:5px;
+}
+
 .recipe-page-content {
     background-color: var(--blank-bg-color);
     padding: 2%;
@@ -345,7 +355,7 @@
 }
 
 .cookbook-card-collection {
-    width: 30%;
+    width: 40%;
     height:400px;
     display: flex;
     justify-content: space-between;
@@ -353,7 +363,7 @@
 }
 
 .cookbook-info-bar-description{
-    width:70%;
+    width:60%;
     height: 100%;
     margin: 1%;
     padding: 1%;

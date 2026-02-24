@@ -1,8 +1,8 @@
-"""seperated recipe estimated time
+"""recreated
 
-Revision ID: a46e20f7d5b5
+Revision ID: 7c300dcbdab1
 Revises: 
-Create Date: 2026-02-22 17:15:12.748156
+Create Date: 2026-02-23 20:25:31.394007
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a46e20f7d5b5'
+revision = '7c300dcbdab1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -39,6 +39,8 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=256), nullable=False),
     sa.Column('is_certified', sa.Boolean(), nullable=False),
+    sa.Column('business_name', sa.String(length=120), nullable=True),
+    sa.Column('business_website', sa.String(length=256), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('cookbook',
