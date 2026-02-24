@@ -34,8 +34,7 @@ class EditForm(FlaskForm):
                 raise ValidationError('This email is already registered! Please provide a different email address.')
 
 class CertifyForm(FlaskForm):
-    code = ""
-    in_code = StringField('One-Time Code', validators=[DataRequired(), EqualTo('code')], render_kw={'placeholder':'Your code'})
+    in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})
     submit = SubmitField('Certify')
 
 class BusinessForm(FlaskForm):

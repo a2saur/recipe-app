@@ -3,7 +3,7 @@ import sys
 import secrets
 from flask import current_app
 
-from flask import render_template, flash, redirect, url_for, request, jsonify
+from flask import render_template, flash, redirect, url_for, request, jsonify, session
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
@@ -78,14 +78,22 @@ def become_certified():
     if request.method == 'GET':
         time = datetime.now().strftime("%H:%M:%S")
         code = str(secrets.randbelow(10**6)).zfill(6)
-        cform.__init__(code=code)
+        session['ot_code'] = code
         send_verification_email(current_user, code)
         flash("A code was sent to {} at {}, please use this code to verify your identity.".format(current_user.email, time))
         return render_template('certify.html', cform = cform)
     if request.method == 'POST':
-        current_user.is_certified = True
-        db.session.commit()
-        return redirect(url_for('user.display_profile'))
+        if cform.validate_on_submit():
+            if cform.in_code.data == session.get('ot_code'):
+                session.pop('ot_code', None)
+                current_user.is_certified = True
+                db.session.commit()
+                flash("Certification successful!")
+                return redirect(url_for('user.display_profile'))
+            else:
+                flash("Invalid code. Try again.")
+                return render_template('certify.html', cform=cform)
+                
 
 @bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
 @login_required
