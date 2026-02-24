@@ -11,10 +11,18 @@ from werkzeug.utils import secure_filename
 import uuid
 import os
 
-from app.main.models import Cookbook
+from app.main.models import Cookbook, Recipe
 from app.cookbook.cookbook_forms import CookbookForm
 
 from app.cookbook import cookbook_blueprint as bp_cookbook
+
+@bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET'])
+# @login_required
+def view_cookbook(cookbook_id):
+    theCookbook = db.session.get(Cookbook, cookbook_id)
+    if not (theCookbook is None):
+        return render_template('view_cookbook.html', cookbook = theCookbook, recipes = theCookbook.get_recipes())
+    return redirect(url_for('main.index'))
 
 @bp_cookbook.route('/cookbook/create', methods=['GET', 'POST'])
 @login_required
@@ -54,11 +62,6 @@ def create_cookbook():
         flash('Cookbook {} has been created'.format(cb.title))
         return redirect(url_for('main.index'))
     return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=False)
-
-@bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET', 'POST'])
-# @login_required
-def view_cookbook():
-    return redirect(url_for('main.index'))
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/edit', methods=['GET', 'POST'])
 # @login_required

@@ -68,7 +68,7 @@
 
     <div class="cookbook-info-bar-description">
         <div class="evenly-spaced">
-            <span><b>Title: </b> {{cookbook.title}}
+            <span><b>Title: </b> <a class="hidden-link" href="{{ url_for('cookbook.view_cookbook', cookbook_id=cookbook.id) }}">{{cookbook.title}} </a>
             <br>
             <b>By: <a href="{{ url_for('user.view_other_profile', user_id=cookbook.cookbook_writer.id)}}" class="fw-bold">{{cookbook.get_writer()}}</a> </b>
             <br>
