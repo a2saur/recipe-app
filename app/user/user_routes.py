@@ -68,7 +68,7 @@ def edit_profile():
         eform.email.data = current_user.email
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
-@bp_user.route('/user/profile/certify', methods=['GET'])
+@bp_user.route('/user/profile/certify', methods=['GET','POST'])
 @login_required
 def become_certified():
     current_user.is_certified = True

@@ -40,6 +40,13 @@
     align-items: center;
 }
 
+/* Popovers */
+.certify-popover {
+    --bs-popover-bg: var(--accent-bg-color);
+    --bs-popover-body-padding-x: 5%;
+    --bs-popover-body-padding-y: 2%;
+}
+
 /* Create recipe form */
 .remove-btn {
     margin: 1px;
