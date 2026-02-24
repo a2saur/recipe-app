@@ -34,10 +34,18 @@
                     {{ tag.name }}
                 </span>
             {% endfor %}
-            
-            
         </div>
-        
+        <br>
+        <div class="d-flex flex-wrap align-items-center gap-2" style="margin-inline-start: 1%;">
+            {% if recipe.get_cookbooks() %}
+                <h5>Part of Cookbook(s):  </h5>
+                {% for cookbook in recipe.get_cookbooks() %}
+                    <span class="fs-6">
+                        <a href="{{ url_for('cookbook.view_cookbook', cookbook_id=cookbook.id) }}" class = "fw-bold"> {{cookbook.title}} </a>
+                    </span>
+                {% endfor %}
+            {% endif %}
+        </div>
 
         <div class="recipe-page-details">
             <span>Posted by: <a href="{{ url_for('user.view_other_profile', user_id=recipe.writer.id)}}" class="fw-bold">{{recipe.writer.username}}</a></span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>

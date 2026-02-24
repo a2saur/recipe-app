@@ -244,7 +244,10 @@ class Recipe(db.Model):
             return 'img/recipe-imgs/'+self.pictFile
         else:
             return None
-
+    
+    def get_cookbooks(self):
+        return db.session.scalars(self.cookbook_appearances.select()).all()
+    
 class RecipeStep(db.Model):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     stepNum: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
