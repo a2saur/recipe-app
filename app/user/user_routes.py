@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import sys
+import secrets
 
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
@@ -7,7 +8,7 @@ import sqlalchemy as sqla
 from app import db
 from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
-from app.user.user_forms import EditForm, BusinessForm
+from app.user.user_forms import EditForm, BusinessForm, CertifyForm
 from app.recipe.recipe_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
@@ -71,9 +72,17 @@ def edit_profile():
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
 @login_required
 def become_certified():
-    current_user.is_certified = True
-    db.session.commit()
-    return redirect(url_for('user.display_profile'))
+    cform = CertifyForm()
+    if request.method == 'GET':
+        time = datetime.now().strftime("%H:%M:%S")
+        flash("A code was sent to {} at {}, please use this code to verify your identity.".format(current_user.email, time))
+        code = str(secrets.randbelow(10**6)).zfill(6)
+        cform.__init__(code=code)
+        return render_template('certify.html', cform = cform)
+    if request.method == 'POST':
+        current_user.is_certified = True
+        db.session.commit()
+        return redirect(url_for('user.display_profile'))
 
 @bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
 @login_required
