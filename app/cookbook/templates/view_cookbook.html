@@ -19,7 +19,7 @@
             {{cookbook.description}}
         </div>
         <div class="recipe-page-details">
-             <span><b>By: </b><a href="{{ url_for('user.view_other_profile', user_id=cookbook.cookbook_writer.id)}}" class="fw-bold">{{cookbook.get_writer()}}</a> </span> <span> Number of Recipes: {{ cookbook.get_num_recipes() }}</span>
+             <span><b>By: </b><a href="{{ url_for('user.view_other_profile', user_id=cookbook.cookbook_writer.id)}}" class="fw-bold">{{cookbook.get_writer()}}</a> <br> <b>Number of Recipes: </b>{{ cookbook.get_num_recipes() }}</span>
             <div class="recipe-page-details">
             </div>
         </div>
