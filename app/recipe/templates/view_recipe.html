@@ -27,6 +27,17 @@
             {% endif %}
             {{recipe.description}}
         </div>
+        <div class="d-flex flex-wrap align-items-center gap-1" style="margin-inline-start: 1%;">
+            <h5>Tags: </h5>
+            {% for tag in recipe.get_tags() %}
+                <span class="recipe-page-tag"> 
+                    {{ tag.name }}
+                </span>
+            {% endfor %}
+            
+            
+        </div>
+        
 
         <div class="recipe-page-details">
             <span>Posted by: <a href="{{ url_for('user.view_other_profile', user_id=recipe.writer.id)}}" class="fw-bold">{{recipe.writer.username}}</a></span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>

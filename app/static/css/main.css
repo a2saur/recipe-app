@@ -271,6 +271,16 @@
     background-color: var(--blank-bg-color);
 }
 
+.recipe-page-tag {
+    margin: 5px;
+    padding-inline: 10px;
+    padding-block: 5px;
+    border: 1px solid;
+    color: var(--outline-color);
+    border-color: var(--outline-color);
+    background-color: var(--blank-bg-color);
+}
+
 .recipe-page-image {
     max-width:15vw;
     max-height:15vw;
