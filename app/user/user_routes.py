@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import sys
 import secrets
+from flask import current_app
 
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
@@ -9,6 +10,7 @@ from app import db
 from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
 
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm
+from app.user.user_email import send_verification_email
 from app.recipe.recipe_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
@@ -75,9 +77,10 @@ def become_certified():
     cform = CertifyForm()
     if request.method == 'GET':
         time = datetime.now().strftime("%H:%M:%S")
-        flash("A code was sent to {} at {}, please use this code to verify your identity.".format(current_user.email, time))
         code = str(secrets.randbelow(10**6)).zfill(6)
         cform.__init__(code=code)
+        send_verification_email(current_user, code)
+        flash("A code was sent to {} at {}, please use this code to verify your identity.".format(current_user.email, time))
         return render_template('certify.html', cform = cform)
     if request.method == 'POST':
         current_user.is_certified = True
