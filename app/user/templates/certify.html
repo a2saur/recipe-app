@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+    <h1 class="mb-3">Become a Certified User</h1>
+
+    <form action="{{ url_for('user.become_certified') }}", method="POST">
+        {{ cform.hidden_tag()}}
+        {{wtf.form_field(cform.in_code)}}
+        {{wtf.form_field(cform.submit)}}
+        
+    </form>
+{% endblock %}

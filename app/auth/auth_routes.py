@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, session
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth_blueprint as bp_auth 
@@ -12,22 +12,21 @@ def register():
         return redirect(url_for('main.index'))
     rform = RegistrationForm()
     if rform.validate_on_submit():
-        if rform.user_type.data == 'certified':
-            is_certified = True
-        else:            
-            is_certified = False   
         user = User(
             first_name = rform.first_name.data,
             last_name = rform.last_name.data,
             username = rform.username.data,
             email = rform.email.data,
-            is_certified = is_certified,
+            is_certified = False,
         )
         user.set_password(rform.password.data)
-        
         db.session.add(user)
         db.session.commit()
         flash('User {} {} has been registered.'.format(user.first_name, user.last_name))
+        if rform.user_type.data == 'certified':
+            session['from_reg'] = True
+            session['reg_email'] = user.email
+            return redirect(url_for('user.become_certified'))
         return redirect(url_for('auth.login'))
     return render_template('register.html', title='Register', form=rform)
 

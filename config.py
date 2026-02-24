@@ -18,3 +18,11 @@ class Config(object):
     TEMPLATE_FOLDER_RECIPE = os.path.join(basedir, 'app//recipe//templates')
     TEMPLATE_FOLDER_COOKBOOK = os.path.join(basedir, 'app//cookbook//templates')
     IMG_UPLOAD_FOLDER = os.path.join(basedir, 'app//static//img//recipe-imgs')
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = 'mealplanner.sender@gmail.com'
+    MAIL_PASSWORD = 'wbfnppbtdwzawbxf'
+
+    ADMINS = ['mealplanner.sender@gmail.com']

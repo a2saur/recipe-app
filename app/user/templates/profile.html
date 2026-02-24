@@ -34,7 +34,7 @@
             <div class = "d-flex flex-column align-items-stretch">
             <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mb-2 w-100" >Edit Profile</a></p>
             {%if not user.is_certified%}
-                <p><a href="{{ url_for('user.become_certified') }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
+                <p><a href="{{ url_for('user.become_certified', email = current_user.email) }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
             {% else %}
                 {% if not user.business_name %}
                     <p><a href="{{ url_for('user.add_business') }}" class="btn btn-primary mb-2 w-100" >Add Business</a></p>
