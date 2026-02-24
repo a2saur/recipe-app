@@ -59,12 +59,14 @@
     </div>
 </div>
     <div id="recipe-display">
+        {% if filter_text == "" %}
         <h2 class="text-secondary">Recommended based on your current ingredients</h2>
         <div class="recipe-card-collection">
             {% for recipe in rec_recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>
             {% endfor %}
         </div>
+        {% endif %}
 
         <h2 class="text-secondary">All recipes ({{ recipe_count }})</h2>
         <div class="recipe-card-collection">
