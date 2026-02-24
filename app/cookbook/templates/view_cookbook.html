@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+
+<div class="recipe-page">
+    <div class="recipe-page-header bottom-line">
+        <div class="recipe-page-details">
+            <span class="d-flex">
+                <i class="bi bi-star-fill fs-1 me-3 mb-3"></i>
+                <h1 class="recipe-page-title"> {{cookbook.title}} </h1>
+            </span>
+        </div>
+
+        <div class="recipe-page-description">
+            {% if cookbook.has_image() %}
+                <img src="{{url_for('static', filename=cookbook.get_pict_path())}}" class="recipe-page-image">
+            {% endif %}
+            {{cookbook.description}}
+        </div>
+        <div class="recipe-page-details">
+             <span><b>By: </b><a href="{{ url_for('user.view_other_profile', user_id=cookbook.cookbook_writer.id)}}" class="fw-bold">{{cookbook.get_writer()}}</a> </span> <span> Number of Recipes: {{ cookbook.get_num_recipes() }}</span>
+            <div class="recipe-page-details">
+            </div>
+        </div>
+    </div>
+    <div class = "recipe-card-collection">
+        {% for recipe in cookbook.get_recipes() %}
+                <div class = "recipe-card">
+                {% include '_recipe.html' %}
+            </div>
+        {% endfor %}    
+    </div>
+
+
+{% endblock %}
