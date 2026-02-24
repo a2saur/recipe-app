@@ -43,8 +43,8 @@ class User(db.Model, UserMixin):
 
     # --- RELATIONSHIPS ---
     # keeps track of what recipes this user has written
-    written_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer')
-    written_cookbooks: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(back_populates='cookbook_writer')
+    written_recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(back_populates='writer', passive_deletes=True)
+    written_cookbooks: sqlo.WriteOnlyMapped['Cookbook'] = sqlo.relationship(back_populates='cookbook_writer', passive_deletes=True)
 
     # keeps track of what recipes this user has saved
     saved_recipes : sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(

@@ -72,27 +72,37 @@ def edit_profile():
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
-@login_required
 def become_certified():
-    cform = CertifyForm()
-    if request.method == 'GET':
-        time = datetime.now().strftime("%H:%M:%S")
-        code = str(secrets.randbelow(10**6)).zfill(6)
-        session['ot_code'] = code
-        send_verification_email(current_user, code)
-        flash("A code was sent to {} at {}, please use this code to verify your identity.".format(current_user.email, time))
-        return render_template('certify.html', cform = cform)
-    if request.method == 'POST':
-        if cform.validate_on_submit():
-            if cform.in_code.data == session.get('ot_code'):
-                session.pop('ot_code', None)
-                current_user.is_certified = True
-                db.session.commit()
-                flash("Certification successful!")
-                return redirect(url_for('user.display_profile'))
-            else:
-                flash("Invalid code. Try again.")
-                return render_template('certify.html', cform=cform)
+    if current_user.is_authenticated or session.get('from_reg'):
+        if current_user.is_authenticated:
+            email = current_user.email
+        else:
+            email = session.get('reg_email', None)
+        theUser = db.session.scalars(sqla.select(User).where(User.email == email)).first()
+        cform = CertifyForm()
+        if request.method == 'GET':
+            time = datetime.now().strftime("%H:%M:%S")
+            code = str(secrets.randbelow(10**6)).zfill(6)
+            session['ot_code'] = code
+            send_verification_email(theUser, code)
+            flash("A code was sent to {} at {}, please use this code to verify your identity.".format(theUser.email, time))
+            return render_template('certify.html', cform = cform)
+        if request.method == 'POST':
+            if cform.validate_on_submit():
+                if cform.in_code.data == session.get('ot_code'):
+                    session.pop('ot_code', None)
+                    theUser.is_certified = True
+                    db.session.commit()
+                    flash("Certification successful!")
+                    session.pop('from_reg', None)
+                    session.pop('reg_email', None)
+                    return redirect(url_for('user.display_profile'))
+                else:
+                    flash("Invalid code. Try again.")
+                    return render_template('certify.html', cform=cform)
+    else:
+        flash("You need to register or log in to acces this page!")
+        return redirect(url_for('auth.login'))
                 
 
 @bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
