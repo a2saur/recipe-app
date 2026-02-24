@@ -141,6 +141,8 @@ class User(db.Model, UserMixin):
             grocery.amount += quantity
             grocery.unit = unit
             flash('{} is updated in your grocery list!'.format(ingredient.name))
+        elif curr_ingredient is not None and curr_ingredient.amount >= quantity:
+            flash('{} is already in your current ingredient list'.format(ingredient.name))
         elif curr_ingredient is not None and curr_ingredient.amount < quantity:
             new_grocery = UserGroceryListUse(
                 user_id = self.id,

@@ -70,11 +70,11 @@
                     </button>
                 </form>
                 {%else%}
-                <form action="{{ url_for('user.save_recipe', recipe_id=recipe.id)}}" method="post">
-                    <button type="submit" class="btn btn-outline-success btn-sm">
-                        <i class="bi bi-pin-angle"></i><span class="button-count"> {{ recipe.save_count }} </span><span class="button-description">Save</span>
-                    </button>
-                </form>
+                <!-- <form action="{{ url_for('user.save_recipe', recipe_id=recipe.id)}}" method="post"> -->
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="event.stopPropagation(); event.preventDefault();" data-bs-toggle="modal" data-bs-target="#saveModal-{{ recipe.id }}">
+                    <i class="bi bi-pin-angle"></i><span class="button-count"> {{ recipe.save_count }} </span><span class="button-description">Save</span>
+                </button>
+                <!-- </form> -->
                 {%endif%}
             </span>
         </div>
@@ -127,3 +127,5 @@
 {% if recipe.has_image() %}
 </div>
 {% endif %}
+
+   

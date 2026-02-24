@@ -1,0 +1,41 @@
+<!-- Save Recipe Modal -->
+<div class="modal fade" id="saveModal-{{ recipe.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <form method="POST" action="{{ url_for('user.save_recipe', recipe_id=recipe.id) }}">
+        
+        <div class="modal-header">
+          <h5 class="modal-title">Add Ingredients to Grocery List</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          {% for ingredient in recipe.get_ingredient_use_cases() %}
+            <div class="form-check">
+              <input class="form-check-input"
+                     type="checkbox"
+                     name="ingredient_ids"
+                     value="{{ ingredient.ingredient_id }}">
+              <label class="form-check-label">
+                {{ ingredient.amount }} {{ ingredient.unit }} of {{ ingredient.getName() }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+                  data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+              Save & Add Selected
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+  

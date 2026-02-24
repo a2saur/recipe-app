@@ -143,7 +143,7 @@ def save_recipe(recipe_id):
             )
 
     db.session.commit()
-    flash("Recipe saved and selected ingredients added to grocery list.")
+    flash("Recipe saved!")
     return redirect(url_for('recipe.view_recipe', recipe_id=recipe_id))
 
 
