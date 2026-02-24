@@ -37,13 +37,13 @@ db.session.add(u2)
 
 
 u3 = User(
-first_name = "All", last_name = "Recipes", username = "AllRecipes", email = "chef@allrecipes.com", is_certified=False)
+first_name = "All", last_name = "Recipes", username = "AllRecipes", email = "chef@allrecipes.com", is_certified=True)
 u3.set_password("123")
 db.session.add(u3)
 
 
 u4 = User(
-first_name = "D", last_name = "Lish", username = "Delish", email = "delish@delish.com", is_certified=True)
+first_name = "D", last_name = "Lish", username = "Delish", email = "delish@delish.com", is_certified=False)
 u4.set_password("123")
 db.session.add(u4)
 
@@ -241,23 +241,193 @@ db.session.add(i37)
 
 
 i38 = Ingredient(
-name = "red pepper flakes")
+name = "chicken broth")
 db.session.add(i38)
 
 
 i39 = Ingredient(
-name = "chicken broth")
+name = "heavy cream")
 db.session.add(i39)
 
 
 i40 = Ingredient(
-name = "sundried-tomates")
+name = "lemon zest")
 db.session.add(i40)
 
 
 i41 = Ingredient(
-name = "heavy cream")
+name = "lemon juice")
 db.session.add(i41)
+
+
+i42 = Ingredient(
+name = "red pepper")
+db.session.add(i42)
+
+
+i43 = Ingredient(
+name = "baby spinach")
+db.session.add(i43)
+
+
+i44 = Ingredient(
+name = "parmesan cheese")
+db.session.add(i44)
+
+
+i45 = Ingredient(
+name = "red pepper flakes")
+db.session.add(i45)
+
+
+i46 = Ingredient(
+name = "sundried-tomates")
+db.session.add(i46)
+
+
+i47 = Ingredient(
+name = "bacon")
+db.session.add(i47)
+
+
+i48 = Ingredient(
+name = "water")
+db.session.add(i48)
+
+
+i49 = Ingredient(
+name = "worcestershire sauce")
+db.session.add(i49)
+
+
+i50 = Ingredient(
+name = "unsalted butter")
+db.session.add(i50)
+
+
+i51 = Ingredient(
+name = "white grits")
+db.session.add(i51)
+
+
+i52 = Ingredient(
+name = "white cheddar cheese")
+db.session.add(i52)
+
+
+i53 = Ingredient(
+name = "shrimp")
+db.session.add(i53)
+
+
+i54 = Ingredient(
+name = "cajun seasoning")
+db.session.add(i54)
+
+
+i55 = Ingredient(
+name = "jalapeno pepper")
+db.session.add(i55)
+
+
+i56 = Ingredient(
+name = "green onion")
+db.session.add(i56)
+
+
+i57 = Ingredient(
+name = "peanut butter")
+db.session.add(i57)
+
+
+i58 = Ingredient(
+name = "protein powder")
+db.session.add(i58)
+
+
+i59 = Ingredient(
+name = "maple syrup")
+db.session.add(i59)
+
+
+i60 = Ingredient(
+name = "coconut oil")
+db.session.add(i60)
+
+
+i61 = Ingredient(
+name = "wonton wrappers")
+db.session.add(i61)
+
+
+i62 = Ingredient(
+name = "spinach")
+db.session.add(i62)
+
+
+i63 = Ingredient(
+name = "artichoke hearts")
+db.session.add(i63)
+
+
+i64 = Ingredient(
+name = "mayonnaise")
+db.session.add(i64)
+
+
+i65 = Ingredient(
+name = "sour cream")
+db.session.add(i65)
+
+
+i66 = Ingredient(
+name = "cream cheese")
+db.session.add(i66)
+
+
+i67 = Ingredient(
+name = "red bell pepper")
+db.session.add(i67)
+
+
+i68 = Ingredient(
+name = "green bell pepper")
+db.session.add(i68)
+
+
+i69 = Ingredient(
+name = "large onion")
+db.session.add(i69)
+
+
+i70 = Ingredient(
+name = "flour tortillas")
+db.session.add(i70)
+
+
+i71 = Ingredient(
+name = "fajita seasoning mix")
+db.session.add(i71)
+
+
+i72 = Ingredient(
+name = "lime juice")
+db.session.add(i72)
+
+
+i73 = Ingredient(
+name = "almond milk")
+db.session.add(i73)
+
+
+i74 = Ingredient(
+name = "chia seeds")
+db.session.add(i74)
+
+
+i75 = Ingredient(
+name = "fresh blueberries")
+db.session.add(i75)
 
 db.session.commit()
 
@@ -759,53 +929,330 @@ db.session.add(ri107)
 ri108 = RecipeIngredientUse(recipe_id = r10.id, ingredient_id = i36.id, amount = 2, unit = "cup")
 db.session.add(ri108)
 db.session.commit()
-r11 = Recipe(title = "The Original Marry Me Chicken", description = "", servingSize = 5, estimatedHrs = 0, estimatedMins = 40, is_draft=False, user_id=u4.id)
+r11 = Recipe(title = "Spinach Lemon Chicken Bake", description = "This spinach lemon chicken bake features tender, moist chicken baked atop spinach in a bright lemon and rosemary cream sauce.", servingSize = 4, estimatedHrs = 0, estimatedMins = 45, is_draft=False, user_id=u3.id)
 r11.timestamp = datetime.now(timezone.utc)
-r11.pictFile = "d39f391b-0e9e-11f1-afc8-502e919fa289_marrymechicken.jpg"
+r11.pictFile = "b9ce822c-0c6f-11f1-bc73-b61437af3a7f_8788434-Spinach-Lemon-Chicken-Bake-ddmfs-4x3-beauty-b685b260cdc841d09f464d9a5b775846.webp"
 
 db.session.add(r11)
 db.session.commit()
+r11.tags.add(t12)
 r11.tags.add(t0)
 db.session.commit()
-s110 = RecipeStep(stepNum = 1, description = "Finely chop garlic and sundried tomatoesArrange a rack in center of oven; preheat to 375°.", recipe_id = r11.id)
+s110 = RecipeStep(stepNum = 1, description = "Gather all ingredients.", recipe_id = r11.id)
 db.session.add(s110)
-s111 = RecipeStep(stepNum = 2, description = "In a large ovenproof skillet over medium-high heat, heat 1 Tbsp. oil.", recipe_id = r11.id)
+s111 = RecipeStep(stepNum = 2, description = "Thinly slice the onion, mince the garlic, and chop the rosemary", recipe_id = r11.id)
 db.session.add(s111)
-s112 = RecipeStep(stepNum = 3, description = "Generously season chicken with salt and black pepper and cook, turning halfway through, until golden brown, about 5 minutes per side.", recipe_id = r11.id)
+s112 = RecipeStep(stepNum = 3, description = "Preheat the oven to 400 degrees F (200 degrees C).", recipe_id = r11.id)
 db.session.add(s112)
-s113 = RecipeStep(stepNum = 4, description = "Transfer chicken to a plate.", recipe_id = r11.id)
+s113 = RecipeStep(stepNum = 4, description = "Place a chicken breast between two sheets of plastic wrap and set on a cutting board. Pound with a meat mallet to 1/2-inch thickness. Repeat with remaining chicken.", recipe_id = r11.id)
 db.session.add(s113)
-s114 = RecipeStep(stepNum = 5, description = "In same skillet over medium heat, heat remaining 2 Tbsp. oil.", recipe_id = r11.id)
+s114 = RecipeStep(stepNum = 5, description = "Sprinkle chicken with salt and pepper. Then sprinkle chicken generously with flour, shaking off excess.", recipe_id = r11.id)
 db.session.add(s114)
-s115 = RecipeStep(stepNum = 6, description = "Stir in garlic, thyme, and red pepper flakes. Cook, stirring, until fragrant, about 1 minute.", recipe_id = r11.id)
+s115 = RecipeStep(stepNum = 6, description = "Heat oil in an ovenproof 12-inch skillet over medium-high heat. Add chicken to the skillet and brown 3 minutes per side (chicken may not be fully cooked). Transfer chicken from the skillet to a plate.", recipe_id = r11.id)
 db.session.add(s115)
-s116 = RecipeStep(stepNum = 7, description = "Stir in broth, tomatoes, cream, and Parmesan; season with salt.", recipe_id = r11.id)
+s116 = RecipeStep(stepNum = 7, description = "Reduce heat to medium. Add onion to the skillet; cook and stir until tender, 4 minutes. Add garlic; cook and stir until fragrant, 1 minute more.", recipe_id = r11.id)
 db.session.add(s116)
-s117 = RecipeStep(stepNum = 8, description = "Bring to a simmer, then return chicken and any accumulated juices to skillet.", recipe_id = r11.id)
+s117 = RecipeStep(stepNum = 8, description = "Add broth, cream, lemon zest and juice, rosemary, and crushed red pepper. Bring to a boil, about 2 minutes.", recipe_id = r11.id)
 db.session.add(s117)
-s118 = RecipeStep(stepNum = 9, description = "Transfer skillet to oven. Bake chicken until cooked through and an instant-read thermometer inserted into thickest part registers 165°, 10 to 12 minutes.", recipe_id = r11.id)
+s118 = RecipeStep(stepNum = 9, description = "Add spinach, in batches, stirring until wilted, about 1 minute.", recipe_id = r11.id)
 db.session.add(s118)
-s119 = RecipeStep(stepNum = 10, description = "Arrange chicken on a platter. Spoon sauce over. Top with basil.", recipe_id = r11.id)
+s119 = RecipeStep(stepNum = 10, description = "Stir in 1/4 cup Parmesan cheese and simmer until desired consistency, about 5 minutes.", recipe_id = r11.id)
 db.session.add(s119)
+s1110 = RecipeStep(stepNum = 11, description = "Return chicken to skillet. Sprinkle with remaining 1/4 cup Parmesan cheese.", recipe_id = r11.id)
+db.session.add(s1110)
+s1111 = RecipeStep(stepNum = 12, description = "Bake in the preheated oven until chicken is cooked through and sauce is bubbling, 10 to 15 minutes. An instant read thermometer, inserted into the thickest part of chicken, should read 165 degrees F (74 degrees C).", recipe_id = r11.id)
+db.session.add(s1111)
+s1112 = RecipeStep(stepNum = 13, description = "Serve garnished with lemon slices.", recipe_id = r11.id)
+db.session.add(s1112)
 db.session.commit()
-ri110 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i16.id, amount = 3, unit = "tbsp")
+ri110 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i37.id, amount = 4, unit = "oz")
 db.session.add(ri110)
-ri111 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i37.id, amount = 4, unit = "unit")
+ri111 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i6.id, amount = 0.5, unit = "tsp")
 db.session.add(ri111)
-ri112 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i19.id, amount = 2, unit = "unit")
+ri112 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i7.id, amount = 0.25, unit = "tsp")
 db.session.add(ri112)
-ri113 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i17.id, amount = 1, unit = "tbsp")
+ri113 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i30.id, amount = 2, unit = "tbsp")
 db.session.add(ri113)
-ri114 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i38.id, amount = 1, unit = "tsp")
+ri114 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i16.id, amount = 2, unit = "tbsp")
 db.session.add(ri114)
-ri115 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i39.id, amount = 0.75, unit = "cup")
+ri115 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i3.id, amount = 1, unit = "unit")
 db.session.add(ri115)
-ri116 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i40.id, amount = 0.5, unit = "cup")
+ri116 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i19.id, amount = 3, unit = "unit")
 db.session.add(ri116)
-ri117 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i41.id, amount = 0.5, unit = "cup")
+ri117 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i38.id, amount = 0.75, unit = "cup")
 db.session.add(ri117)
-ri118 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i21.id, amount = 0.25, unit = "cup")
+ri118 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i39.id, amount = 0.5, unit = "cup")
 db.session.add(ri118)
+ri119 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i40.id, amount = 1, unit = "tsp")
+db.session.add(ri119)
+ri1110 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i41.id, amount = 3, unit = "tbsp")
+db.session.add(ri1110)
+ri1111 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i18.id, amount = 1, unit = "tsp")
+db.session.add(ri1111)
+ri1112 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i42.id, amount = 0.25, unit = "tsp")
+db.session.add(ri1112)
+ri1113 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i43.id, amount = 2, unit = "unit")
+db.session.add(ri1113)
+ri1114 = RecipeIngredientUse(recipe_id = r11.id, ingredient_id = i44.id, amount = 0.5, unit = "cup")
+db.session.add(ri1114)
+db.session.commit()
+r12 = Recipe(title = "The Original Marry Me Chicken", description = "", servingSize = 5, estimatedHrs = 0, estimatedMins = 40, is_draft=False, user_id=u4.id)
+r12.timestamp = datetime.now(timezone.utc)
+r12.pictFile = "d39f391b-0e9e-11f1-afc8-502e919fa289_marrymechicken.jpg"
+
+db.session.add(r12)
+db.session.commit()
+r12.tags.add(t0)
+db.session.commit()
+s120 = RecipeStep(stepNum = 1, description = "Finely chop garlic and sundried tomatoes", recipe_id = r12.id)
+db.session.add(s120)
+s121 = RecipeStep(stepNum = 2, description = "Arrange a rack in center of oven; preheat to 375°.", recipe_id = r12.id)
+db.session.add(s121)
+s122 = RecipeStep(stepNum = 3, description = "In a large ovenproof skillet over medium-high heat, heat 1 Tbsp. oil.", recipe_id = r12.id)
+db.session.add(s122)
+s123 = RecipeStep(stepNum = 4, description = "Generously season chicken with salt and black pepper and cook, turning halfway through, until golden brown, about 5 minutes per side.", recipe_id = r12.id)
+db.session.add(s123)
+s124 = RecipeStep(stepNum = 5, description = "Transfer chicken to a plate.", recipe_id = r12.id)
+db.session.add(s124)
+s125 = RecipeStep(stepNum = 6, description = "In same skillet over medium heat, heat remaining 2 Tbsp. oil.", recipe_id = r12.id)
+db.session.add(s125)
+s126 = RecipeStep(stepNum = 7, description = "Stir in garlic, thyme, and red pepper flakes. Cook, stirring, until fragrant, about 1 minute.", recipe_id = r12.id)
+db.session.add(s126)
+s127 = RecipeStep(stepNum = 8, description = "Stir in broth, tomatoes, cream, and Parmesan; season with salt.", recipe_id = r12.id)
+db.session.add(s127)
+s128 = RecipeStep(stepNum = 9, description = "Bring to a simmer, then return chicken and any accumulated juices to skillet.", recipe_id = r12.id)
+db.session.add(s128)
+s129 = RecipeStep(stepNum = 10, description = "Transfer skillet to oven. Bake chicken until cooked through and an instant-read thermometer inserted into thickest part registers 165°, 10 to 12 minutes.", recipe_id = r12.id)
+db.session.add(s129)
+s1210 = RecipeStep(stepNum = 11, description = "Arrange chicken on a platter. Spoon sauce over. Top with basil.", recipe_id = r12.id)
+db.session.add(s1210)
+db.session.commit()
+ri120 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i16.id, amount = 3, unit = "tbsp")
+db.session.add(ri120)
+ri121 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i37.id, amount = 4, unit = "unit")
+db.session.add(ri121)
+ri122 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i19.id, amount = 2, unit = "unit")
+db.session.add(ri122)
+ri123 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i17.id, amount = 1, unit = "tbsp")
+db.session.add(ri123)
+ri124 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i45.id, amount = 1, unit = "tsp")
+db.session.add(ri124)
+ri125 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i38.id, amount = 0.75, unit = "cup")
+db.session.add(ri125)
+ri126 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i46.id, amount = 0.5, unit = "cup")
+db.session.add(ri126)
+ri127 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i39.id, amount = 0.5, unit = "cup")
+db.session.add(ri127)
+ri128 = RecipeIngredientUse(recipe_id = r12.id, ingredient_id = i21.id, amount = 0.25, unit = "cup")
+db.session.add(ri128)
+db.session.commit()
+r13 = Recipe(title = "Chef John's Shrimp and Grits", description = "This classic Southern meal features the heat of jalapeño, cayenne, and Cajun seasoning. Absolutely delicious and very easy to execute.", servingSize = 4, estimatedHrs = 0, estimatedMins = 55, is_draft=False, user_id=u3.id)
+r13.timestamp = datetime.now(timezone.utc)
+r13.pictFile = "9e4844d0-11b9-11f1-9542-1ebf2a7aaad6_shrimp-grits.webp"
+
+db.session.add(r13)
+db.session.commit()
+r13.tags.add(t0)
+db.session.commit()
+s130 = RecipeStep(stepNum = 1, description = "Gather the ingredients", recipe_id = r13.id)
+db.session.add(s130)
+s131 = RecipeStep(stepNum = 2, description = "Cut the 4 strips of bacon into 1/4-inch pieces", recipe_id = r13.id)
+db.session.add(s131)
+s132 = RecipeStep(stepNum = 3, description = "Mince jalapeno pepper, green onion, garlic, and chop parsley", recipe_id = r13.id)
+db.session.add(s132)
+s133 = RecipeStep(stepNum = 4, description = "Cook bacon in a large skillet over medium-high heat, turning occasionally, until almost crisp, 5 to 7 minutes.", recipe_id = r13.id)
+db.session.add(s133)
+s134 = RecipeStep(stepNum = 5, description = "Transfer bacon to a dish; reserve drippings in the skillet.", recipe_id = r13.id)
+db.session.add(s134)
+s135 = RecipeStep(stepNum = 6, description = "Whisk 1/4 cup water, cream, lemon juice, and Worcestershire sauce together in a bowl.", recipe_id = r13.id)
+db.session.add(s135)
+s136 = RecipeStep(stepNum = 7, description = "Combine 4 cups water, butter, and 1 teaspoon salt in a pot; bring to a boil. Whisk in grits; bring to a simmer, reduce heat to low, and cook until creamy, 20 to 25 minutes.", recipe_id = r13.id)
+db.session.add(s136)
+s137 = RecipeStep(stepNum = 8, description = "Take the mixture off heat, and stir in cheddar cheese", recipe_id = r13.id)
+db.session.add(s137)
+s138 = RecipeStep(stepNum = 9, description = "Season shrimp with Cajun seasoning, 1/2 teaspoon salt, black pepper, and a pinch of cayenne pepper in a large bowl.", recipe_id = r13.id)
+db.session.add(s138)
+s139 = RecipeStep(stepNum = 10, description = "Heat bacon drippings in the skillet over high heat. Add shrimp; cook 1 minute.", recipe_id = r13.id)
+db.session.add(s139)
+s1310 = RecipeStep(stepNum = 11, description = "Flip shrimp; add jalapeño and cook until fragrant, about 30 seconds.", recipe_id = r13.id)
+db.session.add(s1310)
+s1311 = RecipeStep(stepNum = 12, description = "Stir cream mixture, bacon, green onion, and garlic into shrimp mixture; cook and stir until shrimp cooked through, 3 to 4 minutes, adding water as necessary to thin sauce.", recipe_id = r13.id)
+db.session.add(s1311)
+s1312 = RecipeStep(stepNum = 13, description = "Take off heat, and stir in parsley", recipe_id = r13.id)
+db.session.add(s1312)
+s1313 = RecipeStep(stepNum = 14, description = "Ladle grits into a bowl; top with shrimp and sauce.", recipe_id = r13.id)
+db.session.add(s1313)
+db.session.commit()
+ri130 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i47.id, amount = 4, unit = "unit")
+db.session.add(ri130)
+ri131 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i48.id, amount = 4.25, unit = "cup")
+db.session.add(ri131)
+ri132 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i39.id, amount = 2, unit = "tbsp")
+db.session.add(ri132)
+ri133 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i41.id, amount = 2, unit = "tsp")
+db.session.add(ri133)
+ri134 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i49.id, amount = 0.125, unit = "tsp")
+db.session.add(ri134)
+ri135 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i50.id, amount = 2, unit = "tbsp")
+db.session.add(ri135)
+ri136 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i6.id, amount = 1.5, unit = "tsp")
+db.session.add(ri136)
+ri137 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i51.id, amount = 1, unit = "cup")
+db.session.add(ri137)
+ri138 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i52.id, amount = 0.5, unit = "cup")
+db.session.add(ri138)
+ri139 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i53.id, amount = 1, unit = "lb")
+db.session.add(ri139)
+ri1310 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i54.id, amount = 0.5, unit = "tsp")
+db.session.add(ri1310)
+ri1311 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i7.id, amount = 0.25, unit = "tsp")
+db.session.add(ri1311)
+ri1312 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i55.id, amount = 1, unit = "tbsp")
+db.session.add(ri1312)
+ri1313 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i56.id, amount = 2, unit = "tbsp")
+db.session.add(ri1313)
+ri1314 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i19.id, amount = 3, unit = "unit")
+db.session.add(ri1314)
+ri1315 = RecipeIngredientUse(recipe_id = r13.id, ingredient_id = i22.id, amount = 1, unit = "tbsp")
+db.session.add(ri1315)
+db.session.commit()
+r14 = Recipe(title = "Chocolate Peanut Butter Protein Bars", description = "Chocolate peanut butter protein bars are easy to make in a small batch, and absolutely delicious. Using a good protein powder is the key. If there is a downside, it might be how hard it will be to only eat one.", servingSize = 4, estimatedHrs = 0, estimatedMins = 40, is_draft=False, user_id=u3.id)
+r14.timestamp = datetime.now(timezone.utc)
+r14.pictFile = "91e18a80-11b9-11f1-9542-1ebf2a7aaad6_Chocolate-Peanut-Butter-Protein-Bars.webp"
+
+db.session.add(r14)
+db.session.commit()
+r14.tags.add(t4)
+r14.tags.add(t12)
+db.session.commit()
+s140 = RecipeStep(stepNum = 1, description = "Line an 8 1/2x4 1/2-inch loaf pan with parchment paper, leaving overhang on all sides to make it easy to remove bars from the pan. Set aside.", recipe_id = r14.id)
+db.session.add(s140)
+s141 = RecipeStep(stepNum = 2, description = "Place peanut butter, protein powder, maple syrup, vanilla and salt in a bowl and mix until well combined; press into the prepared pan. Set aside.", recipe_id = r14.id)
+db.session.add(s141)
+s142 = RecipeStep(stepNum = 3, description = "Place chocolate chips and oil in a microwave safe bowl. Microwave for 30 seconds, stir. Repeat until chips are completely melted when stirred. Pour over bars, smooth chocolate. Refrigerate until set, about 30 minutes. Cut into 8 bars.", recipe_id = r14.id)
+db.session.add(s142)
+db.session.commit()
+ri140 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i57.id, amount = 0.75, unit = "cup")
+db.session.add(ri140)
+ri141 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i58.id, amount = 0.5, unit = "cup")
+db.session.add(ri141)
+ri142 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i59.id, amount = 2, unit = "tbsp")
+db.session.add(ri142)
+ri143 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i35.id, amount = 1, unit = "tsp")
+db.session.add(ri143)
+ri144 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i6.id, amount = 0.125, unit = "tsp")
+db.session.add(ri144)
+ri145 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i36.id, amount = 0.5, unit = "cup")
+db.session.add(ri145)
+ri146 = RecipeIngredientUse(recipe_id = r14.id, ingredient_id = i60.id, amount = 1, unit = "tsp")
+db.session.add(ri146)
+db.session.commit()
+r15 = Recipe(title = "Artichoke Dip Wonton Cups", description = "These artichoke dip wonton cups are a fun twist on the traditional spinach artichoke dip with tortilla chips. Served as individual bites, they're ideal for a party.", servingSize = 4, estimatedHrs = 0, estimatedMins = 30, is_draft=False, user_id=u3.id)
+r15.timestamp = datetime.now(timezone.utc)
+r15.pictFile = "81e670d2-11b9-11f1-9542-1ebf2a7aaad6_artichoke-dip-wonton-cups.webp"
+
+db.session.add(r15)
+db.session.commit()
+r15.tags.add(t3)
+r15.tags.add(t12)
+db.session.commit()
+s150 = RecipeStep(stepNum = 1, description = "Preheat the oven to 350 degrees F (180 degrees C). Spray a standard 12-cup muffin tin with cooking spray.", recipe_id = r15.id)
+db.session.add(s150)
+s151 = RecipeStep(stepNum = 2, description = "Line each muffin cup with a wonton wrapper. Press the center of the wrapper down into the cup, leaving the edges sticking up out of the cup. Spray each wrapper lightly with cooking spray.", recipe_id = r15.id)
+db.session.add(s151)
+s152 = RecipeStep(stepNum = 3, description = "Bake cups in the preheated oven for 5 minutes, then remove from the oven.Add spinach, artichoke hearts, mayonnaise, sour cream, cream cheese, Parmesan cheese, and garlic in a bowl until well incorporated. Divide mixture evenly between wonton cups.", recipe_id = r15.id)
+db.session.add(s152)
+s153 = RecipeStep(stepNum = 4, description = "Return to the oven and bake until filling is heated through and edges of wrappers are golden brown, about 15 minutes.", recipe_id = r15.id)
+db.session.add(s153)
+db.session.commit()
+ri150 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i61.id, amount = 12, unit = "unit")
+db.session.add(ri150)
+ri151 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i62.id, amount = 5, unit = "oz")
+db.session.add(ri151)
+ri152 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i63.id, amount = 1, unit = "unit")
+db.session.add(ri152)
+ri153 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i64.id, amount = 0.33, unit = "cup")
+db.session.add(ri153)
+ri154 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i65.id, amount = 0.25, unit = "cup")
+db.session.add(ri154)
+ri155 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i66.id, amount = 2, unit = "oz")
+db.session.add(ri155)
+ri156 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i44.id, amount = 0.5, unit = "cup")
+db.session.add(ri156)
+ri157 = RecipeIngredientUse(recipe_id = r15.id, ingredient_id = i19.id, amount = 2, unit = "unit")
+db.session.add(ri157)
+db.session.commit()
+r16 = Recipe(title = "Easy Grilled Shrimp Fajitas", description = "Quick grilled shrimp fajitas with bell peppers, onions, and fajita seasoning served on warm tortillas", servingSize = 4, estimatedHrs = 0, estimatedMins = 40, is_draft=False, user_id=u3.id)
+r16.timestamp = datetime.now(timezone.utc)
+r16.pictFile = "98cbe5a2-11b9-11f1-9542-1ebf2a7aaad6_shrimp_fajitas.webp"
+
+db.session.add(r16)
+db.session.commit()
+db.session.commit()
+s160 = RecipeStep(stepNum = 1, description = "Preheat an outdoor grill for medium-high heat and lightly oil the grate", recipe_id = r16.id)
+db.session.add(s160)
+s161 = RecipeStep(stepNum = 2, description = "In a large bowl combine sliced red bell pepper, green bell pepper, onion, jalapeño, 2 teaspoons fajita seasoning, and olive oil; stir until evenly coated", recipe_id = r16.id)
+db.session.add(s161)
+s162 = RecipeStep(stepNum = 3, description = "In a separate bowl add raw shrimp, remaining 1/2 teaspoon fajita seasoning, and lime juice; gently stir to coat", recipe_id = r16.id)
+db.session.add(s162)
+s163 = RecipeStep(stepNum = 4, description = "Place the vegetable mixture in a grill basket and cook on the grill for about 10 minutes, stirring occasionally", recipe_id = r16.id)
+db.session.add(s163)
+s164 = RecipeStep(stepNum = 5, description = "Add the shrimp to the grill basket with the vegetables and cook for about 5 more minutes until shrimp are opaque", recipe_id = r16.id)
+db.session.add(s164)
+s165 = RecipeStep(stepNum = 6, description = "Remove the grill basket and place the tortillas on the grill to toast for about 2 minutes", recipe_id = r16.id)
+db.session.add(s165)
+s166 = RecipeStep(stepNum = 7, description = "Divide the shrimp and vegetable filling between the warm tortillas and serve while hot", recipe_id = r16.id)
+db.session.add(s166)
+db.session.commit()
+ri160 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i53.id, amount = 12, unit = "oz")
+db.session.add(ri160)
+ri161 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i67.id, amount = 1, unit = "unit")
+db.session.add(ri161)
+ri162 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i68.id, amount = 1, unit = "unit")
+db.session.add(ri162)
+ri163 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i69.id, amount = 1, unit = "unit")
+db.session.add(ri163)
+ri164 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i55.id, amount = 1, unit = "unit")
+db.session.add(ri164)
+ri165 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i70.id, amount = 8, unit = "unit")
+db.session.add(ri165)
+ri166 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i71.id, amount = 2.5, unit = "tsp")
+db.session.add(ri166)
+ri167 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i16.id, amount = 1, unit = "tsp")
+db.session.add(ri167)
+ri168 = RecipeIngredientUse(recipe_id = r16.id, ingredient_id = i72.id, amount = 1, unit = "tbsp")
+db.session.add(ri168)
+db.session.commit()
+r17 = Recipe(title = "Blueberry Chia Pudding with Almond Milk", description = "A light vegan chia pudding made with almond milk, fresh blueberries, and a touch of maple syrup and cinnamon. Great for breakfast or a healthy snack.", servingSize = 3, estimatedHrs = 8, estimatedMins = 10, is_draft=False, user_id=u3.id)
+r17.timestamp = datetime.now(timezone.utc)
+r17.pictFile = "8a70854e-11b9-11f1-9542-1ebf2a7aaad6_chia_pudding.webp"
+
+db.session.add(r17)
+db.session.commit()
+r17.tags.add(t2)
+r17.tags.add(t7)
+r17.tags.add(t11)
+r17.tags.add(t4)
+db.session.commit()
+s170 = RecipeStep(stepNum = 1, description = "Combine almond milk, chia seeds, blueberries, maple syrup, vanilla extract, and cinnamon in a blender; blend until smooth.", recipe_id = r17.id)
+db.session.add(s170)
+s171 = RecipeStep(stepNum = 2, description = "Pour into glasses or ramekins.", recipe_id = r17.id)
+db.session.add(s171)
+s172 = RecipeStep(stepNum = 3, description = "Chill until set, about 8 hours or overnight.", recipe_id = r17.id)
+db.session.add(s172)
+s173 = RecipeStep(stepNum = 4, description = "Serve chilled.", recipe_id = r17.id)
+db.session.add(s173)
+db.session.commit()
+ri170 = RecipeIngredientUse(recipe_id = r17.id, ingredient_id = i73.id, amount = 2, unit = "cup")
+db.session.add(ri170)
+ri171 = RecipeIngredientUse(recipe_id = r17.id, ingredient_id = i74.id, amount = 6, unit = "tbsp")
+db.session.add(ri171)
+ri172 = RecipeIngredientUse(recipe_id = r17.id, ingredient_id = i75.id, amount = 0.33, unit = "cup")
+db.session.add(ri172)
+ri173 = RecipeIngredientUse(recipe_id = r17.id, ingredient_id = i59.id, amount = 1, unit = "tbsp")
+db.session.add(ri173)
+ri174 = RecipeIngredientUse(recipe_id = r17.id, ingredient_id = i35.id, amount = 0.5, unit = "tsp")
+db.session.add(ri174)
 db.session.commit()
 c0 = Cookbook(title = "Cooking Mama's Recipes", description = "Recipes from the Cooking Mama Franchise", user_id = u1.id)
 db.session.add(c0)
@@ -824,4 +1271,14 @@ c1.included_recipes.add(r7)
 c1.included_recipes.add(r8)
 c1.included_recipes.add(r9)
 c1.included_recipes.add(r10)
+db.session.commit()
+c2 = Cookbook(title = "AllRecipe's Cookbook", description = "A collection of Allrecipe's best dishes", user_id = u3.id)
+db.session.add(c2)
+c2.pictFile = "b4458f2c-11b9-11f1-9542-1ebf2a7aaad6_allrecipes.jpg"
+c2.included_recipes.add(r11)
+c2.included_recipes.add(r13)
+c2.included_recipes.add(r14)
+c2.included_recipes.add(r15)
+c2.included_recipes.add(r16)
+c2.included_recipes.add(r17)
 db.session.commit()

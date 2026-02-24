@@ -4,8 +4,8 @@ users = [
     ["A", "S", "A2", "a@wpi.edu", "123", False],
     ["Mama", "Nintendo", "CookingMama", "cooking@nintendo.com", "123", True],
     ["Chat", "GPT", "ChatGPT", "chat@chat.com", "123", True],
-    ["All", "Recipes", "AllRecipes", "chef@allrecipes.com", "123", False],
-    ["D", "Lish", "Delish", "delish@delish.com", "123", True],
+    ["All", "Recipes", "AllRecipes", "chef@allrecipes.com", "123", True],
+    ["D", "Lish", "Delish", "delish@delish.com", "123", False],
 ]
 ingredients = ["chicken", "zucchini", "rice", "onion", "cream", "milk", "salt", "pepper", "butter", "corn"]
 tags = ["dinner", "lunch", "breakfast", 
@@ -326,7 +326,7 @@ recipe11 = [
         "0.5, cup, parmesan cheese",
     ]
 ]
-recipe11 = [
+recipe12 = [
     "The Original Marry Me Chicken",
     "",
     5,
@@ -335,7 +335,7 @@ recipe11 = [
     4,
     "d39f391b-0e9e-11f1-afc8-502e919fa289_marrymechicken.jpg",
     ["dinner"],
-    ["Finely chop garlic and sundried tomatoes"
+    ["Finely chop garlic and sundried tomatoes",
      "Arrange a rack in center of oven; preheat to 375°.",
      "In a large ovenproof skillet over medium-high heat, heat 1 Tbsp. oil.",
      "Generously season chicken with salt and black pepper and cook, turning halfway through, until golden brown, about 5 minutes per side.",
@@ -359,7 +359,152 @@ recipe11 = [
         "0.25, cup, parmesan",
     ]
 ]
-recipes = [recipe0, recipe1, recipe2, recipe3, recipe4, recipe5, recipe6, recipe7, recipe8, recipe9, recipe10, recipe11]
+recipe13 = [
+    "Chef John\'s Shrimp and Grits",
+    "This classic Southern meal features the heat of jalapeño, cayenne, and Cajun seasoning. Absolutely delicious and very easy to execute.",
+    4,
+    0,
+    55,
+    3,
+    "9e4844d0-11b9-11f1-9542-1ebf2a7aaad6_shrimp-grits.webp",
+    ["dinner"],
+    ["Gather the ingredients",
+     "Cut the 4 strips of bacon into 1/4-inch pieces",
+     "Mince jalapeno pepper, green onion, garlic, and chop parsley",
+     "Cook bacon in a large skillet over medium-high heat, turning occasionally, until almost crisp, 5 to 7 minutes.",
+     "Transfer bacon to a dish; reserve drippings in the skillet.",
+     "Whisk 1/4 cup water, cream, lemon juice, and Worcestershire sauce together in a bowl.",
+     "Combine 4 cups water, butter, and 1 teaspoon salt in a pot; bring to a boil. Whisk in grits; bring to a simmer, reduce heat to low, and cook until creamy, 20 to 25 minutes.",
+     "Take the mixture off heat, and stir in cheddar cheese",
+     "Season shrimp with Cajun seasoning, 1/2 teaspoon salt, black pepper, and a pinch of cayenne pepper in a large bowl.",
+     "Heat bacon drippings in the skillet over high heat. Add shrimp; cook 1 minute.",
+     "Flip shrimp; add jalapeño and cook until fragrant, about 30 seconds.",
+     "Stir cream mixture, bacon, green onion, and garlic into shrimp mixture; cook and stir until shrimp cooked through, 3 to 4 minutes, adding water as necessary to thin sauce.",
+     "Take off heat, and stir in parsley",
+     "Ladle grits into a bowl; top with shrimp and sauce."
+     ],
+    [
+        "4, unit, bacon",
+        "4.25, cup, water",
+        "2, tbsp, heavy cream",
+        "2, tsp, lemon juice",
+        "0.125, tsp, worcestershire sauce",
+        "2, tbsp, unsalted butter",
+        "1.5, tsp, salt",
+        "1, cup, white grits",
+        "0.5, cup, white cheddar cheese",
+        "1, lb, shrimp",
+        "0.5, tsp, cajun seasoning",
+        "0.25, tsp, pepper",
+        "1, tbsp, jalapeno pepper",
+        "2, tbsp, green onion",
+        "3, unit, garlic",
+        "1, tbsp, parsley"
+    ]
+]
+recipe14 = [
+    "Chocolate Peanut Butter Protein Bars",
+    "Chocolate peanut butter protein bars are easy to make in a small batch, and absolutely delicious. Using a good protein powder is the key. If there is a downside, it might be how hard it will be to only eat one.",
+    4,
+    0,
+    40,
+    3,
+    "91e18a80-11b9-11f1-9542-1ebf2a7aaad6_Chocolate-Peanut-Butter-Protein-Bars.webp",
+    ["dessert", "easy"],
+    ["Line an 8 1/2x4 1/2-inch loaf pan with parchment paper, leaving overhang on all sides to make it easy to remove bars from the pan. Set aside.",
+     "Place peanut butter, protein powder, maple syrup, vanilla and salt in a bowl and mix until well combined; press into the prepared pan. Set aside.",
+     "Place chocolate chips and oil in a microwave safe bowl. Microwave for 30 seconds, stir. Repeat until chips are completely melted when stirred. Pour over bars, smooth chocolate. Refrigerate until set, about 30 minutes. Cut into 8 bars.",
+     ],
+    [
+        "0.75, cup, peanut butter",
+        "0.5, cup, protein powder",
+        "2, tbsp, maple syrup",
+        "1, tsp, vanilla extract",
+        "0.125, tsp, salt",
+        "0.5, cup, chocolate chips",
+        "1, tsp, coconut oil",
+    ]
+]
+recipe15 = [
+    "Artichoke Dip Wonton Cups",
+    "These artichoke dip wonton cups are a fun twist on the traditional spinach artichoke dip with tortilla chips. Served as individual bites, they're ideal for a party.",
+    4,
+    0,
+    30,
+    3,
+    "81e670d2-11b9-11f1-9542-1ebf2a7aaad6_artichoke-dip-wonton-cups.webp",
+    ["snack", "easy"],
+    ["Preheat the oven to 350 degrees F (180 degrees C). Spray a standard 12-cup muffin tin with cooking spray.",
+     "Line each muffin cup with a wonton wrapper. Press the center of the wrapper down into the cup, leaving the edges sticking up out of the cup. Spray each wrapper lightly with cooking spray.",
+     "Bake cups in the preheated oven for 5 minutes, then remove from the oven."
+     "Add spinach, artichoke hearts, mayonnaise, sour cream, cream cheese, Parmesan cheese, and garlic in a bowl until well incorporated. Divide mixture evenly between wonton cups.",
+     "Return to the oven and bake until filling is heated through and edges of wrappers are golden brown, about 15 minutes."
+     ],
+    [
+        "12, unit, wonton wrappers",
+        "5, oz, spinach",
+        "1, unit, artichoke hearts",
+        "0.33, cup, mayonnaise",
+        "0.25, cup, sour cream",
+        "2, oz, cream cheese",
+        "0.5, cup, parmesan cheese",
+        "2, unit, garlic"
+    ]
+]
+recipe16 = [
+    "Easy Grilled Shrimp Fajitas",
+    "Quick grilled shrimp fajitas with bell peppers, onions, and fajita seasoning served on warm tortillas",
+    4,
+    0,
+    40,
+    3,
+    "98cbe5a2-11b9-11f1-9542-1ebf2a7aaad6_shrimp_fajitas.webp",
+    [],
+    [
+        "Preheat an outdoor grill for medium-high heat and lightly oil the grate",
+        "In a large bowl combine sliced red bell pepper, green bell pepper, onion, jalapeño, 2 teaspoons fajita seasoning, and olive oil; stir until evenly coated",
+        "In a separate bowl add raw shrimp, remaining 1/2 teaspoon fajita seasoning, and lime juice; gently stir to coat",
+        "Place the vegetable mixture in a grill basket and cook on the grill for about 10 minutes, stirring occasionally",
+        "Add the shrimp to the grill basket with the vegetables and cook for about 5 more minutes until shrimp are opaque",
+        "Remove the grill basket and place the tortillas on the grill to toast for about 2 minutes",
+        "Divide the shrimp and vegetable filling between the warm tortillas and serve while hot",
+    ],
+    [
+        "12, oz, shrimp",
+        "1, unit, red bell pepper",
+        "1, unit, green bell pepper",
+        "1, unit, large onion",
+        "1, unit, jalapeno pepper",
+        "8, unit, flour tortillas",
+        "2.5, tsp, fajita seasoning mix",
+        "1, tsp, olive oil",
+        "1, tbsp, lime juice",
+    ]
+]
+recipe17 = [
+    "Blueberry Chia Pudding with Almond Milk",
+    "A light vegan chia pudding made with almond milk, fresh blueberries, and a touch of maple syrup and cinnamon. Great for breakfast or a healthy snack.",
+    3,
+    8,
+    10,
+    3,
+    "8a70854e-11b9-11f1-9542-1ebf2a7aaad6_chia_pudding.webp",
+    ["breakfast", "vegan", "gluten free", "dessert"],
+    [
+        "Combine almond milk, chia seeds, blueberries, maple syrup, vanilla extract, and cinnamon in a blender; blend until smooth.",
+        "Pour into glasses or ramekins.",
+        "Chill until set, about 8 hours or overnight.",
+        "Serve chilled."
+    ],
+    [
+        "2, cup, almond milk",
+        "6, tbsp, chia seeds",
+        "0.33, cup, fresh blueberries",
+        "1, tbsp, maple syrup",
+        "0.5, tsp, vanilla extract",
+    ]
+]
+recipes = [recipe0, recipe1, recipe2, recipe3, recipe4, recipe5, recipe6, recipe7, recipe8, recipe9, recipe10, recipe11, recipe12, recipe13, recipe14, recipe15, recipe16, recipe17]
 for r in recipes:
     for i in r[9]:
         if i.split(", ")[2] not in ingredients:
@@ -367,7 +512,8 @@ for r in recipes:
 
 cookbooks = [
     ["Cooking Mama\'s Recipes", "Recipes from the Cooking Mama Franchise", 1, "9a462e80-1130-11f1-9a14-1ebf2a7aaad6_cooking-mama-cover.jpg", [0, 1, 2]],
-    ["ChatGPT's Kitchen Creations", "A curated collection of comforting dinners, quick breakfasts, indulgent desserts, and flavorful vegetarian dishes designed for both beginners and experienced home cooks.", 2, "", [3, 4, 5, 6, 7, 8, 9, 10]]
+    ["ChatGPT's Kitchen Creations", "A curated collection of comforting dinners, quick breakfasts, indulgent desserts, and flavorful vegetarian dishes designed for both beginners and experienced home cooks.", 2, "", [3, 4, 5, 6, 7, 8, 9, 10]],
+    ["AllRecipe's Cookbook", "A collection of Allrecipe's best dishes", 3, "b4458f2c-11b9-11f1-9542-1ebf2a7aaad6_allrecipes.jpg", [11, 13, 14, 15, 16, 17]],
 ]
 
 # ----------

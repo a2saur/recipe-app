@@ -23,9 +23,11 @@
 
         <div class="recipe-page-description">
             {% if recipe.has_image() %}
+            <span style="margin-right: 15px">
                 <img src="{{url_for('static', filename=recipe.get_pict_path())}}" class="recipe-page-image">
+            </span>
             {% endif %}
-            {{recipe.description}}
+            <span>{{recipe.description}}</span>
         </div>
 
         <table>

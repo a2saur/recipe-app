@@ -281,6 +281,9 @@
     border: 1px solid;
     border-color: var(--outline-color);
     background-color: var(--blank-bg-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .recipe-page-image {
