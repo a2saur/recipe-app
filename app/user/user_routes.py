@@ -93,7 +93,7 @@ def become_certified():
                     session.pop('ot_code', None)
                     theUser.is_certified = True
                     db.session.commit()
-                    flash("Certification successful!")
+                    flash("Congratulations, you are now a Certified User!")
                     session.pop('from_reg', None)
                     session.pop('reg_email', None)
                     return redirect(url_for('user.display_profile'))
