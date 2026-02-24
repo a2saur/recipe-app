@@ -63,6 +63,7 @@
         <div class="recipe-card-collection">
             {% for recipe in rec_recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>
+                {% include '_save_modal.html' %}
             {% endfor %}
         </div>
 
@@ -70,6 +71,7 @@
         <div class="recipe-card-collection">
             {% for recipe in recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>
+                {% include '_save_modal.html' %}
             {% endfor %}
         </div>
     </div>
@@ -127,6 +129,7 @@ window.onload = function() {
         }
     }   
 </script>
+
 {% endblock %}
 
 

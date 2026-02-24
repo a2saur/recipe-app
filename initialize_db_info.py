@@ -88,6 +88,21 @@ r1.timestamp = datetime.now(timezone.utc)
 r1.pictFile = "8fc7b56a-0c16-11f1-99cc-1ebf2a7aaad6_blue-pikmin.png"
 db.session.add(r1)
 
+r2 = Recipe(
+    title = "Simple Garlic Butter Eggs & Toast",
+    description = "A quick, comforting breakfast made with soft scrambled eggs cooked in garlic butter and served over warm toast.",
+    servingSize = 1,
+    estimatedHrs = 0,
+    estimatedMins = 10,
+    # steps = "1. Toast the Bread 2. Beat the Eggs 3. Cook the Eggs 4. Serve",
+    is_draft=False,
+    user_id=u1.id
+)
+r2.tags.add(db.session.scalars(sqla.select(Tag).where(Tag.name == "easy")).first())
+r2.timestamp = datetime.now(timezone.utc)
+r2.pictFile = "hq720.jpg"
+db.session.add(r2)
+
 db.session.commit()
 
 
