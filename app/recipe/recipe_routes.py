@@ -186,8 +186,10 @@ def edit_recipe(recipe_id):
                 if recipeDraft.is_draft: # if recipe is posted, make sure there's still one ingredient
                     removeIngredient(recipe_id=recipe_id, ingredient_id=buttonVal)
                 else:
-                    if len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()):
+                    if len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()) <= 1:
                         flash("Error: Need at least one ingredient on a posted recipe")
+                    else:
+                        removeIngredient(recipe_id=recipe_id, ingredient_id=buttonVal)
             except ValueError:
                 # blank value, don't do anything
                 pass

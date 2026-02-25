@@ -214,9 +214,16 @@ def view_ingredients():
     if iform.submit.data and iform.validate():
         ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == iform.ingredientName.data)).first()
         if not ingredient:
-            ingredient = Ingredient(name=iform.ingredientName.data)
-            db.session.add(ingredient)
-            db.session.commit()
+            if iform.ingredientName.data == "":
+                flash("Error: No ingredient name")
+                return redirect(url_for('user.view_ingredients'))
+            else:
+                ingredient = Ingredient(name=iform.ingredientName.data)
+                db.session.add(ingredient)
+                db.session.commit()
+        if iform.quantity.data <= 0:
+            flash("Error: Invalid ingredient quantity")
+            return redirect(url_for('user.view_ingredients'))
         current_user.add_ingredient(ingredient, iform.quantity.data, iform.unit.data)
         return redirect(url_for('user.view_ingredients'))
     

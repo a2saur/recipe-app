@@ -80,7 +80,11 @@
         </div>
 
         <div class="recipe-card-content bottom-line">
+            {% if recipe.description | length > 230 %}
+                <p>{{ recipe.description[:230] }}...</p>
+            {% else %}
             <p>{{ recipe.description }}</p>
+            {% endif %}
         </div>
 
         
