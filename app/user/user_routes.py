@@ -7,7 +7,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, s
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, Certification
 
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm
 from app.user.user_email import send_verification_email
@@ -88,9 +88,22 @@ def become_certified():
             flash("A code was sent to {} at {}, please use this code to verify your identity.".format(theUser.email, time))
             return render_template('certify.html', cform = cform)
         if request.method == 'POST':
+            if request.form.get("action_button") == "add_cert":
+                cform.certifications.append_entry()
+                return render_template('certify.html', cform=cform)
+            if request.form.get("remove_cert_button") is not None:
+                index = request.form.get("remove_cert_button")
+                if index not in (None, ""):
+                    index = int(index)
+                    del cform.certifications.entries[index]        
+                return render_template('certify.html', cform=cform)
             if cform.validate_on_submit():
                 if cform.in_code.data == session.get('ot_code'):
                     session.pop('ot_code', None)
+                    for cert in cform.certifications.data:
+                        selected_cert = cert["certifications"]
+                        if selected_cert:
+                            theUser.certifications.add(selected_cert)
                     theUser.is_certified = True
                     db.session.commit()
                     flash("Congratulations, you are now a Certified User!")
@@ -100,6 +113,7 @@ def become_certified():
                 else:
                     flash("Invalid code. Try again.")
                     return render_template('certify.html', cform=cform)
+        return render_template('certify.html', cform=cform)
     else:
         flash("You need to register or log in to acces this page!")
         return redirect(url_for('auth.login'))
@@ -175,12 +189,6 @@ def save_recipe(recipe_id):
     db.session.commit()
     flash("Recipe saved!")
     return redirect(url_for('recipe.view_recipe', recipe_id=recipe_id))
-
-
-    if request.referrer is not None:
-        return redirect(request.referrer)
-    else:
-        return redirect(url_for('main.index'))
 
 @bp_user.route('/user/<recipe_id>/removerecipe', methods=['POST'])
 @login_required
