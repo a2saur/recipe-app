@@ -21,12 +21,12 @@ recipe_tags_table = db.Table('recipe_tags_table', db.metadata, sqla.Column('reci
                                  sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
 
 # keeps track of which users have saved which recipes
-saved_recipes_table = db.Table(
-    'saved_recipes_table', 
-    db.metadata, 
-    sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
-    sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True)
-)
+saved_recipes_table = db.Table('saved_recipes_table', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True))
+
+# keeps track of which certifications each certified user has
+user_certifications_table = db.Table('user_certifications_table', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                                     sqla.Column('certification_id', sqla.Integer, sqla.ForeignKey('certification.id'), primary_key=True))
 
 class User(db.Model, UserMixin):
     # --- ATTRIBUTES ---
@@ -51,6 +51,13 @@ class User(db.Model, UserMixin):
         secondary=saved_recipes_table,
         primaryjoin=(saved_recipes_table.c.user_id == id),
         back_populates='saved_by_users',
+        passive_deletes=True)
+    
+    # keeps track of what certifications this user has
+    certifications: sqlo.WriteOnlyMapped['Certification'] = sqlo.relationship(
+        secondary=user_certifications_table, 
+        primaryjoin=(user_certifications_table.c.user_id == id),
+        back_populates='user', 
         passive_deletes=True)
 
     # helps keep track of the user's ingredient list
@@ -163,8 +170,20 @@ class User(db.Model, UserMixin):
             flash ('{} is added to your grocery list!'.format(ingredient.name))
         db.session.commit()
     
+class Certification(db.Model):
+    # --- ATTRIBUTES ---
+    id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
+    dateRecieved: sqlo.Mapped[datetime] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc))
 
+    # --- RELATIONSHIPS ---
+    # keeps track of what users have this certification
+    user: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary=user_certifications_table, primaryjoin=(user_certifications_table.c.certification_id == id), back_populates='certifications')
 
+    # --- METHODS ---
+    def __repr__(self):
+        return '<Certification id: {} - name: {} - date recieved: {}>'.format(self.id, self.name, self.dateRecieved)
 
 
 class Recipe(db.Model):
