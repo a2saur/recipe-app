@@ -1,8 +1,8 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField
+from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField, Form
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired
+from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional
 
 from app import db
 import sqlalchemy as sqla
@@ -34,10 +34,10 @@ class EditForm(FlaskForm):
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
 
-class CertificationForm(FlaskForm):
+class CertificationForm(Form):
     certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
-                                    get_label= lambda certification: certification.name)
-    dateRecieved = DateField('Date Recieved', format = '%Y-%m-%d')
+                                    get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
+    dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
 
 class CertifyForm(FlaskForm):
     in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})

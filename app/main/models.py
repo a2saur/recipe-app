@@ -179,7 +179,7 @@ class User(db.Model, UserMixin):
 class Certification(db.Model):
     # --- ATTRIBUTES ---
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
-    name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
+    name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(50))
     dateRecieved: sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc))
 
     # --- RELATIONSHIPS ---
