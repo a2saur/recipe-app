@@ -7,7 +7,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, s
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, Certification
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, Certification, UserCertification
 
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm
 from app.user.user_email import send_verification_email
@@ -102,8 +102,10 @@ def become_certified():
                     session.pop('ot_code', None)
                     for cert in cform.certifications.data:
                         selected_cert = cert["certifications"]
+                        date_recieved = cert["dateRecieved"]
                         if selected_cert:
-                            theUser.certifications.add(selected_cert)
+                            user_cert = UserCertification(user_id=theUser.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
+                            db.session.add(user_cert)
                     theUser.is_certified = True
                     db.session.commit()
                     flash("Congratulations, you are now a Certified User!")

@@ -419,3 +419,23 @@
         margin-right: 10px;
     }
 }
+
+.certification-page-tag {
+    margin: 5px;
+    padding-inline: 10px;
+    padding-block: 5px;
+    border: 1px solid;
+    color: var(--outline-color);
+    border-color: var(--outline-color);
+    background-color: var(--blank-bg-color);
+    color: var(--blank-bg-color);
+    border: 1px solid;
+    border-color: var(--blank-bg-color);
+    background-color: var(--outline-color);
+    border-radius: 5px;
+    padding:5px;
+}
+
+.certification-page-tag:hover::after{
+    content:" - " attr(date-date);
+}
