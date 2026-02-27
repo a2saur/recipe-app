@@ -54,11 +54,29 @@ def view_other_profile(user_id):
 @login_required
 def edit_profile():
     eform = EditForm()
+    if request.form.get("action_button") == "add_cert":
+        eform.certifications.append_entry()
+        return render_template('edit_profile.html', form=eform)
+    if request.form.get("remove_cert_button") is not None:
+        index = request.form.get("remove_cert_button")
+        if index not in (None, ""):
+            index = int(index)
+            del eform.certifications.entries[index]        
+            return render_template('edit_profile.html', form=eform)
     if eform.validate_on_submit():
         current_user.username = eform.username.data
         current_user.first_name = eform.first_name.data
         current_user.last_name = eform.last_name.data
         current_user.email = eform.email.data
+        if current_user.is_certified:
+            for uc in list(current_user.user_certifications):
+                db.session.delete(uc)
+            for cert in eform.certifications.data:
+                selected_cert = cert["certifications"]
+                date_recieved = cert["dateRecieved"]
+                if selected_cert:
+                    user_cert = UserCertification(user_id=current_user.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
+                    db.session.add(user_cert)
         current_user.set_password(eform.password.data)
         db.session.add(current_user)
         db.session.commit()
@@ -69,6 +87,12 @@ def edit_profile():
         eform.first_name.data = current_user.first_name
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
+        if current_user.is_certified:
+            for uc in current_user.user_certifications:
+                eform.certifications.append_entry({
+                    "certifications": uc.certification,
+                    "dateRecieved": uc.dateRecieved
+                })
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
