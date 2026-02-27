@@ -170,11 +170,17 @@ class User(db.Model, UserMixin):
             flash ('{} is added to your grocery list!'.format(ingredient.name))
         db.session.commit()
     
+    def get_certifications(self):
+        return db.session.scalars(self.certifications.select()).all()
+    
+    def get_num_certification(self):
+        return len(self.get_certifications())
+    
 class Certification(db.Model):
     # --- ATTRIBUTES ---
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20))
-    dateRecieved: sqlo.Mapped[datetime] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc))
+    dateRecieved: sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(default = lambda : datetime.now(timezone.utc))
 
     # --- RELATIONSHIPS ---
     # keeps track of what users have this certification
@@ -235,6 +241,7 @@ class Recipe(db.Model):
     
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
     def get_num_tag(self):
         return len(self.get_tags())
 
@@ -243,9 +250,6 @@ class Recipe(db.Model):
     
     def get_num_ingredients(self):
         return len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all())
-
-    def get_tags(self):
-        return db.session.scalars(self.tags.select()).all()
     
     def get_steps(self):
         return db.session.scalars(self.recipe_steps.select().order_by(RecipeStep.stepNum)).all()
@@ -339,7 +343,6 @@ class Cookbook(db.Model):
             return 'img/recipe-imgs/'+self.pictFile
         else:
             return None
-
 
 
 class Ingredient(db.Model):

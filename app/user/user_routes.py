@@ -80,6 +80,15 @@ def become_certified():
             email = session.get('reg_email', None)
         theUser = db.session.scalars(sqla.select(User).where(User.email == email)).first()
         cform = CertifyForm()
+        if request.form.get("action_button") == "add_cert":
+            cform.certifications.append_entry()
+            return render_template('certify.html', cform=cform)
+        if request.form.get("remove_cert_button") is not None:
+            index = request.form.get("remove_cert_button")
+            if index not in (None, ""):
+                index = int(index)
+                del cform.certifications.entries[index]        
+            return render_template('certify.html', cform=cform)
         if request.method == 'GET':
             time = datetime.now().strftime("%H:%M:%S")
             code = str(secrets.randbelow(10**6)).zfill(6)
@@ -100,6 +109,7 @@ def become_certified():
                 else:
                     flash("Invalid code. Try again.")
                     return render_template('certify.html', cform=cform)
+        return render_template('certify.html', cform=cform)
     else:
         flash("You need to register or log in to acces this page!")
         return redirect(url_for('auth.login'))

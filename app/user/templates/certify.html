@@ -6,8 +6,41 @@
 
     <form action="{{ url_for('user.become_certified') }}", method="POST">
         {{ cform.hidden_tag()}}
-        {{wtf.form_field(cform.in_code)}}
-        {{wtf.form_field(cform.submit)}}
         
+        <div class = "certification-form">
+            <table>
+                <tr>
+                    <th></th>
+                    <th>Certification Name</th>
+                    <th>Date Recieved</th>
+                </tr>
+                {% for cert in cform.certifications %}
+                <tr>
+                    <td>
+                        {% if not loop.last %}
+                        <button type = "submit" name = "remove_cert_button" value = "{{ loop.index0 }}" formnovalidate class = "btn btn-outline-danger remove-btn"> X </button>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ cert.certifications(class="form-select") }}
+                    </td>
+                    <td>
+                        {{ cert.dateRecieved(class="form-control") }}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>
+                        <button type = "submit" name="action_button" value="add_cert" formnovalidate class = "btn btn-outline-primary"> Add Certification</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br>
+        {{wtf.form_field(cform.in_code)}}
+        <button type = "submit" class = "btn btn-primary">
+            Certify
+        </button>       
     </form>
 {% endblock %}

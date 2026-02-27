@@ -1,11 +1,12 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
+from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User
+from app.main.models import User, Certification
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
@@ -33,8 +34,14 @@ class EditForm(FlaskForm):
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
 
+class CertificationForm(FlaskForm):
+    certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
+                                    get_label= lambda certification: certification.name)
+    dateRecieved = DateField('Date Recieved', format = '%Y-%m-%d')
+
 class CertifyForm(FlaskForm):
     in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})
+    certifications = FieldList(FormField(CertificationForm), min_entries=1)
     submit = SubmitField('Certify')
 
 class BusinessForm(FlaskForm):
