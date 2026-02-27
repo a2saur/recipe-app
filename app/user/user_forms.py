@@ -13,6 +13,11 @@ from app.recipe.recipe_forms import IngredientForm
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add Ingredient')
 
+class CertificationForm(Form):
+    certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
+                                    get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
+    dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
+
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     first_name = StringField('First Name', validators=[DataRequired()])
@@ -20,6 +25,7 @@ class EditForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
+    certifications = FieldList(FormField(CertificationForm), min_entries=0)
     submit = SubmitField('Update')
 
     def validate_username(self, username):
@@ -33,11 +39,6 @@ class EditForm(FlaskForm):
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
-
-class CertificationForm(Form):
-    certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
-                                    get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
-    dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
 
 class CertifyForm(FlaskForm):
     in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})
