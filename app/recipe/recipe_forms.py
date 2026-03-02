@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import Form, FormField, FieldList, StringField, SubmitField, SelectField, TextAreaField, FloatField, HiddenField
+from wtforms import Form, FormField, FieldList, StringField, SubmitField, SelectField, TextAreaField, FloatField, HiddenField, SelectMultipleField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms.widgets import ListWidget, CheckboxInput
 from wtforms.validators import  Length
 from wtforms.validators import Optional
 from flask_wtf.file import FileField
@@ -20,6 +21,7 @@ class IngredientForm(Form):
 class StepForm(Form):
     step_id = HiddenField()
     stepDescription = TextAreaField('', default="", validators=[Length(max=1000)])
+
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add')

@@ -35,6 +35,48 @@
 
         {{ wtf.form_field(form.password2) }}
         
+        <h2>User Preferences</h2>
+        
+        <div class="allergy-section mb-4">
+            <label class="form-label fw-bold">Allergies</label>
+            <table class="table" id="allergy-table">
+                <tbody id="allergy-tbody">
+                    {% for subform in form.allergies %}
+                    <tr class="allergy-row">
+                       <td>{{ subform.ingredientName(class="form-control") }}</td>
+                        <td><button type="button" class="btn btn-outline-danger btn-sm remove-row">X</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="button" id="add-allergy-btn" class="btn btn-secondary btn-sm"s>+ Add Allergy</button>
+        </div>
+        
+
+        <label class="form-label">Dietary Restrictions</label>
+        <div class="mb-3">
+            {% for subfield in form.dietary_restirctions %}
+                <div class="form-check">
+                    {{ subfield(class="form-check-input") }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+            {% endfor %}
+        </div>
+        
+
+        <label class="form-label">Select Preferred Tags</label>
+        <div class="mb-3">
+            {% for subfield in form.tags %}
+                <div class="form-check">
+                    {{ subfield(class="form-check-input") }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+            {% endfor %}
+        </div>
+        {% for error in form.tags.errors %}
+            <span class="error">{{ error }}</span><br>
+        {% endfor %}
+
         {{ wtf.form_field(form.submit) }}
     </form>
 
@@ -43,5 +85,48 @@
             const popoverTrigger = document.querySelectorAll('[data-bs-toggle="popover"]')
             popoverTrigger.forEach(el => new bootstrap.Popover(el))
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const addBtn = document.getElementById('add-allergy-btn');
+            const tbody = document.getElementById('allergy-tbody');
+
+            if (addBtn && tbody) {
+                addBtn.addEventListener('click', function() {
+                    // 1. Find the current rows
+                    const rows = tbody.getElementsByClassName('allergy-row');
+                    const rowCount = rows.length;
+
+                    // 2. Clone the very first row to use as a template
+                    const newRow = rows[0].cloneNode(true);
+
+                    // 3. Update the names and IDs of the inputs in the new row
+                    const inputs = newRow.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        const oldName = input.name;
+                        if (oldName) {
+                            // Replaces the index (e.g., allergies-0-name becomes allergies-1-name)
+                            const newName = oldName.replace(/-\d+-/, `-${rowCount}-`);
+                            input.name = newName;
+                            input.id = newName;
+                            input.value = ''; // Clear the text so it's blank
+                        }
+                    });
+
+                    // 4. Add the row to the table
+                    tbody.appendChild(newRow);
+                });
+
+                // Handle removing rows
+                tbody.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-row')) {
+                        const rows = tbody.getElementsByClassName('allergy-row');
+                        if (rows.length > 1) {
+                            e.target.closest('tr').remove();
+                        }
+                    }
+                });
+            }
+        });
     </script>
+
 {% endblock %}

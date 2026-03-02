@@ -38,6 +38,36 @@
             {% if user.is_certified %}
                 <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
             {% endif %}
+
+
+            <h2> <b>Your preferences</b></h2>
+            <p> <b>Allergies:</b>  
+                {% if not user.get_user_allergies() %}
+                    None
+                {% else %}
+                    {% for allergy in user.get_user_allergies() %}
+                        {{ allergy.name }}{% if not loop.last %}, {% endif %} 
+                    {% endfor %}
+                {% endif %}
+            </p>
+            <p> <b>Dietary Restrictions:</b>
+                {% if not user.get_dietary_tags() %}
+                    None
+                {% else %}
+                    {% for tag in user.get_dietary_tags() %}
+                        {{ tag.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </p>
+            <p> <b>Tags for recommendation:</b>  
+                {% if not user.get_preferred_tags() %}
+                    None
+                {% else %}
+                    {% for tag in user.get_preferred_tags() %}
+                        {{ tag.name }}{% if not loop.last %}, {% endif %} 
+                    {% endfor %}
+                {% endif %}
+            </p>
         </div>
         {% if not read_only and user.id == current_user.id %}
             <div class = "d-flex flex-column align-items-stretch">
@@ -54,6 +84,8 @@
                 </div>
         {% endif %}
     </div>
+
+
      
     
 

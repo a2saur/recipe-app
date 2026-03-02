@@ -1,12 +1,13 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField, Form
+from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField, DateField, FieldList, FormField, Form
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
+from wtforms.widgets import ListWidget, CheckboxInput
 from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Certification
+from app.main.models import User, Tag, Certification
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
@@ -23,8 +24,27 @@ class EditForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
+    allergies = FieldList(FormField(IngredientForm))
+    dietary_restirctions = QuerySelectMultipleField(
+        'Special Dietary Categories', 
+        query_factory=lambda: db.session.scalars(
+            sqla.select(Tag)
+            .where(Tag.name.in_(['vegan', 'vegetarian', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+            .order_by(Tag.name)
+        ), 
+        get_label=lambda tag: tag.name,
+        widget=ListWidget(prefix_label=False),
+        option_widget=CheckboxInput()
+    )
+    tags = QuerySelectMultipleField(
+        'Select Preferred Tags', 
+        query_factory=lambda: db.session.scalars(
+        sqla.select(Tag)
+        .where(Tag.name.notin_(['vegetarian', 'vegan', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+        .order_by(Tag.name)
+    ), get_label = lambda tag: tag.name,
+    widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
+    )
     certifications = FieldList(FormField(CertificationForm), min_entries=0)
     submit = SubmitField('Update')
 

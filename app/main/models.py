@@ -8,6 +8,7 @@ from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 import os
+from typing import List
 
 # types of ingredient units users can select
 UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
@@ -20,9 +21,21 @@ cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Co
 recipe_tags_table = db.Table('recipe_tags_table', db.metadata, sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True), 
                                  sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
 
+# keeps track of user preferred tags
+user_preferred_tags = db.Table('user_preferred_tags', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
+
 # keeps track of which users have saved which recipes
 saved_recipes_table = db.Table('saved_recipes_table', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
                                sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True))
+
+# keeps track of allergies that users have
+user_allergies = db.Table('user_allergies', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('ingredient_id', sqla.Integer, sqla.ForeignKey('ingredient.id'), primary_key=True))
+
+user_dietary_tags = db.Table('user_dietary_tags', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                                sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True)
+)
 
 class User(db.Model, UserMixin):
     # --- ATTRIBUTES ---
@@ -57,6 +70,26 @@ class User(db.Model, UserMixin):
 
     # keep track of the user's grocery list
     grocery_list: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_user')
+
+    # keep track of the user's preferred tags
+    preferred_tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
+        secondary = user_preferred_tags,
+        primaryjoin=(user_preferred_tags.c.user_id == id),
+        back_populates = 'tags_preferred'
+    )
+
+    # keep track of the user's allergies
+    allergies: sqlo.WriteOnlyMapped['Ingredient'] = sqlo.relationship(
+        secondary=user_allergies,
+        primaryjoin=(user_allergies.c.user_id == id),
+        back_populates = 'allergic'
+    )
+
+    dietary_tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
+        secondary=user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.user_id == id),
+        back_populates="users_with_restriction"
+    )
 
     # --- METHODS ---
     def __repr__(self):
@@ -170,6 +203,16 @@ class User(db.Model, UserMixin):
     
     def get_certification_date(self):
         return self.user_certifications
+    
+    def get_user_allergies(self):
+        return db.session.scalars(self.allergies.select()).all()
+    
+    def get_preferred_tags(self):
+        return db.session.scalars(self.preferred_tags.select()).all()
+    
+    def get_dietary_tags(self):
+        return db.session.scalars(self.dietary_tags.select()).all()
+
     
 class Certification(db.Model):
     # --- ATTRIBUTES ---
@@ -292,7 +335,25 @@ class Tag(db.Model):
     # --- RELATIONSHIPS ---
     # keeps track of what recipes have this tag
     recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
-        secondary=recipe_tags_table, primaryjoin=(recipe_tags_table.c.tag_id == id), back_populates='tags')
+        secondary=recipe_tags_table, 
+        primaryjoin=(recipe_tags_table.c.tag_id == id), 
+        back_populates='tags'
+    )
+    
+    # keeps track of the user who selected their preferred tags
+    tags_preferred: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = user_preferred_tags,
+        primaryjoin=(user_preferred_tags.c.tag_id == id),
+        back_populates = 'preferred_tags'
+    )
+
+    # keeps track of the user who had dietary restrictions
+    users_with_restriction: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.tag_id == id),
+        back_populates = 'dietary_tags'
+    )
+
 
     # --- METHODS ---
     def __repr__(self):
@@ -361,6 +422,13 @@ class Ingredient(db.Model):
 
     # helps keep track of ingredients + amounts in users' grocery lists
     grocery_list_involvements: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_ingredient')
+
+    # helps keep track of ingredients that users are allergic to
+    allergic: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary=user_allergies,
+        primaryjoin=(user_allergies.c.ingredient_id == id),
+        back_populates = 'allergies'
+    )
 
     # --- METHODS ---
     def __repr__(self):

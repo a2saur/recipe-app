@@ -1,10 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import RadioField, StringField, SubmitField, PasswordField, BooleanField, TextAreaField
+from wtforms import RadioField, StringField, SubmitField, PasswordField, BooleanField, FieldList, FormField, SelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, EqualTo, Email
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms.widgets import ListWidget, CheckboxInput
 from flask_login import current_user
 
 import sqlalchemy as sqla
-from app.main.models import User
+from app.main.models import User, Tag
+from app.recipe.recipe_forms import IngredientForm
 from app import db
 
 class RegistrationForm(FlaskForm):
@@ -15,6 +18,27 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
     user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
+    allergies = FieldList(FormField(IngredientForm))
+    dietary_restirctions = QuerySelectMultipleField(
+        'Special Dietary Categories', 
+        query_factory=lambda: db.session.scalars(
+            sqla.select(Tag)
+            .where(Tag.name.in_(['vegan', 'vegetarian', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+            .order_by(Tag.name)
+        ), 
+        get_label=lambda tag: tag.name,
+        widget=ListWidget(prefix_label=False),
+        option_widget=CheckboxInput()
+    )
+    tags = QuerySelectMultipleField(
+        'Select Preferred Tags', 
+        query_factory=lambda: db.session.scalars(
+        sqla.select(Tag)
+        .where(Tag.name.notin_(['vegetarian', 'vegan', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+        .order_by(Tag.name)
+    ), get_label = lambda tag: tag.name,
+    widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
+    )
     submit = SubmitField('Register')
 
     def validate_username(self, username):

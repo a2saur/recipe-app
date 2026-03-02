@@ -57,7 +57,7 @@ def create_recipe():
 
 
 @bp_recipe.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def edit_recipe(recipe_id):
     # get the associated recipe draft
     recipeDraft = db.session.get(Recipe, recipe_id)
