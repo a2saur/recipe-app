@@ -1,26 +1,60 @@
-from flask import render_template, flash, redirect, url_for, session
+from flask import render_template, flash, redirect, url_for, session, request
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth_blueprint as bp_auth 
 import sqlalchemy as sqla
 from app.auth.auth_forms import RegistrationForm, LoginForm
-from app.main.models import User
+from app.main.models import User, Ingredient, user_allergies, user_preferred_tags
 
 @bp_auth.route('/user/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
+    
     rform = RegistrationForm()
+
     if rform.validate_on_submit():
+        restrictions_list = rform.dietary_restirctions.data
+        restrictions_string = ", ".join(restrictions_list) if restrictions_list else ""
+        
         user = User(
             first_name = rform.first_name.data,
             last_name = rform.last_name.data,
             username = rform.username.data,
             email = rform.email.data,
+            dietary_restrictions = restrictions_string,
             is_certified = False,
         )
         user.set_password(rform.password.data)
         db.session.add(user)
+        # add allergies
+        for allergy in rform.allergies.data:
+            ing_name = allergy.get('ingredientName')
+            if not ing_name:
+                continue
+            
+            ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
+
+            if not ingredient:
+                ingredient = Ingredient(name=ing_name)
+                db.session.add(ingredient)
+                db.session.flush() # flush to get the ingredient id
+
+            statement = user_allergies.insert().values(
+                user_id = user.id,
+                ingredient_id = ingredient.id
+            )
+            db.session.execute(statement)
+
+        if rform.tags.data:
+            for tag in rform.tags.data:
+                statement = user_preferred_tags.insert().values(
+                    user_id = user.id,
+                    tag_id = tag.id
+                )
+                db.session.execute(statement)
+
+
         db.session.commit()
         flash('User {} {} has been registered.'.format(user.first_name, user.last_name))
         if rform.user_type.data == 'certified':
@@ -28,6 +62,11 @@ def register():
             session['reg_email'] = user.email
             return redirect(url_for('user.become_certified'))
         return redirect(url_for('auth.login'))
+      
+    # Check if the list is empty and add an entry if it is
+    if request.method == 'GET' and not rform.allergies:
+        rform.allergies.append_entry()
+
     return render_template('register.html', title='Register', form=rform)
 
 @bp_auth.route('/user/login', methods=['GET', 'POST'])

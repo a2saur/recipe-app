@@ -7,7 +7,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, s
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies
 
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm
 from app.user.user_email import send_verification_email
@@ -55,20 +55,61 @@ def view_other_profile(user_id):
 def edit_profile():
     eform = EditForm()
     if eform.validate_on_submit():
+        db.session.execute(user_allergies.delete().where(user_allergies.c.user_id == current_user.id))
+        db.session.execute(user_preferred_tags.delete().where(user_preferred_tags.c.user_id == current_user.id))
+        
+        restrictions_list = eform.dietary_restirctions.data
+        restrictions_string = ", ".join(restrictions_list) if restrictions_list else ""
+
         current_user.username = eform.username.data
         current_user.first_name = eform.first_name.data
         current_user.last_name = eform.last_name.data
         current_user.email = eform.email.data
-        current_user.set_password(eform.password.data)
+        current_user.dietary_restrictions = restrictions_string
+        # current_user.set_password(eform.password.data)
         db.session.add(current_user)
+
+        for allergy in eform.allergies.data:
+            ing_name = allergy.get('ingredientName')
+            if not ing_name:
+                continue
+            
+            ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
+
+            if not ingredient:
+                ingredient = Ingredient(name=ing_name)
+                db.session.add(ingredient)
+                db.session.flush() # flush to get the ingredient id
+
+            statement = user_allergies.insert().values(
+                user_id = current_user.id,
+                ingredient_id = ingredient.id
+            )
+            db.session.execute(statement)
+
+        if eform.tags.data:
+            for tag in eform.tags.data:
+                statement = user_preferred_tags.insert().values(
+                    user_id = current_user.id,
+                    tag_id = tag.id
+                )
+                db.session.execute(statement)
+
         db.session.commit()
         flash('Your changes have been saved.')
         return redirect(url_for('user.display_profile'))
     elif request.method == 'GET':
+        for allergy in current_user.get_user_allergies():
+            eform.allergies.append_entry({'ingredientName': allergy.name})            
+        if not eform.allergies:
+            eform.allergies.append_entry()
         eform.username.data = current_user.username
         eform.first_name.data = current_user.first_name
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
+        # eform.allergies.data = current_user.get_user_allergies()
+        eform.dietary_restirctions.data = current_user.dietary_restrictions
+        eform.tags.data = current_user.get_preferred_tags()
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
@@ -238,7 +279,7 @@ def view_ingredients():
     return render_template('view_ingredients.html', title="Ingredients", ingredients=curr_ingredients, grocery_list=grocery_list, iform=iform, gform=gform)
 
 @bp_user.route('/user/move_or_delete_grocery', methods=['POST'])
-# @login_required
+@login_required
 def move_or_delete_grocery():
     action = request.form.get('action')
     selected_grocery_ids = request.form.getlist('grocery_ids')
@@ -265,7 +306,7 @@ def move_or_delete_grocery():
     return redirect(url_for('user.view_ingredients'))
 
 @bp_user.route('/user/delete_ingredient', methods=['POST'])
-# @login_required
+@login_required
 def delete_ingredient():
     selected_ingredient_ids = request.form.getlist('ingredient_ids')
     if not selected_ingredient_ids:

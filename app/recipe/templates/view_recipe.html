@@ -49,13 +49,13 @@
             {% endif %}
         </div>
 
-        <table>
+        <!-- <table>
         <tr>
             {% for tag in recipe.get_tags() %}
             <td><div class="recipe-page-tag">{{tag.name}}</div></td>
             {% endfor %}
         </tr>
-        </table>
+        </table> -->
 
         <div class="recipe-page-details">
             <span>Posted by: <a href="{{ url_for('user.view_other_profile', user_id=recipe.writer.id)}}" class="fw-bold">{{recipe.writer.username}}</a></span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>

@@ -57,7 +57,7 @@ def create_recipe():
 
 
 @bp_recipe.route('/recipe/<recipe_id>/edit', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def edit_recipe(recipe_id):
     # get the associated recipe draft
     recipeDraft = db.session.get(Recipe, recipe_id)
@@ -92,9 +92,15 @@ def edit_recipe(recipe_id):
             "stepDescription":"",
         })
 
+        # Convert the string from the DB back into a list for the SelectMultipleField
+        current_restrictions = []
+        if recipeDraft.dietary_restrictions:
+            current_restrictions = recipeDraft.dietary_restrictions.split(", ")
+
         # populate recipe form
         rform = RecipeForm(
             title = recipeDraft.title,
+            dietary_restrictions = recipeDraft.dietary_restrictions,
             description = recipeDraft.description,
             servingSize = recipeDraft.servingSize,
             estimatedHrs = recipeDraft.estimatedHrs,

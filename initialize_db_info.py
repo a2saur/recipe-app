@@ -522,6 +522,7 @@ db.session.commit()
 r0 = Recipe(title = "Corn Soup", description = "Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.", servingSize = 1, estimatedHrs = 0, estimatedMins = 45, is_draft=False, user_id=u1.id)
 r0.timestamp = datetime.now(timezone.utc)
 r0.pictFile = "207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png"
+r0.dietary_restriction = "Vegan"
 
 db.session.add(r0)
 db.session.commit()
