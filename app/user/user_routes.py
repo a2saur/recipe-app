@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import sys
 import secrets
 from flask import current_app
+from functools import wraps
 
 from flask import render_template, flash, redirect, url_for, request, jsonify, session
 from flask_login import current_user, login_required
@@ -15,6 +16,15 @@ from app.recipe.recipe_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
 
+def uncertified_required(func):
+    @wraps(func)
+    def wrapper(*args, ** kwargs):
+        if (current_user.is_authenticated):
+            if (current_user.is_certified):
+                flash('You are already a Certified User!')
+                return redirect(url_for('main.index'))
+        return func(*args, **kwargs)
+    return wrapper
 
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
@@ -96,6 +106,7 @@ def edit_profile():
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
+@uncertified_required
 def become_certified():
     if current_user.is_authenticated or session.get('from_reg'):
         if current_user.is_authenticated:
@@ -132,9 +143,9 @@ def become_certified():
                             db.session.add(user_cert)
                     theUser.is_certified = True
                     db.session.commit()
-                    flash("Congratulations, you are now a Certified User!")
                     session.pop('from_reg', None)
                     session.pop('reg_email', None)
+                    flash("Congratulations, you are now a Certified User!")
                     return redirect(url_for('user.display_profile'))
                 else:
                     flash("Invalid code. Try again.")
