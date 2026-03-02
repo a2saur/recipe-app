@@ -19,17 +19,26 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
     user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
     allergies = FieldList(FormField(IngredientForm))
-    dietary_restirctions = SelectMultipleField('Dietary Restrictions',
-        choices=[
-            ('vegan', 'Vegan'),
-            ('vegetarian', 'Vegetarian'),
-            ('gluten_free', 'Gluten Free'),
-            ('kosher', 'Kosher')
-        ],
+    dietary_restirctions = QuerySelectMultipleField(
+        'Special Dietary Categories', 
+        query_factory=lambda: db.session.scalars(
+            sqla.select(Tag)
+            .where(Tag.name.in_(['vegan', 'vegetarian', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+            .order_by(Tag.name)
+        ), 
+        get_label=lambda tag: tag.name,
         widget=ListWidget(prefix_label=False),
-        option_widget=CheckboxInput())
-    tags = QuerySelectMultipleField('Select Preferred Tags', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), get_label = lambda tag: tag.name,
-                                    widget = ListWidget(prefix_label=False),option_widget = CheckboxInput())
+        option_widget=CheckboxInput()
+    )
+    tags = QuerySelectMultipleField(
+        'Select Preferred Tags', 
+        query_factory=lambda: db.session.scalars(
+        sqla.select(Tag)
+        .where(Tag.name.notin_(['vegetarian', 'vegan', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+        .order_by(Tag.name)
+    ), get_label = lambda tag: tag.name,
+    widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
+    )
     submit = SubmitField('Register')
 
     def validate_username(self, username):

@@ -488,7 +488,7 @@ db.session.add(t10)
 
 
 t11 = Tag(
-name = "gluten free")
+name = "gluten-free")
 db.session.add(t11)
 
 
@@ -500,6 +500,18 @@ db.session.add(t12)
 t13 = Tag(
 name = "difficult")
 db.session.add(t13)
+
+t14 = Tag(
+name = "quick")
+db.session.add(t14)
+
+t15 = Tag(
+name = "oven")
+db.session.add(t15)
+
+t16 = Tag(
+name = "one-pot")
+db.session.add(t16)
 
 r2 = Recipe(
     title = "Simple Garlic Butter Eggs & Toast",

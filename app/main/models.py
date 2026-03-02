@@ -8,6 +8,7 @@ from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 import os
+from typing import List
 
 # types of ingredient units users can select
 UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
@@ -32,6 +33,10 @@ saved_recipes_table = db.Table('saved_recipes_table', db.metadata, sqla.Column('
 user_allergies = db.Table('user_allergies', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
                                sqla.Column('ingredient_id', sqla.Integer, sqla.ForeignKey('ingredient.id'), primary_key=True))
 
+user_dietary_tags = db.Table('user_dietary_tags', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                                sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True)
+)
+
 class User(db.Model, UserMixin):
     # --- ATTRIBUTES ---
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
@@ -40,7 +45,6 @@ class User(db.Model, UserMixin):
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
-    dietary_restrictions: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(256))
     # only true for certified users
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
     business_name: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(120))
@@ -76,6 +80,12 @@ class User(db.Model, UserMixin):
         secondary=user_allergies,
         primaryjoin=(user_allergies.c.user_id == id),
         back_populates = 'allergic'
+    )
+
+    dietary_tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
+        secondary=user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.user_id == id),
+        back_populates="users_with_restriction"
     )
 
     # --- METHODS ---
@@ -188,9 +198,8 @@ class User(db.Model, UserMixin):
     def get_preferred_tags(self):
         return db.session.scalars(self.preferred_tags.select()).all()
     
-
-
-
+    def get_dietary_tags(self):
+        return db.session.scalars(self.dietary_tags.select()).all()
 
 class Recipe(db.Model):
     # --- ATTRIBUTES ---
@@ -297,10 +306,18 @@ class Tag(db.Model):
         back_populates='tags'
     )
     
+    # keeps track of the user who selected their preferred tags
     tags_preferred: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
         secondary = user_preferred_tags,
         primaryjoin=(user_preferred_tags.c.tag_id == id),
         back_populates = 'preferred_tags'
+    )
+
+    # keeps track of the user who had dietary restrictions
+    users_with_restriction: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.tag_id == id),
+        back_populates = 'dietary_tags'
     )
 
 

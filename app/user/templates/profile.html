@@ -42,10 +42,12 @@
                 {% endif %}
             </p>
             <p> <b>Dietary Restrictions:</b>
-                {% if not user.dietary_restrictions %}
+                {% if not user.get_dietary_tags() %}
                     None
                 {% else %}
-                    {{ user.dietary_restrictions }} 
+                    {% for tag in user.get_dietary_tags() %}
+                        {{ tag.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
                 {% endif %}
             </p>
             <p> <b>Tags for recommendation:</b>  

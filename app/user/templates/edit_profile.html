@@ -49,9 +49,6 @@
                 </div>
             {% endfor %}
         </div>
-        {% for error in form.tags.errors %}
-            <span class="error">{{ error }}</span><br>
-        {% endfor %}
 
         {{wtf.form_field(form.submit)}}
     </form>

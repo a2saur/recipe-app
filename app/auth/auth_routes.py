@@ -4,7 +4,7 @@ from app import db
 from app.auth import auth_blueprint as bp_auth 
 import sqlalchemy as sqla
 from app.auth.auth_forms import RegistrationForm, LoginForm
-from app.main.models import User, Ingredient, user_allergies, user_preferred_tags
+from app.main.models import User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
 
 @bp_auth.route('/user/register', methods=['GET', 'POST'])
 def register():
@@ -14,19 +14,18 @@ def register():
     rform = RegistrationForm()
 
     if rform.validate_on_submit():
-        restrictions_list = rform.dietary_restirctions.data
-        restrictions_string = ", ".join(restrictions_list) if restrictions_list else ""
         
         user = User(
             first_name = rform.first_name.data,
             last_name = rform.last_name.data,
             username = rform.username.data,
             email = rform.email.data,
-            dietary_restrictions = restrictions_string,
+            dietary_restrictions = rform.dietary_restirctions.data,
             is_certified = False,
         )
         user.set_password(rform.password.data)
         db.session.add(user)
+
         # add allergies
         for allergy in rform.allergies.data:
             ing_name = allergy.get('ingredientName')
@@ -46,6 +45,7 @@ def register():
             )
             db.session.execute(statement)
 
+        # add all the preferred tags
         if rform.tags.data:
             for tag in rform.tags.data:
                 statement = user_preferred_tags.insert().values(
@@ -54,6 +54,14 @@ def register():
                 )
                 db.session.execute(statement)
 
+        # add all the dietary restriction tags
+        if rform.dietary_restirctions.data:
+            for tag in rform.dietary_restirctions.data:
+                statement = user_dietary_tags.insert().values(
+                    user_id = current_user.id,
+                    tag_id = tag.id
+                )
+                db.session.execute(statement)
 
         db.session.commit()
         flash('User {} {} has been registered.'.format(user.first_name, user.last_name))
