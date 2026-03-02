@@ -28,21 +28,12 @@
         
 
         {{ wtf.form_field(form.username) }}
-        {% for error in form.username.errors %}
-            <span class="error">{{ error }}</span><br>
-        {% endfor %}
 
         {{ wtf.form_field(form.email) }}
-        {% for error in form.email.errors %}
-            <span class="error">{{ error }}</span><br>
-        {% endfor %}
 
         {{ wtf.form_field(form.password) }}
 
         {{ wtf.form_field(form.password2) }}
-        {% for error in form.password2.errors %}
-            <span class="error">{{ error }}</span><br>
-        {% endfor %}
         
         {{ wtf.form_field(form.submit) }}
     </form>
