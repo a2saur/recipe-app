@@ -44,14 +44,12 @@ class RegistrationForm(FlaskForm):
     def validate_username(self, username):
         user = db.session.scalars(sqla.select(User).where(User.username == username.data)).first()
         if user is not None:
-            if user.id != current_user.id:
-                raise ValidationError('This username already exists! Please provide a different username')
+            raise ValidationError('This username already exists! Please provide a different username')
         
     def validate_email(self, email):
         user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
         if user is not None:
-            if user.id != current_user.id:
-                raise ValidationError('This email is already registered! Please provide a different email address.')
+            raise ValidationError('This email is already registered! Please provide a different email address.')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

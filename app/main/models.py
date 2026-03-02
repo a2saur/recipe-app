@@ -61,6 +61,9 @@ class User(db.Model, UserMixin):
         primaryjoin=(saved_recipes_table.c.user_id == id),
         back_populates='saved_by_users',
         passive_deletes=True)
+    
+    # keeps track of what certifications this user has
+    user_certifications: sqlo.Mapped[list['UserCertification']] = sqlo.relationship(back_populates="user", cascade="all, delete-orphan")
 
     # helps keep track of the user's ingredient list
     curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_user')
@@ -191,7 +194,16 @@ class User(db.Model, UserMixin):
             db.session.add(new_grocery)
             flash ('{} is added to your grocery list!'.format(ingredient.name))
         db.session.commit()
-
+    
+    def get_certifications(self):
+        return [uc.certification for uc in self.user_certifications]
+    
+    def get_num_certification(self):
+        return len(self.get_certifications())
+    
+    def get_certification_date(self):
+        return self.user_certifications
+    
     def get_user_allergies(self):
         return db.session.scalars(self.allergies.select()).all()
     
@@ -200,6 +212,30 @@ class User(db.Model, UserMixin):
     
     def get_dietary_tags(self):
         return db.session.scalars(self.dietary_tags.select()).all()
+
+    
+class Certification(db.Model):
+    # --- ATTRIBUTES ---
+    id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(50))
+
+    # --- RELATIONSHIPS ---
+    # keeps track of what users have this certification
+    user_certifications: sqlo.Mapped[list['UserCertification']] = sqlo.relationship(back_populates="certification", cascade="all, delete-orphan")
+
+    # --- METHODS ---
+    def __repr__(self):
+        return '<Certification id: {} - name: {}>'.format(self.id, self.name)
+
+class UserCertification(db.Model):
+    user_id: sqlo.Mapped[int]=sqlo.mapped_column(sqla.ForeignKey('user.id'), primary_key=True)
+    certification_id: sqlo.Mapped[int]=sqlo.mapped_column(sqla.ForeignKey('certification.id'), primary_key=True)
+    dateRecieved: sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(sqla.Date, nullable=True)
+    user: sqlo.Mapped['User'] = sqlo.relationship(back_populates="user_certifications")
+    certification: sqlo.Mapped['Certification'] = sqlo.relationship(back_populates="user_certifications")
+
+    def __repr__(self):
+        return '<UserCertification user: {} - certification: {} - date: {}'.format(self.user_id, self.certification_id, self.dateRecieved)
 
 class Recipe(db.Model):
     # --- ATTRIBUTES ---
@@ -250,6 +286,7 @@ class Recipe(db.Model):
     
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
     def get_num_tag(self):
         return len(self.get_tags())
 
@@ -258,9 +295,6 @@ class Recipe(db.Model):
     
     def get_num_ingredients(self):
         return len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all())
-
-    def get_tags(self):
-        return db.session.scalars(self.tags.select()).all()
     
     def get_steps(self):
         return db.session.scalars(self.recipe_steps.select().order_by(RecipeStep.stepNum)).all()
@@ -372,7 +406,6 @@ class Cookbook(db.Model):
             return 'img/recipe-imgs/'+self.pictFile
         else:
             return None
-
 
 
 class Ingredient(db.Model):

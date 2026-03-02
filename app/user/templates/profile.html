@@ -25,6 +25,15 @@
             {% if user.business_website %}
                 <p> <b> Business Website: </b> <a href="{{ user.business_website }}" target="_blank">{{ user.business_website }}</a></p>
             {% endif %}
+            {% if user.is_certified %}
+            <p><b> Certifications: </b>
+            {% for cert in user.user_certifications %}
+                <span class = "certification-page-tag" date-date = "{{cert.dateRecieved.strftime('%B %d, %Y') if cert.dateRecieved}}"> 
+                    {{cert.certification.name}} 
+                </span>
+            {% endfor %}
+            </p>
+            {% endif %}
             <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
             {% if user.is_certified %}
                 <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>

@@ -1,18 +1,23 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField
-from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField, DateField, FieldList, FormField, Form
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from wtforms.widgets import ListWidget, CheckboxInput
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired
+from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Tag
+from app.main.models import User, Tag, Certification
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add Ingredient')
+
+class CertificationForm(Form):
+    certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
+                                    get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
+    dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
 
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -40,6 +45,7 @@ class EditForm(FlaskForm):
     ), get_label = lambda tag: tag.name,
     widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
     )
+    certifications = FieldList(FormField(CertificationForm), min_entries=0)
     submit = SubmitField('Update')
 
     def validate_username(self, username):
@@ -56,6 +62,7 @@ class EditForm(FlaskForm):
 
 class CertifyForm(FlaskForm):
     in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})
+    certifications = FieldList(FormField(CertificationForm), min_entries=1)
     submit = SubmitField('Certify')
 
 class BusinessForm(FlaskForm):

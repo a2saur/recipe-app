@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 app = create_app(Config)
 
-from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep
+from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep, Certification
 from config  import Config
 
 import sqlalchemy as sqla
@@ -513,20 +513,72 @@ t16 = Tag(
 name = "one-pot")
 db.session.add(t16)
 
-r2 = Recipe(
-    title = "Simple Garlic Butter Eggs & Toast",
-    description = "A quick, comforting breakfast made with soft scrambled eggs cooked in garlic butter and served over warm toast.",
-    servingSize = 1,
-    estimatedHrs = 0,
-    estimatedMins = 10,
-    # steps = "1. Toast the Bread 2. Beat the Eggs 3. Cook the Eggs 4. Serve",
-    is_draft=False,
-    user_id=u1.id
-)
-r2.tags.add(db.session.scalars(sqla.select(Tag).where(Tag.name == "easy")).first())
-r2.timestamp = datetime.now(timezone.utc)
-r2.pictFile = "hq720.jpg"
-db.session.add(r2)
+t14 = Tag(
+name = "quick")
+db.session.add(t14)
+
+t15 = Tag(
+name = "oven")
+db.session.add(t15)
+
+t16 = Tag(
+name = "one-pot")
+db.session.add(t16)
+
+db.session.commit()
+
+# --- Add Certifications ---
+c0 = Certification(
+name = "Certified Fundamental Cook")
+db.session.add(c0)
+
+c1 = Certification(
+name = "Certified Sous Chef")
+db.session.add(c1)
+
+c2 = Certification(
+name = "Certified Master Baker")
+db.session.add(c2)
+
+c3 = Certification(
+name = "Certified Working Pastry Chef")
+db.session.add(c3)
+
+c4 = Certification(
+name = "Retail Bakers of America")
+db.session.add(c4)
+
+c5 = Certification(
+name = "Certified Pastry Culinarian")
+db.session.add(c5)
+
+c6 = Certification(
+name = "Certified Foodservice Professional")
+db.session.add(c6)
+
+c7 = Certification(
+name = "Master Certified Food Executive")
+db.session.add(c7)
+
+c8 = Certification(
+name = "Certified Chef de Cuisine")
+db.session.add(c8)
+
+c9 = Certification(
+name = "Certified Personal Chef")
+db.session.add(c9)
+
+c10 = Certification(
+name = "Certified Executive Chef")
+db.session.add(c10)
+
+c11 = Certification(
+name = "Certified Decorator")
+db.session.add(c11)
+
+c12 = Certification(
+name = "Certified Culinary Educator")
+db.session.add(c12)
 
 db.session.commit()
 

@@ -5,8 +5,18 @@ from app.auth import auth_blueprint as bp_auth
 import sqlalchemy as sqla
 from app.auth.auth_forms import RegistrationForm, LoginForm
 from app.main.models import User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
+from functools import wraps
+
+def clear_certify_email(func):
+    @wraps(func)
+    def wrapper(*args, ** kwargs):
+        session.pop('from_reg', None)
+        session.pop('reg_email', None)
+        return func(*args, **kwargs)
+    return wrapper
 
 @bp_auth.route('/user/register', methods=['GET', 'POST'])
+@clear_certify_email
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -78,6 +88,7 @@ def register():
     return render_template('register.html', title='Register', form=rform)
 
 @bp_auth.route('/user/login', methods=['GET', 'POST'])
+@clear_certify_email
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
