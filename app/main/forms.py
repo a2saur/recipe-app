@@ -23,6 +23,7 @@ class FilterSortForm(FlaskForm):
     certified = BooleanField('Certified Only')
     likes = IntegerField('Likes', render_kw={"placeholder": "Min # of Saves"}, validators=[Optional(), NumberRange(min=0, message="Input must be positive")])
     min_date = DateField('Posted After', validators=[Optional()])
+    max_cost = IntegerField('Max Cost ($)', render_kw={"placeholder": "$"}, validators = [Optional(), NumberRange(min=0, message="Input cannot be negative")])
     refresh = SubmitField('Sort / Filter')
 
 

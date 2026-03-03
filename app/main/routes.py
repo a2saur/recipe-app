@@ -45,16 +45,22 @@ def index(sort_data="Date"):
                 text = "Filters/Sorting Applied"
             recipes = base_query.order_by(Recipe.timestamp.desc())
             if sort_data := fs_form.sortby.data:
-                text = "Filters/Sorting Applied"
                 if sort_data== "# of likes":
                     recipes = base_query.order_by(Recipe.save_count.desc())
+                    text = "Filters/Sorting Applied"
                 elif sort_data == "Certified":
                     recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
+                    text = "Filters/Sorting Applied"
                 else:
                     recipes = base_query.order_by(Recipe.timestamp.desc())
+            all_recipes  = db.session.scalars(recipes).all() 
+            if fs_form.max_cost.data:
+                all_recipes = [recipe for recipe in all_recipes if recipe.getCost()[0] <= fs_form.max_cost.data]
+                text = "Filters/Sorting Applied"
     if request.method == 'GET':
         recipes = base_query.order_by(Recipe.timestamp.desc())
-    all_recipes  = db.session.scalars(recipes).all() 
+        all_recipes  = db.session.scalars(recipes).all() 
+    
 
     # get all cookbooks
     all_cookbooks  = db.session.scalars(sqla.select(Cookbook)).all()
