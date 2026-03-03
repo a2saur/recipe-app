@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import sys
 import secrets
+from app import user
 from flask import current_app
 from functools import wraps
 
@@ -8,7 +9,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, s
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, Certification, UserCertification, IngredientCostEntry
+from app.main.models import RecipeIngredientUse, Tag, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, Certification, UserCertification, IngredientCostEntry
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm, IngredientCostForm
 from app.user.user_email import send_verification_email
 from app.user.user_forms import IngredientSubmitForm
@@ -90,49 +91,38 @@ def edit_profile():
                 if selected_cert:
                     user_cert = UserCertification(user_id=current_user.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
                     db.session.add(user_cert)
-        current_user.set_password(eform.password.data)
         db.session.add(current_user)
 
-        # add all the allergies 
-        for allergy in eform.allergies.data:
-            ing_name = allergy.get('ingredientName')
-            if not ing_name:
-                continue
-            
-            ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
+        # add allergies
+        if eform.allergies.data:
+            for allergy in eform.allergies.data:
+                ing_name = allergy.get('ingredientName')
+                if not ing_name:
+                    continue
+                
+                ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
 
-            if not ingredient:
-                ingredient = Ingredient(name=ing_name)
-                db.session.add(ingredient)
-                db.session.flush() # flush to get the ingredient id
+                if not ingredient:
+                    ingredient = Ingredient(name=ing_name)
+                    db.session.add(ingredient)
+                    db.session.flush() # flush to get the ingredient id
 
-            statement = user_allergies.insert().values(
-                user_id = current_user.id,
-                ingredient_id = ingredient.id
-            )
-            db.session.execute(statement)
-
-
-        # add all the dietary restriction tags
-        if eform.dietary_restirctions.data:
-            for tag in eform.dietary_restirctions.data:
-                statement = user_dietary_tags.insert().values(
-                    user_id = current_user.id,
-                    tag_id = tag.id
-                )
-                db.session.execute(statement)
-
+                allergy = db.session.get(Ingredient, ingredient.id)
+                current_user.allergies.add(allergy)
 
         # add all the preferred tags
         if eform.tags.data:
             for tag in eform.tags.data:
-                statement = user_preferred_tags.insert().values(
-                    user_id = current_user.id,
-                    tag_id = tag.id
-                )
-                db.session.execute(statement)
-    
+                tag = db.session.get(Tag, tag.id)
+                current_user.preferred_tags.add(tag)
+                
 
+        # add all the dietary restriction tags
+        if eform.dietary_restrictions.data:
+            for tag in eform.dietary_restrictions.data:
+                tag = db.session.get(Tag, tag.id)
+                current_user.dietary_tags.add(tag)
+    
         db.session.commit()
         flash('Your changes have been saved.')
         return redirect(url_for('user.display_profile'))
@@ -145,7 +135,7 @@ def edit_profile():
         eform.first_name.data = current_user.first_name
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
-        eform.dietary_restirctions.data = current_user.get_dietary_tags()
+        eform.dietary_restrictions.data = current_user.get_dietary_tags()
         eform.tags.data = current_user.get_preferred_tags()
         if current_user.is_certified:
             for uc in current_user.user_certifications:
