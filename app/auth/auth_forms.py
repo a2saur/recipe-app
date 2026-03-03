@@ -4,6 +4,7 @@ from wtforms.validators import  ValidationError, DataRequired, EqualTo, Email
 from flask_login import current_user
 
 import sqlalchemy as sqla
+from sqlalchemy import func
 from app.main.models import User
 from app import db
 
@@ -18,16 +19,16 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
     def validate_username(self, username):
-        user = db.session.scalars(sqla.select(User).where(User.username == username.data)).first()
+        user = db.session.scalars(sqla.select(User).where(func.lower(User.username) == username.data.lower())).first()
         if user is not None:
-            if user.id != current_user.id:
-                raise ValidationError('This username already exists! Please provide a different username')
+            # if user.id != current_user.id:
+            raise ValidationError('This username already exists! Please provide a different username')
         
     def validate_email(self, email):
         user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
         if user is not None:
-            if user.id != current_user.id:
-                raise ValidationError('This email is already registered! Please provide a different email address.')
+            # if user.id != current_user.id:
+            raise ValidationError('This email is already registered! Please provide a different email address.')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

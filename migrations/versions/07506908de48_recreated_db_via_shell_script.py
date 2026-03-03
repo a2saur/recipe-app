@@ -1,8 +1,8 @@
-"""recreated
+"""recreated db via shell script
 
-Revision ID: 7c300dcbdab1
+Revision ID: 07506908de48
 Revises: 
-Create Date: 2026-02-23 20:25:31.394007
+Create Date: 2026-03-03 12:05:10.354688
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7c300dcbdab1'
+revision = '07506908de48'
 down_revision = None
 branch_labels = None
 depends_on = None

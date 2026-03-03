@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.auth import auth_blueprint as bp_auth 
 import sqlalchemy as sqla
+from sqlalchemy import func
 from app.auth.auth_forms import RegistrationForm, LoginForm
 from app.main.models import User
 
@@ -36,7 +37,7 @@ def login():
         return redirect(url_for('main.index'))
     lform = LoginForm()
     if lform.validate_on_submit():
-        user = db.session.scalars(sqla.select(User).where(User.username==lform.username.data)).first()
+        user = db.session.scalars(sqla.select(User).where(func.lower(User.username) == lform.username.data.lower())).first()
         if user is None or not user.check_password(lform.password.data):
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
