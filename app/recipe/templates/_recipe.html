@@ -22,16 +22,29 @@
                     <h5>{{ recipe.title[:27] }}...</h5>
                 {% endif %}
             {% endif %}
-        </div></span>
+            </div>
+            <h6 class="text-muted"> 
+            {% if current_user.global_costs %}
+                {% set recipeCostInfo = recipe.getCost() %}
+            {% else %}
+                {% set recipeCostInfo = recipe.getCost(current_user.id) %}
+            {% endif %}
+
+            ${{ "%.2f"|format(recipeCostInfo[0]) }}
+            {%if recipeCostInfo[1] | length > 0%}
+                + ?
+            {% endif %}
+            </h6>
+        </span>
         <span>
             {% if recipe.servingSize > 1 %}
-            <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h5>
+            <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h6>
             {% else %}
-            <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
+            <h6 class="text-muted"> {{recipe.servingSize}} serving </h6>
             {% endif %}
             <h6 class="text-muted"> 
                 {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
-                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h5>
+                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h6>
         </span>
 
     </div>
@@ -115,6 +128,16 @@
                 {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h5>
             </span>
             <span>
+                {% if current_user.global_costs %}
+                    {% set recipeCostInfo = recipe.getCost() %}
+                {% else %}
+                    {% set recipeCostInfo = recipe.getCost(current_user.id) %}
+                {% endif %}
+
+                ${{ "%.2f"|format(recipeCostInfo[0]) }}
+                {%if recipeCostInfo[1] | length > 0%}
+                    + {{recipeCostInfo[1] | length}} ingredients
+                {% endif %}
                 {% if recipe.writer.id == current_user.id %}
                     <span class="icon-button">
                         <form action="{{ url_for('recipe.delete', recipe_id=recipe.id) }}" method="post">

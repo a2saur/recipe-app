@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
 
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient, RecipeStep
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, RecipeStep, ALLOWED_FILE_TYPES
 from app.recipe.recipe_forms import RecipeForm
 
 from app.recipe import recipe_blueprint as bp_recipe
@@ -52,9 +52,6 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
                 description = s.stepDescription.data,
                 recipe_id = recipe_id,
             )
-            print("--")
-            print(i)
-            print(s.stepDescription.data)
             recipeDraft.recipe_steps.add(recipeStep)
             i += 1
 
@@ -111,10 +108,12 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
     basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
     # save uploaded image filename
     if picture is not None and picture.filename != "":
-        pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
-        img_path = os.path.join(basedir, pictName)
-        recipeDraft.pictFile = pictName
-        picture.save(img_path)
+        if picture.filename.split(".")[-1].lower() in ALLOWED_FILE_TYPES:
+            print("good image")
+            pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
+            img_path = os.path.join(basedir, pictName)
+            recipeDraft.pictFile = pictName
+            picture.save(img_path)
     db.session.commit()
 
 # check if the recipe draft is publishable

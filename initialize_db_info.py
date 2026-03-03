@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 app = create_app(Config)
 
-from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep, Certification
+from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep
 from config  import Config
 
 import sqlalchemy as sqla
@@ -488,7 +488,7 @@ db.session.add(t10)
 
 
 t11 = Tag(
-name = "gluten-free")
+name = "gluten free")
 db.session.add(t11)
 
 
@@ -501,92 +501,12 @@ t13 = Tag(
 name = "difficult")
 db.session.add(t13)
 
-t14 = Tag(
-name = "quick")
-db.session.add(t14)
-
-t15 = Tag(
-name = "oven")
-db.session.add(t15)
-
-t16 = Tag(
-name = "one-pot")
-db.session.add(t16)
-
-t14 = Tag(
-name = "quick")
-db.session.add(t14)
-
-t15 = Tag(
-name = "oven")
-db.session.add(t15)
-
-t16 = Tag(
-name = "one-pot")
-db.session.add(t16)
-
-db.session.commit()
-
-# --- Add Certifications ---
-c0 = Certification(
-name = "Certified Fundamental Cook")
-db.session.add(c0)
-
-c1 = Certification(
-name = "Certified Sous Chef")
-db.session.add(c1)
-
-c2 = Certification(
-name = "Certified Master Baker")
-db.session.add(c2)
-
-c3 = Certification(
-name = "Certified Working Pastry Chef")
-db.session.add(c3)
-
-c4 = Certification(
-name = "Retail Bakers of America")
-db.session.add(c4)
-
-c5 = Certification(
-name = "Certified Pastry Culinarian")
-db.session.add(c5)
-
-c6 = Certification(
-name = "Certified Foodservice Professional")
-db.session.add(c6)
-
-c7 = Certification(
-name = "Master Certified Food Executive")
-db.session.add(c7)
-
-c8 = Certification(
-name = "Certified Chef de Cuisine")
-db.session.add(c8)
-
-c9 = Certification(
-name = "Certified Personal Chef")
-db.session.add(c9)
-
-c10 = Certification(
-name = "Certified Executive Chef")
-db.session.add(c10)
-
-c11 = Certification(
-name = "Certified Decorator")
-db.session.add(c11)
-
-c12 = Certification(
-name = "Certified Culinary Educator")
-db.session.add(c12)
-
 db.session.commit()
 
 # --- Add Recipes ---
 r0 = Recipe(title = "Corn Soup", description = "Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.", servingSize = 1, estimatedHrs = 0, estimatedMins = 45, is_draft=False, user_id=u1.id)
 r0.timestamp = datetime.now(timezone.utc)
 r0.pictFile = "207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png"
-r0.dietary_restriction = "Vegan"
 
 db.session.add(r0)
 db.session.commit()
