@@ -7,10 +7,11 @@ from flask_login import UserMixin
 from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+import numpy as np
 import os
+from typing import List
 
-# types of ingredient units users can select
-UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
+from app.main.unit_coversion_helpers import *
 # MAX_FILE_SIZE, ALLOWED_FILE_TYPES 250 * 1024
 
 # keeps track of which recipes are in which cookbooks
@@ -21,12 +22,20 @@ cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Co
 recipe_tags_table = db.Table('recipe_tags_table', db.metadata, sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True), 
                                  sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
 
+# keeps track of user preferred tags
+user_preferred_tags = db.Table('user_preferred_tags', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True))
+
 # keeps track of which users have saved which recipes
-saved_recipes_table = db.Table(
-    'saved_recipes_table', 
-    db.metadata, 
-    sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
-    sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True)
+saved_recipes_table = db.Table('saved_recipes_table', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('recipe_id', sqla.Integer, sqla.ForeignKey('recipe.id'), primary_key=True))
+
+# keeps track of allergies that users have
+user_allergies = db.Table('user_allergies', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                               sqla.Column('ingredient_id', sqla.Integer, sqla.ForeignKey('ingredient.id'), primary_key=True))
+
+user_dietary_tags = db.Table('user_dietary_tags', db.metadata, sqla.Column('user_id', sqla.Integer, sqla.ForeignKey('user.id'), primary_key=True),
+                                sqla.Column('tag_id', sqla.Integer, sqla.ForeignKey('tag.id'), primary_key=True)
 )
 
 class User(db.Model, UserMixin):
@@ -37,6 +46,10 @@ class User(db.Model, UserMixin):
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
+
+    # for user preferences
+    global_costs: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=True)
+
     # only true for certified users
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
     business_name: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(120))
@@ -53,12 +66,38 @@ class User(db.Model, UserMixin):
         primaryjoin=(saved_recipes_table.c.user_id == id),
         back_populates='saved_by_users',
         passive_deletes=True)
+    
+    # keeps track of what certifications this user has
+    user_certifications: sqlo.Mapped[list['UserCertification']] = sqlo.relationship(back_populates="user", cascade="all, delete-orphan")
 
     # helps keep track of the user's ingredient list
     curr_ingredients: sqlo.WriteOnlyMapped['UserIngredientListUse'] = sqlo.relationship(back_populates='userlist_user')
 
     # keep track of the user's grocery list
     grocery_list: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_user')
+
+    # keep track of the user's preferred tags
+    preferred_tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
+        secondary = user_preferred_tags,
+        primaryjoin=(user_preferred_tags.c.user_id == id),
+        back_populates = 'tags_preferred'
+    )
+
+    # keep track of the user's allergies
+    allergies: sqlo.WriteOnlyMapped['Ingredient'] = sqlo.relationship(
+        secondary=user_allergies,
+        primaryjoin=(user_allergies.c.user_id == id),
+        back_populates = 'allergic'
+    )
+
+    dietary_tags: sqlo.WriteOnlyMapped['Tag'] = sqlo.relationship(
+        secondary=user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.user_id == id),
+        back_populates="users_with_restriction"
+    )
+
+    # keeps track of what ingredients + costs are written
+    ingredient_costs: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_user', passive_deletes=True)
 
     # --- METHODS ---
     def __repr__(self):
@@ -120,9 +159,13 @@ class User(db.Model, UserMixin):
             flash ('{} added to your ingredient list!'.format(ingredient.name))
         else: # if ingredient is already in user's ingredient list, update the quantity and unit
             ingredient_use = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
-            ingredient_use.amount += quantity
-            ingredient_use.unit = unit
-            flash('{} is updated in your ingredient list!'.format(ingredient.name))
+            newQuantity = convertUnitAmount(quantity, unit, ingredient_use.unit)
+            if newQuantity == -1:
+                flash('Error: Cannot convert between listed units')
+            else:
+                ingredient_use.amount += newQuantity
+                # ingredient_use.unit = unit
+                flash('{} is updated in your ingredient list!'.format(ingredient.name))
         db.session.commit()
 
     # gets all the user's grocery list of the user
@@ -139,9 +182,14 @@ class User(db.Model, UserMixin):
         grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
         curr_ingredient = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
         if grocery:
-            grocery.amount += quantity
-            grocery.unit = unit
-            flash('{} is updated in your grocery list!'.format(ingredient.name))
+            # grocery.amount += quantity
+            newQuantity = convertUnitAmount(quantity, unit, grocery.unit)
+            if newQuantity == -1:
+                flash('Error: Cannot convert between listed units')
+            else:
+                grocery.amount += newQuantity
+                # grocery.unit = unit
+                flash('{} is updated in your grocery list!'.format(ingredient.name))
         elif curr_ingredient is not None and curr_ingredient.amount >= quantity:
             flash('{} is already in your current ingredient list'.format(ingredient.name))
         elif curr_ingredient is not None and curr_ingredient.amount < quantity:
@@ -164,9 +212,47 @@ class User(db.Model, UserMixin):
             flash ('{} is added to your grocery list!'.format(ingredient.name))
         db.session.commit()
     
+    def get_certifications(self):
+        return [uc.certification for uc in self.user_certifications]
+    
+    def get_num_certification(self):
+        return len(self.get_certifications())
+    
+    def get_certification_date(self):
+        return self.user_certifications
+    
+    def get_user_allergies(self):
+        return db.session.scalars(self.allergies.select()).all()
+    
+    def get_preferred_tags(self):
+        return db.session.scalars(self.preferred_tags.select()).all()
+    
+    def get_dietary_tags(self):
+        return db.session.scalars(self.dietary_tags.select()).all()
 
+    
+class Certification(db.Model):
+    # --- ATTRIBUTES ---
+    id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
+    name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(50))
 
+    # --- RELATIONSHIPS ---
+    # keeps track of what users have this certification
+    user_certifications: sqlo.Mapped[list['UserCertification']] = sqlo.relationship(back_populates="certification", cascade="all, delete-orphan")
 
+    # --- METHODS ---
+    def __repr__(self):
+        return '<Certification id: {} - name: {}>'.format(self.id, self.name)
+
+class UserCertification(db.Model):
+    user_id: sqlo.Mapped[int]=sqlo.mapped_column(sqla.ForeignKey('user.id'), primary_key=True)
+    certification_id: sqlo.Mapped[int]=sqlo.mapped_column(sqla.ForeignKey('certification.id'), primary_key=True)
+    dateRecieved: sqlo.Mapped[Optional[datetime]] = sqlo.mapped_column(sqla.Date, nullable=True)
+    user: sqlo.Mapped['User'] = sqlo.relationship(back_populates="user_certifications")
+    certification: sqlo.Mapped['Certification'] = sqlo.relationship(back_populates="user_certifications")
+
+    def __repr__(self):
+        return '<UserCertification user: {} - certification: {} - date: {}'.format(self.user_id, self.certification_id, self.dateRecieved)
 
 class Recipe(db.Model):
     # --- ATTRIBUTES ---
@@ -217,6 +303,7 @@ class Recipe(db.Model):
     
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
     def get_num_tag(self):
         return len(self.get_tags())
 
@@ -225,9 +312,6 @@ class Recipe(db.Model):
     
     def get_num_ingredients(self):
         return len(db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == self.id)).all())
-
-    def get_tags(self):
-        return db.session.scalars(self.tags.select()).all()
     
     def get_steps(self):
         return db.session.scalars(self.recipe_steps.select().order_by(RecipeStep.stepNum)).all()
@@ -251,6 +335,20 @@ class Recipe(db.Model):
     def get_cookbooks(self):
         return db.session.scalars(self.cookbook_appearances.select()).all()
     
+    def getCost(self, user_id=-1):
+        usedIngredientAmounts = db.session.scalars(self.ingredients_used.select()).all()
+        totalCost = 0
+        unnaccountedIngredients = []
+        for ingUse in usedIngredientAmounts:
+            ing = db.session.get(Ingredient, ingUse.ingredient_id)
+            ingCost = ing.getCost(user_id, ingUse.amount, ingUse.unit)
+            if ingCost == -1:
+                unnaccountedIngredients.append(ing.name)
+            else:
+                print(ingCost)
+                totalCost += ingCost[0]
+        return totalCost, unnaccountedIngredients
+    
 class RecipeStep(db.Model):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     stepNum: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
@@ -268,7 +366,25 @@ class Tag(db.Model):
     # --- RELATIONSHIPS ---
     # keeps track of what recipes have this tag
     recipes: sqlo.WriteOnlyMapped['Recipe'] = sqlo.relationship(
-        secondary=recipe_tags_table, primaryjoin=(recipe_tags_table.c.tag_id == id), back_populates='tags')
+        secondary=recipe_tags_table, 
+        primaryjoin=(recipe_tags_table.c.tag_id == id), 
+        back_populates='tags'
+    )
+    
+    # keeps track of the user who selected their preferred tags
+    tags_preferred: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = user_preferred_tags,
+        primaryjoin=(user_preferred_tags.c.tag_id == id),
+        back_populates = 'preferred_tags'
+    )
+
+    # keeps track of the user who had dietary restrictions
+    users_with_restriction: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary = user_dietary_tags,
+        primaryjoin=(user_dietary_tags.c.tag_id == id),
+        back_populates = 'dietary_tags'
+    )
+
 
     # --- METHODS ---
     def __repr__(self):
@@ -323,13 +439,15 @@ class Cookbook(db.Model):
             return None
 
 
-
 class Ingredient(db.Model):
     # --- ATTRIBUTES ---
     id : sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20), index=True, unique=True)
     
     # --- RELATIONSHIPS ---
+    # helps keep track of ingredients + costs users write
+    cost_entries: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_ingredient')
+
     # helps keep track of ingredients + amounts in recipes
     recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredient')
 
@@ -339,10 +457,82 @@ class Ingredient(db.Model):
     # helps keep track of ingredients + amounts in users' grocery lists
     grocery_list_involvements: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_ingredient')
 
+    # helps keep track of ingredients that users are allergic to
+    allergic: sqlo.WriteOnlyMapped['User'] = sqlo.relationship(
+        secondary=user_allergies,
+        primaryjoin=(user_allergies.c.ingredient_id == id),
+        back_populates = 'allergies'
+    )
+
     # --- METHODS ---
     def __repr__(self):
         return '<Ingredient id: {} - name: {}>'.format(self.id, self.name)
+    
+    def getName(self):
+        return self.name.capitalize()
+    
+    def getCost(self, user_id=-1, amount=-1, unit=-1):
+        if user_id == -1:
+            # use average
+            costEntries = db.session.scalars(self.cost_entries.select()).all()
+            costs = []
+            for costEntry in costEntries:
+                if amount == -1:
+                    amount = costEntry.amount
+                if unit == -1:
+                    unit = costEntry.unit
+                costs.append(costEntry.getCost(amount, unit))
+            if len(costs) == 0:
+                # Failed to get a cost estimate
+                return -1
+            else:
+                return np.median(costs), amount, unit
+        else:
+            # use this user's entry
+            costEntry = db.session.scalars(self.cost_entries.select().where(IngredientCostEntry.user_id == user_id)).first()
+            if costEntry:
+                if amount == -1:
+                    amount = costEntry.amount
+                if unit == -1:
+                    unit = costEntry.unit
+                return costEntry.getCost(amount, unit), amount, unit
+            else:
+                # FAILED TO GET ENTRY
+                return -1
+            
 
+
+class IngredientCostEntry(db.Model):
+    # --- ATTRIBUTES ---
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    cost : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    amount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(unit.in_(UNIT_OPTIONS), name='cost_unit_check'),
+    )
+
+    # --- RELATIONSHIPS ---
+    # keeps track of the user that wrote this ingredient cost
+    cost_user : sqlo.Mapped[User] = sqlo.relationship(back_populates = 'ingredient_costs')
+
+    # keeps track of the ingredient this ingredient use is using
+    cost_ingredient : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'cost_entries')
+
+    # --- METHODS ---
+    def __repr__(self):
+        return '<User id: {} - ingredient: {} with {} {}>'.format(self.user_id, self.ingredient_id, self.amount, self.unit)
+    
+    def getName(self):
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
+    
+    def getCost(self, amount, unit):
+        amountInNewUnit = convertUnitAmount(self.amount, self.unit, unit) # eg 4 tbsp -> 0.25 cup, $10
+        costPerUnit = self.cost/amountInNewUnit
+        return costPerUnit*amount #TODO convert amount and unit from self to get cost
 
 class RecipeIngredientUse(db.Model):
     # --- ATTRIBUTES ---
@@ -369,6 +559,36 @@ class RecipeIngredientUse(db.Model):
     
     def getName(self):
         return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
+    
+    # def canChangeUnit(self, newUnit):
+    #     # UNIT_OPTIONS, ITEM_UNITS, US_VOL_UNITS, US_WEIGHT_UNITS, METRIC_VOL_UNITS, METRIC_WEIGHT_UNITS
+    #     if self.unit in VOL_UNITS:
+    #         # can change to another volume unit
+    #         if newUnit in VOL_UNITS:
+    #             # good to convert
+    #             return True
+    #         else:
+    #             # can't convert
+    #             return False
+    #     elif self.unit in WEIGHT_UNITS:
+    #         # can change to another weight unit
+    #         if newUnit in WEIGHT_UNITS:
+    #             # good to convert
+    #             return True
+    #         else:
+    #             # can't convert
+    #             return False
+    #     else:
+    #         # weird unit
+    #         return False
+    
+    # def changeUnit(self, newUnit):
+    #     if self.canChangeUnit(newUnit):
+    #         # good to convert
+    #         return convertUnitAmount(self.unit, newUnit)
+    #     else:
+    #         # ERROR!
+    #         return -1
 
 
 class UserIngredientListUse(db.Model):

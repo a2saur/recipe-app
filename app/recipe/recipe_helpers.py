@@ -32,13 +32,14 @@ def validRecipeIngredientUseForm(ingredientRel):
 def saveRecipeDraft(recipe_id, rform, picture=None):
     # get recipe object from the db
     recipeDraft = db.session.get(Recipe, recipe_id)
-
+    
     # change and commit basic recipe data from the form
     recipeDraft.title = rform.title.data
     recipeDraft.description = rform.description.data
     recipeDraft.servingSize = rform.servingSize.data
     recipeDraft.estimatedHrs = rform.estimatedHrs.data
     recipeDraft.estimatedMins = rform.estimatedMins.data
+
     # recipeDraft.steps = rform.steps.data
     for s in recipeDraft.get_steps():
         db.session.delete(s)
@@ -51,9 +52,6 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
                 description = s.stepDescription.data,
                 recipe_id = recipe_id,
             )
-            print("--")
-            print(i)
-            print(s.stepDescription.data)
             recipeDraft.recipe_steps.add(recipeStep)
             i += 1
 

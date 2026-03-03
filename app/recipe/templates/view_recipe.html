@@ -18,9 +18,22 @@
                 {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
                 {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}
                 <i class="bi bi-stopwatch" style="padding-left:5px"></i>
+                <br>
+                {% if current_user.global_costs %}
+                    {% set recipeCostInfo = recipe.getCost() %}
+                {% else %}
+                    {% set recipeCostInfo = recipe.getCost(current_user.id) %}
+                {% endif %}
+
+                ${{ "%.2f"|format(recipeCostInfo[0]) }}
+                {%if recipeCostInfo[1] | length > 0%}
+                    + ?<br>(not included: 
+                    {% for ingName in recipeCostInfo[1] %}
+                        {{ingName}}{% if not loop.last %}, {% endif %}
+                    {% endfor %})
+                {% endif %}
             </span>
         </div>
-
         <div class="recipe-page-description">
             {% if recipe.has_image() %}
             <span style="margin-right: 15px">
@@ -48,15 +61,6 @@
                 {% endfor %}
             {% endif %}
         </div>
-
-        <table>
-        <tr>
-            {% for tag in recipe.get_tags() %}
-            <td><div class="recipe-page-tag">{{tag.name}}</div></td>
-            {% endfor %}
-        </tr>
-        </table>
-
         <div class="recipe-page-details">
             <span>Posted by: <a href="{{ url_for('user.view_other_profile', user_id=recipe.writer.id)}}" class="fw-bold">{{recipe.writer.username}}</a></span><span>Last updated {{moment(recipe.timestamp).format('LLL')}}</span>
             <div class="recipe-page-details">

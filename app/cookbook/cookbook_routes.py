@@ -29,6 +29,8 @@ def view_cookbook(cookbook_id):
 def create_cookbook():
     cform = CookbookForm()
     cform.recipes.query_factory = current_user.get_user_recipes
+    if not current_user.is_certified:
+        return redirect(url_for('main.index'))
     if cform.validate_on_submit():
         if not cform.recipes.data:
             flash("At least one recipe must be selected!")
@@ -66,6 +68,8 @@ def create_cookbook():
 @bp_cookbook.route('/cookbook/<cookbook_id>/edit', methods=['GET', 'POST'])
 # @login_required
 def edit_cookbook(cookbook_id):
+    if not current_user.is_certified:
+        return redirect(url_for('main.index'))
     cookbookObj = db.session.get(Cookbook, cookbook_id)
     if cookbookObj is None:
         flash('Could not find cookbook')
