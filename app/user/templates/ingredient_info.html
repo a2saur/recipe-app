@@ -2,8 +2,14 @@
 {% import 'bootstrap_wtf.html' as wtf %}
 
 {% block content %}
-    <!-- Current Ingredients List -->
-     <div style="width:80%">
+<div class="container-fluid mt-5">
+    <nav aria-label="...">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="{{url_for('user.view_ingredients')}}">Ingredients and Grocery List</a></li>
+        <li class="page-item active"><a class="page-link" href="#" aria-current="page">Ingredient Cost Estimates</a></li>
+    </ul>
+    </nav>
+     <div style="width:100%">
         <div class="evenly-spaced">
             {% if current_user.global_costs %}
             <h3>Ingredient Cost Estimates (<i class="bi bi-globe"></i>All User Entries)</h3>
@@ -102,5 +108,5 @@
         });
     });
 </script>
-
+</div>
 {% endblock %}

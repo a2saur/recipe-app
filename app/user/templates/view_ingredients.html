@@ -4,6 +4,12 @@
 {% block content %}
 
 <div class="container-fluid mt-5">
+    <nav aria-label="...">
+    <ul class="pagination">
+        <li class="page-item active"><a class="page-link" href="#" aria-current="page">Ingredients and Grocery List</a></li>
+        <li class="page-item"><a class="page-link" href="{{url_for('user.ingredient_info')}}">Ingredient Cost Estimates</a></li>
+    </ul>
+    </nav>
     <div class="row">
         <!-- Current Ingredients List -->
         <div class="col-md-6">

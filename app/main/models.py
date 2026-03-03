@@ -291,6 +291,20 @@ class Recipe(db.Model):
     def get_cookbooks(self):
         return db.session.scalars(self.cookbook_appearances.select()).all()
     
+    def getCost(self, user_id=-1):
+        usedIngredientAmounts = db.session.scalars(self.ingredients_used.select()).all()
+        totalCost = 0
+        unnaccountedIngredients = []
+        for ingUse in usedIngredientAmounts:
+            ing = db.session.get(Ingredient, ingUse.ingredient_id)
+            ingCost = ing.getCost(user_id, ingUse.amount, ingUse.unit)
+            if ingCost == -1:
+                unnaccountedIngredients.append(ing.name)
+            else:
+                print(ingCost)
+                totalCost += ingCost[0]
+        return totalCost, unnaccountedIngredients
+    
 class RecipeStep(db.Model):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)
     stepNum: sqlo.Mapped[int] = sqlo.mapped_column(sqla.Integer, default=0)
@@ -399,12 +413,20 @@ class Ingredient(db.Model):
                 if unit == -1:
                     unit = costEntry.unit
                 costs.append(costEntry.getCost(amount, unit))
-            return np.median(costs), amount, unit
+            if len(costs) == 0:
+                # Failed to get a cost estimate
+                return -1
+            else:
+                return np.median(costs), amount, unit
         else:
             # use this user's entry
             costEntry = db.session.scalars(self.cost_entries.select().where(IngredientCostEntry.user_id == user_id)).first()
             if costEntry:
-                return costEntry.getCost(amount, unit), costEntry.amount, costEntry.unit
+                if amount == -1:
+                    amount = costEntry.amount
+                if unit == -1:
+                    unit = costEntry.unit
+                return costEntry.getCost(amount, unit), amount, unit
             else:
                 # FAILED TO GET ENTRY
                 return -1
