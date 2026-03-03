@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 import uuid
 import os
 
-from app.main.models import Cookbook, Recipe
+from app.main.models import Cookbook, Recipe, MAX_FILE_SIZE, ALLOWED_FILE_TYPES
 from app.cookbook.cookbook_forms import CookbookForm
 
 from app.cookbook import cookbook_blueprint as bp_cookbook
@@ -100,6 +100,9 @@ def edit_cookbook(cookbook_id):
         # save uploaded image filename
         picture = request.files['pictFile']
         if picture is not None and picture.filename != "":
+            # check filesize
+            if picture.content_length > MAX_FILE_SIZE:
+                flash('Image is too large! Maximum file size: 250KB')
             pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
             img_path = os.path.join(basedir, pictName)
             cookbookObj.pictFile = pictName

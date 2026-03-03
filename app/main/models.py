@@ -11,6 +11,7 @@ import os
 
 # types of ingredient units users can select
 UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
+# MAX_FILE_SIZE, ALLOWED_FILE_TYPES 250 * 1024
 
 # keeps track of which recipes are in which cookbooks
 cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Column('cookbook_id', sqla.Integer, sqla.ForeignKey('cookbook.id'), primary_key=True), 
