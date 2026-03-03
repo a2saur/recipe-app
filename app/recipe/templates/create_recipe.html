@@ -29,13 +29,17 @@
 
         Ingredients*
         <div class="ingredient-form">
-            <table>
+            <table class="table w-50" style="table-layout: fixed;">
+                <!-- <tr>
+                    <th class="align-middle" style="width: 45%;">Name</th>
+                    <th class="align-middle" style="width: 20%;">Price</th>
+                    <th class="align-middle" style="width: 15%;">Unit</th>
+                </tr> -->
                 <tr>
-                    <th></th>
-                    <th>Ingredient Name</th>
-                    <th>Quantity</th>
-                    <th>Units</th>
-                    <th></th>
+                    <th class="align-middle" style="width: 5%;"></th>
+                    <th class="align-middle" style="width: 45%;">Ingredient Name</th>
+                    <th class="align-middle" style="width: 30%;">Quantity</th>
+                    <th class="align-middle" style="width: 20%;">Units</th>
                 </tr>
                 {% for ingredient in form.ingredients %}
                     <tr>
@@ -43,13 +47,17 @@
                         {% if ingredient.ingredientName.data %}
                         <td>{{ ingredient.ingredientName.data }}</td>
                         {% else %}
-                        <td>{{ ingredient.ingredientName() }}</td>
+                        <td>{{ ingredient.ingredientName(style="width: 100%;") }}</td>
                         {% endif %}
+                        <td>{{ ingredient.quantity(style="width: 100%;") }}</td>
+                        <td>{{ ingredient.unit(style="width: 100%;") }}</td>
                     </tr>
                 {% endfor %}
                 <tr>
                     <th></th>
                     <th><button type="submit" name="action_button" value="add" class="btn btn-outline-primary">Add ingredient</button></th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </table>
         </div>
@@ -57,19 +65,19 @@
         <br>
         Steps*
         <div class="step-form">
-            <table>
+            <table class="table w-50" style="table-layout: fixed;">
                 <tr>
-                    <th></th>
-                    <th style="width:50px"></th>
-                    <th>Step Description</th>
-                    <th></th>
-                    <th></th>
+                    <th class="align-middle" style="width: 5%;"></th>
+                    <th class="align-middle" style="width: 5%;"></th>
+                    <th class="align-middle" style="width: 80%;">Step Description</th>
+                    <th class="align-middle" style="width: 5%;"></th>
+                    <th class="align-middle" style="width: 5%;"></th>
                 </tr>
                 {% for step in form.steps %}
                 <tr>
                     <td>{% if loop.index != 1 %}{% if not loop.last %}<button type="submit" name="step_up_button" value="{{step.step_id.data}}" class="btn btn-outline-secondary remove-btn"><i class="bi bi-caret-up-fill"></i></button>{% endif %}{% endif %}</td>
                     <td style="text-align:right">{{loop.index}}</td>
-                    <td>{{step.stepDescription()}}</td>
+                    <td>{{step.stepDescription(style="width:100%;")}}</td>
                     <td>{% if loop.index < loop.length-1 %}<button type="submit" name="step_down_button" value="{{step.step_id.data}}" class="btn btn-outline-secondary remove-btn"><i class="bi bi-caret-down-fill"></i></button>{% endif %}</td>
                     <td>{% if not loop.last %}<button type="submit" name="step_remove_button" value="{{step.step_id.data}}" class="btn btn-outline-danger remove-btn">X</button>{% endif %}</td>
                 </tr>
@@ -78,6 +86,7 @@
                     <th></th>
                     <th></th>
                     <th><button type="submit" name="action_button" value="add" class="btn btn-outline-primary">Add step</button></th>
+                    <th></th>
                     <th></th>
                 </tr>
             </table>

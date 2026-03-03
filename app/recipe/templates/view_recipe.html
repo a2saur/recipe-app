@@ -18,6 +18,20 @@
                 {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
                 {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}
                 <i class="bi bi-stopwatch" style="padding-left:5px"></i>
+                <br>
+                {% if current_user.global_costs %}
+                    {% set recipeCostInfo = recipe.getCost() %}
+                {% else %}
+                    {% set recipeCostInfo = recipe.getCost(current_user.id) %}
+                {% endif %}
+
+                ${{ "%.2f"|format(recipeCostInfo[0]) }}
+                {%if recipeCostInfo[1] | length > 0%}
+                    + ?<br>(not included: 
+                    {% for ingName in recipeCostInfo[1] %}
+                        {{ingName}}{% if not loop.last %}, {% endif %}
+                    {% endfor %})
+                {% endif %}
             </span>
         </div>
         <div class="recipe-page-description">

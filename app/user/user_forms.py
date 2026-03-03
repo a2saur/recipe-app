@@ -1,13 +1,13 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField, DateField, FieldList, FormField, Form
+from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField, DateField, FieldList, FormField, Form, FloatField, SelectField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from wtforms.widgets import ListWidget, CheckboxInput
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional
+from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional, NumberRange
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Tag, Certification
+from app.main.models import User, Tag, Certification, UNIT_OPTIONS
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
@@ -18,6 +18,13 @@ class CertificationForm(Form):
     certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
                                     get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
     dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
+
+class IngredientCostForm(FlaskForm):
+    ingredientName = StringField('Ingredient', validators=[DataRequired()])
+    unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
+    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.0)])
+    price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0.0)])
+    submit = SubmitField('Add')
 
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
