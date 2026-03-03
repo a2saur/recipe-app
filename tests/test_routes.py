@@ -6,6 +6,7 @@ Resources:
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/ 
 """
 import os
+from turtle import title
 import pytest
 from app import create_app, db
 from app.main.models import Ingredient, User, Tag, Recipe, Cookbook
@@ -345,16 +346,23 @@ def test_create_cookbook(test_client,init_database):
     #add recipe to the user profile
     recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
     db.session.add(recipe)
+    recipe.is_draft = False
     db.session.commit()
+    recipe2 = Recipe(title='Test Recipe 2', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe2)
+    recipe2.is_draft = False
+    db.session.commit()
+    all_recipes = db.session.scalars(sqla.select(Recipe).where(Recipe.user_id == user.id)).all()
+    recipes = list(map(lambda r: r.id, all_recipes[:2]))
     # test the "create cookbook" form
     response = test_client.get('/cookbook/create')
     assert response.status_code == 200
     assert b"Create Cookbook" in response.data
     response = test_client.post('/cookbook/create', 
-                          data=dict(title='Test Cookbook', description='This is a test cookbook.', recipes=[recipe.id]),
+                          data=dict(title='Test Cookbook', pictFile=None, description='This is a test cookbook.', recipes=recipes, submit='Post'),
                           follow_redirects = True)
     assert response.status_code == 200
-    cookbook = db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == user.id)).first()
+    cookbook = db.session.scalars(sqla.select(Cookbook)).first()
     assert cookbook is not None
     assert recipe in cookbook.get_recipes()
     # logout

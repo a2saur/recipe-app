@@ -38,22 +38,19 @@ def create_cookbook():
                                    title = 'Create Cookbook',
                                    form=cform,
                                    editing_cookbook=False)
-
         cb = Cookbook(
             title=cform.title.data,
             description=cform.description.data,
             user_id=current_user.id
         )
-        
+        db.session.add(cb)
         for r in cform.recipes.data :
             cb.included_recipes.add(r)
-        
         db.session.commit()
-
         # save uploaded image
         basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
         # save uploaded image filename
-        picture = request.files['pictFile']
+        picture = request.files.get('pictFile')
         if picture is not None and picture.filename != "":
             pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
             img_path = os.path.join(basedir, pictName)
