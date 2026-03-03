@@ -8,7 +8,7 @@ Resources:
 import os
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag
+from app.main.models import Ingredient, User, Tag, Recipe, Cookbook
 from config import Config
 import sqlalchemy as sqla
 
@@ -333,7 +333,36 @@ def test_post_recipe(test_client,init_database): # rewrite this test
     # do_logout(test_client, path = '/user/logout') 
     pass
 
-
-
-
+# ------------------------------------
+# COOKBOOK ROUTES TESTS
+def test_create_cookbook(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    #add recipe to the user profile
+    recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe)
+    db.session.commit()
+    # test the "create cookbook" form
+    response = test_client.get('/cookbook/create')
+    assert response.status_code == 200
+    assert b"Create Cookbook" in response.data
+    response = test_client.post('/cookbook/create', 
+                          data=dict(title='Test Cookbook', description='This is a test cookbook.', recipes=[recipe.id]),
+                          follow_redirects = True)
+    assert response.status_code == 200
+    cookbook = db.session.scalars(sqla.select(Cookbook).where(Cookbook.user_id == user.id)).first()
+    assert cookbook is not None
+    assert recipe in cookbook.get_recipes()
+    # logout
+    do_logout(test_client, path = '/user/logout')
     
+def test_view_cookbook(test_client,init_database):
+    pass
+def test_edit_cookbook(test_client,init_database):
+    pass
+def test_delete_cookbook(test_client,init_database):
+    pass
