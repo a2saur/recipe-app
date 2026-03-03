@@ -1,17 +1,24 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField, Form
+from wtforms import StringField, SubmitField, PasswordField, DateField, FieldList, FormField, Form, FloatField, SelectField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional
+from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional, NumberRange
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Certification
+from app.main.models import User, Certification, UNIT_OPTIONS
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add Ingredient')
+
+class IngredientCostForm(FlaskForm):
+    ingredientName = StringField('Ingredient', validators=[DataRequired()])
+    unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
+    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.0)])
+    price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0.0)])
+    submit = SubmitField('Add')
 
 class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

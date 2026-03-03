@@ -7,10 +7,10 @@ from flask_login import UserMixin
 from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+import numpy as np
 import os
 
-# types of ingredient units users can select
-UNIT_OPTIONS = ["unit", "lb", "cup", "tbsp", "tsp", "g", "oz"]
+from app.main.unit_coversion_helpers import *
 
 # keeps track of which recipes are in which cookbooks
 cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Column('cookbook_id', sqla.Integer, sqla.ForeignKey('cookbook.id'), primary_key=True), 
@@ -32,6 +32,10 @@ class User(db.Model, UserMixin):
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
+
+    # for user preferences
+    global_costs: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=True)
+
     # only true for certified users
     is_certified: sqlo.Mapped[bool] = sqlo.mapped_column(sqla.Boolean, default=False)
     business_name: sqlo.Mapped[Optional[str]] = sqlo.mapped_column(sqla.String(120))
@@ -57,6 +61,9 @@ class User(db.Model, UserMixin):
 
     # keep track of the user's grocery list
     grocery_list: sqlo.WriteOnlyMapped['UserGroceryListUse'] = sqlo.relationship(back_populates='grocerylist_user')
+
+    # keeps track of what ingredients + costs are written
+    ingredient_costs: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_user', passive_deletes=True)
 
     # --- METHODS ---
     def __repr__(self):
@@ -118,9 +125,13 @@ class User(db.Model, UserMixin):
             flash ('{} added to your ingredient list!'.format(ingredient.name))
         else: # if ingredient is already in user's ingredient list, update the quantity and unit
             ingredient_use = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
-            ingredient_use.amount += quantity
-            ingredient_use.unit = unit
-            flash('{} is updated in your ingredient list!'.format(ingredient.name))
+            newQuantity = convertUnitAmount(quantity, unit, ingredient_use.unit)
+            if newQuantity == -1:
+                flash('Error: Cannot convert between listed units')
+            else:
+                ingredient_use.amount += newQuantity
+                # ingredient_use.unit = unit
+                flash('{} is updated in your ingredient list!'.format(ingredient.name))
         db.session.commit()
 
     # gets all the user's grocery list of the user
@@ -137,9 +148,14 @@ class User(db.Model, UserMixin):
         grocery = db.session.scalars(sqla.select(UserGroceryListUse).where(UserGroceryListUse.user_id==self.id).where(UserGroceryListUse.ingredient_id==ingredient.id)).first()
         curr_ingredient = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
         if grocery:
-            grocery.amount += quantity
-            grocery.unit = unit
-            flash('{} is updated in your grocery list!'.format(ingredient.name))
+            # grocery.amount += quantity
+            newQuantity = convertUnitAmount(quantity, unit, grocery.unit)
+            if newQuantity == -1:
+                flash('Error: Cannot convert between listed units')
+            else:
+                grocery.amount += newQuantity
+                # grocery.unit = unit
+                flash('{} is updated in your grocery list!'.format(ingredient.name))
         elif curr_ingredient is not None and curr_ingredient.amount >= quantity:
             flash('{} is already in your current ingredient list'.format(ingredient.name))
         elif curr_ingredient is not None and curr_ingredient.amount < quantity:
@@ -353,6 +369,9 @@ class Ingredient(db.Model):
     name : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(20), index=True, unique=True)
     
     # --- RELATIONSHIPS ---
+    # helps keep track of ingredients + costs users write
+    cost_entries: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_ingredient')
+
     # helps keep track of ingredients + amounts in recipes
     recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredient')
 
@@ -365,7 +384,64 @@ class Ingredient(db.Model):
     # --- METHODS ---
     def __repr__(self):
         return '<Ingredient id: {} - name: {}>'.format(self.id, self.name)
+    
+    def getName(self):
+        return self.name.capitalize()
+    
+    def getCost(self, user_id=-1, amount=-1, unit=-1):
+        if user_id == -1:
+            # use average
+            costEntries = db.session.scalars(self.cost_entries.select()).all()
+            costs = []
+            for costEntry in costEntries:
+                if amount == -1:
+                    amount = costEntry.amount
+                if unit == -1:
+                    unit = costEntry.unit
+                costs.append(costEntry.getCost(amount, unit))
+            return np.median(costs), amount, unit
+        else:
+            # use this user's entry
+            costEntry = db.session.scalars(self.cost_entries.select().where(IngredientCostEntry.user_id == user_id)).first()
+            if costEntry:
+                return costEntry.getCost(amount, unit), costEntry.amount, costEntry.unit
+            else:
+                # FAILED TO GET ENTRY
+                return -1
+            
 
+
+class IngredientCostEntry(db.Model):
+    # --- ATTRIBUTES ---
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    cost : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    amount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    unit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(unit.in_(UNIT_OPTIONS), name='cost_unit_check'),
+    )
+
+    # --- RELATIONSHIPS ---
+    # keeps track of the user that wrote this ingredient cost
+    cost_user : sqlo.Mapped[User] = sqlo.relationship(back_populates = 'ingredient_costs')
+
+    # keeps track of the ingredient this ingredient use is using
+    cost_ingredient : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'cost_entries')
+
+    # --- METHODS ---
+    def __repr__(self):
+        return '<User id: {} - ingredient: {} with {} {}>'.format(self.user_id, self.ingredient_id, self.amount, self.unit)
+    
+    def getName(self):
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
+    
+    def getCost(self, amount, unit):
+        amountInNewUnit = convertUnitAmount(self.amount, self.unit, unit) # eg 4 tbsp -> 0.25 cup, $10
+        costPerUnit = self.cost/amountInNewUnit
+        return costPerUnit*amount #TODO convert amount and unit from self to get cost
 
 class RecipeIngredientUse(db.Model):
     # --- ATTRIBUTES ---
@@ -392,6 +468,36 @@ class RecipeIngredientUse(db.Model):
     
     def getName(self):
         return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
+    
+    # def canChangeUnit(self, newUnit):
+    #     # UNIT_OPTIONS, ITEM_UNITS, US_VOL_UNITS, US_WEIGHT_UNITS, METRIC_VOL_UNITS, METRIC_WEIGHT_UNITS
+    #     if self.unit in VOL_UNITS:
+    #         # can change to another volume unit
+    #         if newUnit in VOL_UNITS:
+    #             # good to convert
+    #             return True
+    #         else:
+    #             # can't convert
+    #             return False
+    #     elif self.unit in WEIGHT_UNITS:
+    #         # can change to another weight unit
+    #         if newUnit in WEIGHT_UNITS:
+    #             # good to convert
+    #             return True
+    #         else:
+    #             # can't convert
+    #             return False
+    #     else:
+    #         # weird unit
+    #         return False
+    
+    # def changeUnit(self, newUnit):
+    #     if self.canChangeUnit(newUnit):
+    #         # good to convert
+    #         return convertUnitAmount(self.unit, newUnit)
+    #     else:
+    #         # ERROR!
+    #         return -1
 
 
 class UserIngredientListUse(db.Model):

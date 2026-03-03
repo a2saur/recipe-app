@@ -40,6 +40,11 @@
     align-items: center;
 }
 
+.ing-table > :not(caption) > * > * {
+  border-bottom-width: 0px; /* Remove Bootstrap's bottom border */
+  border-top-width: 1px; /* Add a top border */
+}
+
 /* Popovers */
 .certify-popover {
     --bs-popover-bg: var(--accent-bg-color);

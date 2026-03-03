@@ -51,9 +51,6 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
                 description = s.stepDescription.data,
                 recipe_id = recipe_id,
             )
-            print("--")
-            print(i)
-            print(s.stepDescription.data)
             recipeDraft.recipe_steps.add(recipeStep)
             i += 1
 

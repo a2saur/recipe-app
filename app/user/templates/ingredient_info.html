@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% import 'bootstrap_wtf.html' as wtf %}
+
+{% block content %}
+    <!-- Current Ingredients List -->
+     <div style="width:80%">
+        <div class="evenly-spaced">
+            {% if current_user.global_costs %}
+            <h3>Ingredient Cost Estimates (<i class="bi bi-globe"></i>All User Entries)</h3>
+            {% else %}
+            <h3>Ingredient Cost Estimates (<i class="bi bi-person-circle"></i> Your Entries)</h3>
+            {% endif %}
+            <form method="POST" action="{{url_for('user.change_cost_preference')}}">
+                {% if current_user.global_costs %}
+                    <button class="btn btn-primary">Switch to Using Your Entries</button>
+                {% else %}
+                    <button class="btn btn-primary">Switch to Using Global Entries</button>
+                {% endif %}
+            </form>
+        </div>
+        <div class="ingredient-form">
+        <form method="POST" action="">
+            {{ iform.hidden_tag() }}
+
+            <table class="table w-100 ing-table">
+                <tr>
+                    <th class="align-middle" style="width: 4%;"></th>
+                    <th class="align-middle" style="width: 40%;">Name</th>
+                    <th class="align-middle" style="width: 14%;">Price</th>
+                    <th class="align-middle" style="width: 14%;">Amount</th>
+                    <th class="align-middle" style="width: 14%;">Unit</th>
+                    <th class="align-middle" style="width: 14%;"></th>
+                </tr>
+
+                {% if ingredients | length == 0%}
+                    <tr>
+                        <td></td>
+                        <td>No current Cost Entries</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% else %}
+                    {% for ingredient in ingredients %}
+                        {% if current_user.global_costs %}
+                            {% set costInfo = ingredient.getCost() %}
+                        {% else %}
+                            {% set costInfo = ingredient.getCost(current_user.id) %}
+                        {% endif %}
+                        {% if costInfo != -1 %}
+                        <tr>
+                            <td></td>
+                            <td>{{ ingredient.getName() }}</td>
+                            <td>${{ costInfo[0] }}</td>
+                            <td>{{ costInfo[1] }}</td>
+                            <td>{{ costInfo[2] }}</td>
+                            <td>{{ ingredient.amount }}</td>
+                            <td>{{ ingredient.unit }}</td>
+                            <td></td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <tr>
+                    <td id="registered-ingredient">
+                        <i id="registered-ing" class="bi bi-check-circle-fill d-none" style="color:green"></i>
+                        <i id="non-registered-ing" class="bi bi-question-circle-fill d-none"style="color:red"></i>
+                    </td>
+                    <td>{{ iform.ingredientName(id="form-ingredient-name", style="width:100%") }}</td>
+                    <td class="evenly-spaced">$ {{ iform.price(style="width:100%") }}</td>
+                    <td>{{ iform.amount(style="width:100%") }}</td>
+                    <td>{{ iform.unit(style="width:100%") }}</td>
+                    <td>{{ iform.submit(class="btn btn-primary", style="width:100%") }}</td>
+                </tr>
+            </table>
+        </form>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // const popoverTrigger = document.querySelectorAll('[data-bs-toggle="popover"]')
+        // popoverTrigger.forEach(el => new bootstrap.Popover(el))
+        const ingInputField = document.getElementById("form-ingredient-name");
+        const ingCheck = document.getElementById("registered-ing");
+        const ingX = document.getElementById("non-registered-ing");
+        ingInputField.addEventListener('input', function(e) {
+            let ingredientName = e.target.value.toLowerCase();
+            if (ingredientName == ""){
+                ingCheck.classList.add("d-none");
+                ingX.classList.add("d-none");
+            } else {
+                const dbIngredientNames = {{ ingredientNames | tojson }};
+                if (dbIngredientNames.includes(ingredientName)){
+                    ingCheck.classList.remove("d-none");
+                    ingX.classList.add("d-none");
+                } else {
+                    ingCheck.classList.add("d-none");
+                    ingX.classList.remove("d-none");
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}
