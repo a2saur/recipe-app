@@ -15,9 +15,9 @@ def make_shell_context():
 def add_tags(*args, **kwargs):
     query = sqla.select(Tag)
     if db.session.scalars(query).first() is None:
-        tags = ['breakfast','lunch', 'dinner', 'quick', 'easy', 'beginner', 'hard',
-                'baking', 'cooking', 'oven', 'one-pot', 'vegan', 'gluten-free',
-                'grilling', 'vegetarian', 'holiday', 'sweet', 'savory', 'spicy']
+        tags = ['dinner', 'lunch', 'breakfast', 'snack', 'dessert', 'side', 'vegetarian', 
+                'vegan', 'pescetarian', 'kosher', 'halal', 'gluten-free', 'easy', 'difficult', 
+                'quick', 'oven', 'one-pot']
         for t in tags:
             db.session.add(Tag(name=t))
         db.session.commit()

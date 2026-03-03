@@ -2,19 +2,28 @@ from datetime import datetime, timezone
 import sys
 import secrets
 from flask import current_app
+from functools import wraps
 
 from flask import render_template, flash, redirect, url_for, request, jsonify, session
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, Certification, UserCertification, IngredientCostEntry
-
+from app.main.models import RecipeIngredientUse, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, Certification, UserCertification, IngredientCostEntry
 from app.user.user_forms import EditForm, BusinessForm, CertifyForm, IngredientCostForm
 from app.user.user_email import send_verification_email
 from app.user.user_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
 
+def uncertified_required(func):
+    @wraps(func)
+    def wrapper(*args, ** kwargs):
+        if (current_user.is_authenticated):
+            if (current_user.is_certified):
+                flash('You are already a Certified User!')
+                return redirect(url_for('main.index'))
+        return func(*args, **kwargs)
+    return wrapper
 
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
@@ -54,24 +63,100 @@ def view_other_profile(user_id):
 @login_required
 def edit_profile():
     eform = EditForm()
+    if request.form.get("action_button") == "add_cert":
+        eform.certifications.append_entry()
+        return render_template('edit_profile.html', form=eform)
+    if request.form.get("remove_cert_button") is not None:
+        index = request.form.get("remove_cert_button")
+        if index not in (None, ""):
+            index = int(index)
+            del eform.certifications.entries[index]        
+            return render_template('edit_profile.html', form=eform)
     if eform.validate_on_submit():
+        db.session.execute(user_allergies.delete().where(user_allergies.c.user_id == current_user.id))
+        db.session.execute(user_dietary_tags.delete().where(user_dietary_tags.c.user_id == current_user.id))
+        db.session.execute(user_preferred_tags.delete().where(user_preferred_tags.c.user_id == current_user.id))
+        
         current_user.username = eform.username.data
         current_user.first_name = eform.first_name.data
         current_user.last_name = eform.last_name.data
         current_user.email = eform.email.data
+        if current_user.is_certified:
+            for uc in list(current_user.user_certifications):
+                db.session.delete(uc)
+            for cert in eform.certifications.data:
+                selected_cert = cert["certifications"]
+                date_recieved = cert["dateRecieved"]
+                if selected_cert:
+                    user_cert = UserCertification(user_id=current_user.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
+                    db.session.add(user_cert)
         current_user.set_password(eform.password.data)
         db.session.add(current_user)
+
+        # add all the allergies 
+        for allergy in eform.allergies.data:
+            ing_name = allergy.get('ingredientName')
+            if not ing_name:
+                continue
+            
+            ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
+
+            if not ingredient:
+                ingredient = Ingredient(name=ing_name)
+                db.session.add(ingredient)
+                db.session.flush() # flush to get the ingredient id
+
+            statement = user_allergies.insert().values(
+                user_id = current_user.id,
+                ingredient_id = ingredient.id
+            )
+            db.session.execute(statement)
+
+
+        # add all the dietary restriction tags
+        if eform.dietary_restirctions.data:
+            for tag in eform.dietary_restirctions.data:
+                statement = user_dietary_tags.insert().values(
+                    user_id = current_user.id,
+                    tag_id = tag.id
+                )
+                db.session.execute(statement)
+
+
+        # add all the preferred tags
+        if eform.tags.data:
+            for tag in eform.tags.data:
+                statement = user_preferred_tags.insert().values(
+                    user_id = current_user.id,
+                    tag_id = tag.id
+                )
+                db.session.execute(statement)
+    
+
         db.session.commit()
         flash('Your changes have been saved.')
         return redirect(url_for('user.display_profile'))
     elif request.method == 'GET':
+        for allergy in current_user.get_user_allergies():
+            eform.allergies.append_entry({'ingredientName': allergy.name})            
+        if not eform.allergies:
+            eform.allergies.append_entry()
         eform.username.data = current_user.username
         eform.first_name.data = current_user.first_name
         eform.last_name.data = current_user.last_name
         eform.email.data = current_user.email
+        eform.dietary_restirctions.data = current_user.get_dietary_tags()
+        eform.tags.data = current_user.get_preferred_tags()
+        if current_user.is_certified:
+            for uc in current_user.user_certifications:
+                eform.certifications.append_entry({
+                    "certifications": uc.certification,
+                    "dateRecieved": uc.dateRecieved
+                })
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
 
 @bp_user.route('/user/profile/certify', methods=['GET','POST'])
+@uncertified_required
 def become_certified():
     if current_user.is_authenticated or session.get('from_reg'):
         if current_user.is_authenticated:
@@ -108,9 +193,9 @@ def become_certified():
                             db.session.add(user_cert)
                     theUser.is_certified = True
                     db.session.commit()
-                    flash("Congratulations, you are now a Certified User!")
                     session.pop('from_reg', None)
                     session.pop('reg_email', None)
+                    flash("Congratulations, you are now a Certified User!")
                     return redirect(url_for('user.display_profile'))
                 else:
                     flash("Invalid code. Try again.")
@@ -248,7 +333,7 @@ def view_ingredients():
     return render_template('view_ingredients.html', title="Ingredients", ingredients=curr_ingredients, grocery_list=grocery_list, iform=iform, gform=gform)
 
 @bp_user.route('/user/move_or_delete_grocery', methods=['POST'])
-# @login_required
+@login_required
 def move_or_delete_grocery():
     action = request.form.get('action')
     selected_grocery_ids = request.form.getlist('grocery_ids')
@@ -275,7 +360,7 @@ def move_or_delete_grocery():
     return redirect(url_for('user.view_ingredients'))
 
 @bp_user.route('/user/delete_ingredient', methods=['POST'])
-# @login_required
+@login_required
 def delete_ingredient():
     selected_ingredient_ids = request.form.getlist('ingredient_ids')
     if not selected_ingredient_ids:

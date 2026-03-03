@@ -7,6 +7,6 @@ theUser.is_certified = False
 db.session.commit()
 
 # Delete user
-theUser = db.session.scalars(sqla.select(User).where(User.username == "patuoltra")).first()
+theUser = db.session.scalars(sqla.select(User).where(User.username == "egomis")).first()
 db.session.delete(theUser)
 db.session.commit()
