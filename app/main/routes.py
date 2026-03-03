@@ -53,7 +53,8 @@ def index(sort_data="Date"):
                     text = "Filters/Sorting Applied"
                 else:
                     recipes = base_query.order_by(Recipe.timestamp.desc())
-             if fs_form.max_cost.data:
+            all_recipes = db.session.scalars(recipes).all()
+            if fs_form.max_cost.data:
                 all_recipes = [recipe for recipe in all_recipes if recipe.getCost()[0] <= fs_form.max_cost.data]
                 text = "Filters/Sorting Applied"
         else:
