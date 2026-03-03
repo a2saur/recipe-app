@@ -25,7 +25,7 @@ class EditForm(FlaskForm):
     last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     allergies = FieldList(FormField(IngredientForm))
-    dietary_restirctions = QuerySelectMultipleField(
+    dietary_restrictions = QuerySelectMultipleField(
         'Special Dietary Categories', 
         query_factory=lambda: db.session.scalars(
             sqla.select(Tag)

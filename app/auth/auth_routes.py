@@ -4,7 +4,7 @@ from app import db
 from app.auth import auth_blueprint as bp_auth 
 import sqlalchemy as sqla
 from app.auth.auth_forms import RegistrationForm, LoginForm
-from app.main.models import User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
+from app.main.models import Tag, User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
 from functools import wraps
 
 def clear_certify_email(func):
@@ -30,48 +30,39 @@ def register():
             last_name = rform.last_name.data,
             username = rform.username.data,
             email = rform.email.data,
-            dietary_restrictions = rform.dietary_restirctions.data,
             is_certified = False,
         )
         user.set_password(rform.password.data)
         db.session.add(user)
+        db.session.flush() # flush to get the user id
 
         # add allergies
-        for allergy in rform.allergies.data:
-            ing_name = allergy.get('ingredientName')
-            if not ing_name:
-                continue
+        if rform.allergies.data:
+            for allergy in rform.allergies.data:
+                ing_name = allergy.get('ingredientName')
             
-            ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
+                ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
 
-            if not ingredient:
-                ingredient = Ingredient(name=ing_name)
-                db.session.add(ingredient)
-                db.session.flush() # flush to get the ingredient id
+                if not ingredient:
+                    ingredient = Ingredient(name=ing_name)
+                    db.session.add(ingredient)
+                    db.session.flush() # flush to get the ingredient id
 
-            statement = user_allergies.insert().values(
-                user_id = user.id,
-                ingredient_id = ingredient.id
-            )
-            db.session.execute(statement)
+                allergy = db.session.get(Ingredient, ingredient.id)
+                user.allergies.add(allergy)
 
         # add all the preferred tags
         if rform.tags.data:
             for tag in rform.tags.data:
-                statement = user_preferred_tags.insert().values(
-                    user_id = user.id,
-                    tag_id = tag.id
-                )
-                db.session.execute(statement)
+                tag = db.session.get(Tag, tag.id)
+                user.preferred_tags.add(tag)
+                
 
         # add all the dietary restriction tags
-        if rform.dietary_restirctions.data:
-            for tag in rform.dietary_restirctions.data:
-                statement = user_dietary_tags.insert().values(
-                    user_id = current_user.id,
-                    tag_id = tag.id
-                )
-                db.session.execute(statement)
+        if rform.dietary_restrictions.data:
+            for tag in rform.dietary_restrictions.data:
+                tag = db.session.get(Tag, tag.id)
+                user.dietary_tags.add(tag)
 
         db.session.commit()
         flash('User {} {} has been registered.'.format(user.first_name, user.last_name))

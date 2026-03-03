@@ -19,7 +19,7 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
     user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
     allergies = FieldList(FormField(IngredientForm))
-    dietary_restirctions = QuerySelectMultipleField(
+    dietary_restrictions = QuerySelectMultipleField(
         'Special Dietary Categories', 
         query_factory=lambda: db.session.scalars(
             sqla.select(Tag)
