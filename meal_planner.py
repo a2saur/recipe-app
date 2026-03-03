@@ -1,7 +1,7 @@
 from config import Config
 
 from app import create_app, db
-from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User
+from app.main.models import Recipe, RecipeIngredientUse, Ingredient, Tag, User, Certification
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
 
@@ -20,6 +20,14 @@ def add_tags(*args, **kwargs):
                 'quick', 'oven', 'one-pot']
         for t in tags:
             db.session.add(Tag(name=t))
+        db.session.commit()
+        certifications = ['Certified Fundamental Cook', 'Certified Sous Chef', 'Certified Master Baker', 'Certified Working Pastry Chef',
+                          "Retail Bakers of America", 'Certified Pastry Culinarian', 'Certified Foodservice Professional', 
+                          'Master Certified Food Executive', 'Certified Chef de Cuisine', 'Certified Personal Chef', 'Certified Executive Chef',
+                          'Certified Decorator', 'Certified Culinary Educator']
+
+        for c in certifications:
+            db.session.add(Certification(name=c))
         db.session.commit()
 
 @app.before_request
