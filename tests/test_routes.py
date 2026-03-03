@@ -367,10 +367,170 @@ def test_create_cookbook(test_client,init_database):
     assert recipe in cookbook.get_recipes()
     # logout
     do_logout(test_client, path = '/user/logout')
-    
+
+def test_create_cookbook_no_recipes(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    # test the "create cookbook" form with no recipes selected
+    response = test_client.post('/cookbook/create', 
+                          data=dict(title='Test Cookbook', pictFile=None, description='This is a test cookbook.', recipes=[], submit='Post'),
+                          follow_redirects = True)
+    assert response.status_code == 200
+    assert b"At least one recipe must be selected!" in response.data
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
+def test_create_cookbook_not_certified(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = False
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    # test the "create cookbook" form with no recipes selected
+    response = test_client.get('/cookbook/create')
+    assert response.status_code == 302
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
 def test_view_cookbook(test_client,init_database):
-    pass
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    #add cookbook to the database
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+    recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe)
+    recipe.is_draft = False
+    db.session.commit()
+    cookbook.included_recipes.add(recipe)
+    db.session.commit()
+    # test the "view cookbook" page
+    response = test_client.get('/cookbook/{c}/view'.format(c=cookbook.id))
+    assert response.status_code == 200
+    assert b"Test Cookbook" in response.data
+    assert b"Test Recipe" in response.data
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
+def test_view_cookbook_invalid_id(test_client,init_database):
+    response = test_client.get('/cookbook/999/view')
+    assert response.status_code == 302
+
 def test_edit_cookbook(test_client,init_database):
-    pass
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    #add cookbook to the database
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+    recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe)
+    recipe.is_draft = False
+    db.session.commit()
+    cookbook.included_recipes.add(recipe)
+    db.session.commit()
+    recipe2 = Recipe(title='Test Recipe 2', description='This is another test recipe.', user_id=user.id)
+    db.session.add(recipe2)
+    recipe2.is_draft = False
+    db.session.commit()
+    # test the "edit cookbook" page
+    response = test_client.post('/cookbook/{c}/edit'.format(c=cookbook.id),
+                                data=dict(title='Updated Cookbook', pictFile=None, description='This is an updated test cookbook.', recipes=[recipe2.id], submit='Post'),
+                          follow_redirects = True)
+    assert response.status_code == 200
+    cookbook = db.session.get(Cookbook, cookbook.id)
+    assert cookbook.title == 'Updated Cookbook'
+    assert cookbook.description == 'This is an updated test cookbook.'
+    assert recipe2 in cookbook.get_recipes()
+    assert recipe not in cookbook.get_recipes()
+    # logout
+    do_logout(test_client, path = '/user/logout')
+def test_edit_cookbook_invalid_id(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.get('/cookbook/999/edit')
+    assert response.status_code == 302
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
+def test_get_edit_cookbook(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    #add cookbook to the database
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+    recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe)
+    recipe.is_draft = False
+    db.session.commit()
+    cookbook.included_recipes.add(recipe)
+    db.session.commit()
+    # test the "edit cookbook" page
+    response = test_client.get('/cookbook/{c}/edit'.format(c=cookbook.id))
+    assert response.status_code == 200
+    assert b"Create Cookbook" in response.data
+    assert b"Test Cookbook" in response.data
+    assert b"This is a test cookbook." in response.data
+    assert b"Test Recipe" in response.data
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
 def test_delete_cookbook(test_client,init_database):
-    pass
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    #add cookbook to the database
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+    recipe = Recipe(title='Test Recipe', description='This is a test recipe.', user_id=user.id)
+    db.session.add(recipe)
+    recipe.is_draft = False
+    db.session.commit()
+    cookbook.included_recipes.add(recipe)
+    db.session.commit()
+    # test the "delete cookbook" page
+    response = test_client.post('/cookbook/{c}/delete'.format(c=cookbook.id), follow_redirects=True)
+    assert response.status_code == 200
+    cookbook = db.session.get(Cookbook, cookbook.id)
+    assert cookbook is None
+    # logout
+    do_logout(test_client, path = '/user/logout')
+
+def test_delete_cookbook_no_cookbook(test_client,init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == 'CookingMama')).first()
+    assert user is not None
+    user.is_certified = True
+    db.session.commit()
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.post('/cookbook/999/delete', follow_redirects=True)
+    assert response.status_code == 200
+    # logout
+    do_logout(test_client, path = '/user/logout')

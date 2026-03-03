@@ -99,7 +99,7 @@ def edit_cookbook(cookbook_id):
         # save uploaded image
         basedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../static/img/recipe-imgs')
         # save uploaded image filename
-        picture = request.files['pictFile']
+        picture = request.files.get('pictFile')
         if picture is not None and picture.filename != "":
             pictName = str(uuid.uuid1()) + "_" + secure_filename(picture.filename)
             img_path = os.path.join(basedir, pictName)
