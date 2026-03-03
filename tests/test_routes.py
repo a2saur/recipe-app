@@ -5,13 +5,14 @@ Resources:
     https://flask.palletsprojects.com/en/1.1.x/testing/ 
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/ 
 """
-from datetime import datetime
+from datetime import date, datetime
 import os
 from turtle import title
 from time import timezone
+from datetime import datetime, UTC
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, RecipeStep
+from app.main.models import Ingredient, Recipe, RecipeIngredientUse, RecipeStep, User, Tag, UserIngredientListUse, Cookbook, RecipeIngredientUse, RecipeStep
 from config import Config
 import sqlalchemy as sqla
 
@@ -44,7 +45,7 @@ def test_client():
     ctx.pop()
 
 def new_user(first_name, last_name, username, email, password, 
-             certified=False, allergies=None, dietary_tags=None, preferred_tags=None):
+             certified=True, allergies=None, dietary_tags=None, preferred_tags=None):
 
     user = User(
         first_name=first_name,
@@ -100,7 +101,8 @@ def init_ingredients():
     ingredients = ['Peanuts', 'Shrimp', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Onion', 
                     'Cream', 'Corn', 'Butter', 'Garlic', 'Tomato', 'Chicken', 'Beef', 
                     'Pork', 'Fish', 'Shellfish', 'Rice', 'Potato', 'Carrot', 'Bell Pepper', 
-                    'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Pasta', 'Parmesan']
+                    'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Pasta', 'Parmesan', 'Avocado', 
+                    'Scallions', 'Chilis', 'Lettuce', 'Dressing', 'Tomatoes', 'Dried Fruits']
     for name in ingredients:
         exists = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == name)).first()
         if not exists:
@@ -143,7 +145,7 @@ def init_database():
 
     # Add a user    
     user1 = new_user(first_name='Cooking', last_name='Mama', username='CookingMama', email='cookingmama@wpi.edu', password='123',
-                     allergies=[peanut_allergy], dietary_tags=[vegan_tag], preferred_tags=[easy_tag, breakfast_tag])
+                     certified=True, allergies=[peanut_allergy], dietary_tags=[vegan_tag], preferred_tags=[easy_tag, breakfast_tag])
     # Insert user data
     db.session.add(user1)
 
@@ -299,6 +301,87 @@ def test_login_logout(request,test_client,init_database):
 # ------------------------------------
 # MAIN ROUTES TESTS
 
+# Helper functions
+def add_recipe_posts(test_client, init_database):
+    # Post three recipes with different tags and check that they are recommended correctly based on the user's preferred tags and dietary restrictions
+    pictFile0 = "207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png"
+    r0 = new_recipe(title = "Corn Soup", description = "Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.", 
+                    servingSize = 1, estimatedHrs = 0, estimatedMins = 45, timestamp=datetime(2026, 1, 1, 10, 30, tzinfo=UTC), is_draft=False, user_id=0, save_count=4, pictFile = pictFile0)
+    db.session.add(r0)
+
+    pictFile1 = "2b117cbc-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-avocado-toast.png"
+    r1 = new_recipe(title = "Avocado Toast", description = "Guacamole spread topped with chilis!", 
+                    servingSize = 1, estimatedHrs = 0, estimatedMins = 15, timestamp=datetime(2026, 1, 1, 10, 40, tzinfo=UTC), is_draft=False, user_id=0, save_count=5, pictFile = pictFile1)
+    db.session.add(r1)
+
+    r2 = new_recipe(title = "Tomato Salad", description = "Lettuce and tomato salad!", 
+                    servingSize = 1, estimatedHrs = 0, estimatedMins = 15, timestamp=datetime(2026, 1, 1, 10, 50, tzinfo=UTC), is_draft=False, user_id=0, save_count=3)
+    db.session.add(r2)
+
+    r3 = new_recipe(title = "Avocado Salad", description = "Lettuce and avocado salad!", 
+                    servingSize = 1, estimatedHrs = 0, estimatedMins = 15, timestamp=datetime(2026, 1, 2, 11, 0, tzinfo=UTC), is_draft=False, user_id=0, save_count=2)
+    db.session.add(r3)
+
+    r4 = new_recipe(title = "Trail Mix", description = "A mix of nuts and dried fruits!", 
+                    servingSize = 1, estimatedHrs = 0, estimatedMins = 5, timestamp=datetime(2026, 1, 2, 11, 10, tzinfo=UTC), is_draft=False, user_id=0, save_count=0)
+    db.session.add(r4)
+    db.session.commit()
+
+    # Get tags 
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+
+    # Get user's preferred tags
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+
+    # Add tags to the recipes
+    r0.tags.add(easy_tag) # Corn Soup is easy but not vegan, so it should not be recommended based on CookingMama's preferences
+
+    r1.tags.add(vegan_tag) # Avocado Toast is vegan, so it should be recommended based on CookingMama's preferences
+    r1.tags.add(easy_tag) # Avocado Toast is easy, so it should be recommended based on CookingMama's preferences
+    r1.tags.add(breakfast_tag) # Avocado Toast is a breakfast recipe, so it should be recommended based on CookingMama's preferences
+    
+    r2.tags.add(vegan_tag) # Tomato Salad is vegan, so it should be recommended based on CookingMama's preferences
+    r2.tags.add(easy_tag) # Tomato Salad is easy, so it should be recommended based on CookingMama's preferences
+
+    r3.tags.add(vegan_tag) # Avocado Salad is vegan, so it should be recommended based on CookingMama's preferences
+    r3.tags.add(easy_tag) # Avocado Salad is easy, so it should be recommended based on CookingMama's preferences
+
+    r4.tags.add(vegan_tag) # Trail Mix is vegan, so it should be recommended based on CookingMama's preferences
+    r4.tags.add(easy_tag) # Trail Mix is easy, so it should be recommended based on CookingMama's preferences
+    db.session.commit()
+
+    # Add ingredients to the recipe
+    onion = new_recipe_ingredient_use(recipe_id = r0.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Onion')).first().id, amount = 0.5, unit = "unit")
+    db.session.add(onion)
+    cream = new_recipe_ingredient_use(recipe_id = r0.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Cream')).first().id, amount = 1, unit = "cup")
+    db.session.add(cream)
+    corn = new_recipe_ingredient_use(recipe_id = r0.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Corn')).first().id, amount = 4, unit = "tbsp")
+    db.session.add(corn)
+    avocado = new_recipe_ingredient_use(recipe_id = r1.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Avocado')).first().id, amount = 1, unit = "unit")
+    db.session.add(avocado)
+    scallions = new_recipe_ingredient_use(recipe_id = r1.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Scallions')).first().id, amount = 2, unit = "tbsp")
+    db.session.add(scallions)
+    chilis = new_recipe_ingredient_use(recipe_id = r1.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Chilis')).first().id, amount = 1, unit = "tbsp")
+    db.session.add(chilis)
+    lettuce = new_recipe_ingredient_use(recipe_id = r2.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Lettuce')).first().id, amount = 1, unit = "unit")
+    db.session.add(lettuce)
+    tomatoes = new_recipe_ingredient_use(recipe_id = r2.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Tomatoes')).first().id, amount = 1, unit = "cup")
+    db.session.add(tomatoes)
+    dressing = new_recipe_ingredient_use(recipe_id = r2.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Dressing')).first().id, amount = 2, unit = "tbsp")
+    db.session.add(dressing)
+    lettuce2 = new_recipe_ingredient_use(recipe_id = r3.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Lettuce')).first().id, amount = 1, unit = "unit")
+    db.session.add(lettuce2)
+    avocado2 = new_recipe_ingredient_use(recipe_id = r3.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Avocado')).first().id, amount = 1, unit = "unit")
+    db.session.add(avocado2)
+    dressing2 = new_recipe_ingredient_use(recipe_id = r3.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Dressing')).first().id, amount = 2, unit = "tbsp")
+    db.session.add(dressing2)
+    peanuts = new_recipe_ingredient_use(recipe_id = r4.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Peanuts')).first().id, amount = 0.5, unit = "cup")
+    db.session.add(peanuts)
+    dried_fruits = new_recipe_ingredient_use(recipe_id = r4.id, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Dried Fruits')).first().id, amount = 0.5, unit = "cup")
+    db.session.add(dried_fruits)
+
+
 def test_recommended_recipes(test_client,init_database): # rewrite this test
     """
     GIVEN a Flask application configured for testing , after user logs-in,
@@ -306,106 +389,102 @@ def test_recommended_recipes(test_client,init_database): # rewrite this test
     """
     # Login as CookingMama
     do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
-    do_logout(test_client, path = '/user/logout')
-    # # Post two recipes with different tags and check that they are recommended correctly based on the user's preferred tags and dietary restrictions
-    # r0 = Recipe(title = "Corn Soup", description = "Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.", servingSize = 1, estimatedHrs = 0, estimatedMins = 45, is_draft=False, user_id=test_client.id)
-    # r0.timestamp = datetime.now(timezone.utc)
-    # r0.pictFile = "207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png"
-    # db.session.add(r0)
-
-    # r1 = Recipe(title = "Avocado Toast", description = "Guacamole spread topped with chilis!", servingSize = 1, estimatedHrs = 0, estimatedMins = 15, is_draft=False, user_id=u1.id)
-    # r1.timestamp = datetime.now(timezone.utc)
-    # r1.pictFile = "2b117cbc-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-avocado-toast.png"
-    # db.session.add(r1)
-    # db.session.commit()
-
-    # # Get tags 
-    # vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
-    # easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
-
-    # # Add recipe steps
-    # s00 = RecipeStep(stepNum = 1, description = "Finely dice it", recipe_id = r0.id)
-    # db.session.add(s00)
-    # s01 = RecipeStep(stepNum = 2, description = "Cut corn from cob", recipe_id = r0.id)
-    # db.session.add(s01)
-    # s02 = RecipeStep(stepNum = 3, description = "Spread the butter", recipe_id = r0.id)
-    # db.session.add(s02)
-    # s03 = RecipeStep(stepNum = 4, description = "Stir fry it", recipe_id = r0.id)
-    # db.session.add(s03)
-    # s04 = RecipeStep(stepNum = 5, description = "Boil it", recipe_id = r0.id)
-    # db.session.add(s04)
-    # s05 = RecipeStep(stepNum = 6, description = "Use the mixer", recipe_id = r0.id)
-    # db.session.add(s05)
-    # s06 = RecipeStep(stepNum = 7, description = "Strain", recipe_id = r0.id)
-    # db.session.add(s06)
-    # s07 = RecipeStep(stepNum = 8, description = "Boil it", recipe_id = r0.id)
-    # db.session.add(s07)
-    # db.session.commit()
-
-    # # Add ingredients to the recipe
-    # onion = Ingredient(name='Onion')
-    # db.session.add(onion)
-    # cream = Ingredient(name='Cream')
-    # db.session.add(cream)
-    # corn = Ingredient(name='Corn')
-    # db.session.add(corn)
-    # db.session.flush()
-    # ri00 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
-    # db.session.add(ri00)
-    # ri01 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = cream.id, amount = 1, unit = "unit")
-    # db.session.add(ri01)
-    # ri02 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = corn.id, amount = 4, unit = "tbsp")
-    # db.session.add(ri02)
-    # db.session.commit()
     
+    add_recipe_posts(test_client, init_database)
 
+    # Add user's current ingredients
+    letture_ing = UserIngredientListUse(user_id = 1, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Lettuce')).first().id, amount = 1, unit = "unit")
+    avocado_ing = UserIngredientListUse(user_id = 1, ingredient_id = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Avocado')).first().id, amount = 1, unit = "unit")
+    db.session.add(letture_ing)
+    db.session.add(avocado_ing)
+    db.session.commit()
 
-    # response = test_client.post('/recipe/create', data={
-    #                         'title': 'Sunny',
-    #                         'pictFile': '207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png',
-    #                         'description': 'Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.',
-    #                         'servingSize': 1,
-    #                         'estimatedHrs': 0,
-    #                         'estimatedMins': 45,
-    #                         'tags': [vegan_tag.id, easy_tag.id],  # This triggers the redirect logic
-    #                         'ingredients': [vegan_tag.id],
-    #                         'steps': 
-    #                     },
-    #                       follow_redirects = True)
-    # assert response.status_code == 200
-    # post1 = db.session.scalars(sqla.select(Post).where(Post.title =='My test post')).first()
-    # assert post1 is not None #There should be at least one post with body "My test post"
+    response = test_client.get('/index', follow_redirects = True)
+    
+    assert response.status_code == 200
+    
+    # check if you are in the right page
+    assert b"Recommended based on your preferences and current ingredients" in response.data
 
-    # tags2 = list( map(lambda t: t.id, all_tags[1:3]))  # should only pass 'id's of the tags. See https://stackoverflow.com/questions/62157168/how-to-send-queryselectfield-form-data-to-a-flask-view-in-a-unittest
-    # response = test_client.post('/post', 
-    #                       data=dict(title='Second post', body='Here is another post.',happiness_level=1, tag = tags2),
-    #                       follow_redirects = True)
-    # assert response.status_code == 200
-    # post2 = db.session.scalars(sqla.select(Post).where(Post.body =='Here is another post.')).first()
-    # assert post2 is not None  #There should be at least one post with body "Here is another post."
+    # there should be total two posts
+    all_recipes = db.session.scalars(sqla.select(Recipe)).all()
+    assert len(all_recipes) == 5
 
-    # #there should be total two posts
-    # all_posts = db.session.scalars(sqla.select(Post)).all()
-    # assert len(all_posts) == 2
+    # Avocado Toast and Salad matche preferences (vegan), so it should be in both sections
+    assert response.data.count(b"Avocado Toast") == 4 # 2 * number of apperance since it has a front picture
+    assert response.data.count(b"Tomato Salad") == 2
+    assert response.data.count(b"Avocado Salad") == 2
 
-    # #like the second post 
-    # response = test_client.post('/post/'+str(post2.id)+'/like', 
-    #                       data={},
-    #                       follow_redirects = True)
-    # assert response.status_code == 200
-    # #Will return the updated count as JSON
-    # data = eval(response.data)
-    # assert data['post_id'] == post2.id
-    # assert data['like_count'] == 1
-    # #check whether the likecount was updated successfully
-    # first_post = db.session.get(Post, post1.id)
-    # assert first_post.likes == 0 
-    # second_post = db.session.get(Post, post2.id)
-    # assert second_post.likes == 1  
+    # Corn Soup is NOT vegan, so it should only appear once in the "All Recipes" section
+    assert response.data.count(b"Corn Soup") == 2 # 2 * number of apperance since it has a front picture
+    assert response.data.count(b"Trail Mix") == 1 # Trail Mix is vegan and easy, but it has peanuts so it should be not be recommended
 
-    # #finally logout
-    # do_logout(test_client, path = '/user/logout')    
-    pass
+    # Avocado Toast should appear before Salad since it has more matching tags with the user's preferred tags, so it should be ranked higher in the recommended section
+    assert response.data.find(b"Avocado Toast") < response.data.find(b"Tomato Salad")
+
+    # Avocado Salad should appear before Tomato Salad since it has more matching ingredients with the user's current ingredients, so it should be ranked higher in the recommended section
+    assert response.data.find(b'Avocado Salad') < response.data.find(b"Tomato Salad")
+
+def test_sortby_date_filterby_tags(test_client,init_database): # rewrite this test
+    """
+    GIVEN a Flask application configured for testing , after user logs-in, and sorts by date and filters by tags,
+    THEN check that response is valid and the recommended recipes are updated in the database
+    """
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    add_recipe_posts(test_client, init_database)
+
+    response = test_client.post('/index', data={
+        'sortby': 'Date', 
+        'tags': [db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first().id]
+    }, follow_redirects = True)
+
+    assert response.status_code == 200
+
+    # check if you are in the right page
+    assert b'All recipes (4)' in response.data
+    assert b"Recommended based on your preferences and current ingredients" not in response.data
+
+    # should only show the vegan recipes sorted by date (newest to oldest)
+    assert b"Avocado Toast" in response.data
+    assert b"Avocado Salad" in response.data
+    assert b"Tomato Salad" in response.data
+    assert b"Trail Mix" in response.data
+    assert b"Corn Soup" not in response.data
+
+    assert response.data.find(b'Trail Mix') < response.data.find(b"Avocado Salad") < response.data.find(b"Tomato Salad") < response.data.find(b"Avocado Toast")
+
+def test_sortby_saves_filterby_min_saves(test_client,init_database): # rewrite this test
+    """
+    GIVEN a Flask application configured for testing , after user logs-in, and sorts by # of saves and filters by minimum save count,
+    THEN check that response is valid and the recommended recipes are updated in the database
+    """
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    add_recipe_posts(test_client, init_database)
+
+    response = test_client.post('/index', data={
+        'sortby': '# of saves', 
+        'saves': 2
+    }, follow_redirects = True)
+
+    assert response.status_code == 200
+
+    # check if you are in the right page
+    assert b'All recipes (4)' in response.data
+    assert b"Recommended based on your preferences and current ingredients" not in response.data
+
+    # should only show the recipes that has at least 2 saves, sorted by number of saves (highest to lowest)
+    assert b"Avocado Toast" in response.data
+    assert b"Avocado Salad" in response.data
+    assert b"Tomato Salad" in response.data
+    assert b"Trail Mix" not in response.data
+    assert b"Corn Soup" in response.data
+
+    assert response.data.find(b'Avocado Toast') < response.data.find(b"Corn Soup") < response.data.find(b"Tomato Salad") < response.data.find(b"Avocado Salad")
+
 
 # ------------------------------------
 # RECIPE ROUTES TESTS
