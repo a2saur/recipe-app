@@ -5,10 +5,12 @@ Resources:
     https://flask.palletsprojects.com/en/1.1.x/testing/ 
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/ 
 """
+from datetime import datetime
 import os
+from time import timezone
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag
+from app.main.models import Ingredient, Recipe, RecipeIngredientUse, RecipeStep, User, Tag
 from config import Config
 import sqlalchemy as sqla
 
@@ -40,7 +42,9 @@ def test_client():
  
     ctx.pop()
 
-def new_user(first_name, last_name, username, email, password, certified=False):
+def new_user(first_name, last_name, username, email, password, 
+             certified=False, allergies=None, dietary_tags=None, preferred_tags=None):
+
     user = User(
         first_name=first_name,
         last_name=last_name,
@@ -49,7 +53,59 @@ def new_user(first_name, last_name, username, email, password, certified=False):
         is_certified = certified,
         )
     user.set_password(password)
+
+    # Add allergies (expecting a list of Ingredient objects)
+    if allergies:
+        for ingredient in allergies:
+            user.allergies.add(ingredient)
+
+    # Add dietary tags (expecting a list of Tag objects)
+    if dietary_tags:
+        for tag in dietary_tags:
+            user.dietary_tags.add(tag)
+
+    # Add preferred tags (expecting a list of Tag objects)
+    if preferred_tags:
+        for tag in preferred_tags:
+            user.preferred_tags.add(tag)
+
     return user
+
+def new_recipe(title, description, servingSize, estimatedHrs, estimatedMins, timestamp, is_draft, user_id, save_count=0, pictFile=None):
+    recipe = Recipe(
+        title=title,
+        pictFile=pictFile,
+        description=description,
+        servingSize=servingSize,
+        estimatedHrs=estimatedHrs,
+        estimatedMins=estimatedMins,
+        timestamp=timestamp,
+        is_draft=is_draft,
+        user_id=user_id,
+        save_count=save_count
+    )
+    return recipe
+
+def new_recipe_ingredient_use(recipe_id, ingredient_id, amount, unit):
+    recipe_ingredient_use = RecipeIngredientUse(
+        recipe_id=recipe_id,
+        ingredient_id=ingredient_id,
+        amount=amount,
+        unit=unit
+    )
+    return recipe_ingredient_use
+
+def init_ingredients():
+    ingredients = ['Peanuts', 'Shrimp', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Onion', 
+                    'Cream', 'Corn', 'Butter', 'Garlic', 'Tomato', 'Chicken', 'Beef', 
+                    'Pork', 'Fish', 'Shellfish', 'Rice', 'Potato', 'Carrot', 'Bell Pepper', 
+                    'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Pasta', 'Parmesan']
+    for name in ingredients:
+        exists = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == name)).first()
+        if not exists:
+            db.session.add(Ingredient(name=name))
+    db.session.commit()
+    return None
 
 def init_tags():
     # check if any tags are already defined in the database
@@ -67,14 +123,31 @@ def init_tags():
 
 @pytest.fixture
 def init_database():
+    db.session.remove()
+    db.drop_all()
+
     # Create the database and the database table
     db.create_all()
-    # initialize the tags
+    # initialize the tags & ingredients
     init_tags()
-    #add a user    
-    user1 = new_user(first_name='Cooking', last_name='Mama', username='CookingMama', email='cookingmama@wpi.edu', password='123')
+    init_ingredients()
+
+    # Fetch the tags to use for the tests
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+    
+    # Create an allergy ingredient object
+    peanut_allergy = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == 'Peanuts')).first()
+
+    # Add a user    
+    user1 = new_user(first_name='Cooking', last_name='Mama', username='CookingMama', email='cookingmama@wpi.edu', password='123',
+                     allergies=[peanut_allergy], dietary_tags=[vegan_tag], preferred_tags=[easy_tag, breakfast_tag])
     # Insert user data
     db.session.add(user1)
+
+    # Add a recipe for the user
+
     # Commit the changes for the users
     db.session.commit()
 
@@ -230,14 +303,73 @@ def test_recommended_recipes(test_client,init_database): # rewrite this test
     GIVEN a Flask application configured for testing , after user logs-in,
     THEN check that response is valid and the recommended recipes are updated in the database
     """
-    # #login
-    # do_login(test_client, path = '/user/login', username = 'snow', passwd = '1234')
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
     
-    # #first post two smile stories
-    # all_tags = db.session.scalars(sqla.select(Tag)).all()
-    # tags1 = list( map(lambda t: t.id, all_tags[:3]))  # should only pass 'id's of the tags. See https://stackoverflow.com/questions/62157168/how-to-send-queryselectfield-form-data-to-a-flask-view-in-a-unittest
-    # response = test_client.post('/post', 
-    #                       data=dict(title='My test post', body='This is my first test post.',happiness_level=2, tag = tags1),
+    # # Post two recipes with different tags and check that they are recommended correctly based on the user's preferred tags and dietary restrictions
+    # r0 = Recipe(title = "Corn Soup", description = "Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.", servingSize = 1, estimatedHrs = 0, estimatedMins = 45, is_draft=False, user_id=test_client.id)
+    # r0.timestamp = datetime.now(timezone.utc)
+    # r0.pictFile = "207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png"
+    # db.session.add(r0)
+
+    # r1 = Recipe(title = "Avocado Toast", description = "Guacamole spread topped with chilis!", servingSize = 1, estimatedHrs = 0, estimatedMins = 15, is_draft=False, user_id=u1.id)
+    # r1.timestamp = datetime.now(timezone.utc)
+    # r1.pictFile = "2b117cbc-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-avocado-toast.png"
+    # db.session.add(r1)
+    # db.session.commit()
+
+    # # Get tags 
+    # vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    # easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+
+    # # Add recipe steps
+    # s00 = RecipeStep(stepNum = 1, description = "Finely dice it", recipe_id = r0.id)
+    # db.session.add(s00)
+    # s01 = RecipeStep(stepNum = 2, description = "Cut corn from cob", recipe_id = r0.id)
+    # db.session.add(s01)
+    # s02 = RecipeStep(stepNum = 3, description = "Spread the butter", recipe_id = r0.id)
+    # db.session.add(s02)
+    # s03 = RecipeStep(stepNum = 4, description = "Stir fry it", recipe_id = r0.id)
+    # db.session.add(s03)
+    # s04 = RecipeStep(stepNum = 5, description = "Boil it", recipe_id = r0.id)
+    # db.session.add(s04)
+    # s05 = RecipeStep(stepNum = 6, description = "Use the mixer", recipe_id = r0.id)
+    # db.session.add(s05)
+    # s06 = RecipeStep(stepNum = 7, description = "Strain", recipe_id = r0.id)
+    # db.session.add(s06)
+    # s07 = RecipeStep(stepNum = 8, description = "Boil it", recipe_id = r0.id)
+    # db.session.add(s07)
+    # db.session.commit()
+
+    # # Add ingredients to the recipe
+    # onion = Ingredient(name='Onion')
+    # db.session.add(onion)
+    # cream = Ingredient(name='Cream')
+    # db.session.add(cream)
+    # corn = Ingredient(name='Corn')
+    # db.session.add(corn)
+    # db.session.flush()
+    # ri00 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    # db.session.add(ri00)
+    # ri01 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = cream.id, amount = 1, unit = "unit")
+    # db.session.add(ri01)
+    # ri02 = RecipeIngredientUse(recipe_id = r0.id, ingredient_id = corn.id, amount = 4, unit = "tbsp")
+    # db.session.add(ri02)
+    # db.session.commit()
+    
+
+
+    # response = test_client.post('/recipe/create', data={
+    #                         'title': 'Sunny',
+    #                         'pictFile': '207add98-112c-11f1-a181-1ebf2a7aaad6_cooking-mama-corn-potage.png',
+    #                         'description': 'Known in Japan as \"corn potage\", this recipe is made from corn kernels cut from the cob. The soup becomes very smooth and strained after cooking, creating a thick paste-like texture, similar to seafood bisque.',
+    #                         'servingSize': 1,
+    #                         'estimatedHrs': 0,
+    #                         'estimatedMins': 45,
+    #                         'tags': [vegan_tag.id, easy_tag.id],  # This triggers the redirect logic
+    #                         'ingredients': [vegan_tag.id],
+    #                         'steps': 
+    #                     },
     #                       follow_redirects = True)
     # assert response.status_code == 200
     # post1 = db.session.scalars(sqla.select(Post).where(Post.title =='My test post')).first()
