@@ -6,6 +6,7 @@ from wtforms.widgets import ListWidget, CheckboxInput
 from flask_login import current_user
 
 import sqlalchemy as sqla
+from sqlalchemy import func
 from app.main.models import User, Tag
 from app.recipe.recipe_forms import IngredientForm
 from app import db
@@ -42,7 +43,7 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
     def validate_username(self, username):
-        user = db.session.scalars(sqla.select(User).where(User.username == username.data)).first()
+        user = db.session.scalars(sqla.select(User).where(func.lower(User.username) == username.data.lower())).first()
         if user is not None:
             raise ValidationError('This username already exists! Please provide a different username')
         

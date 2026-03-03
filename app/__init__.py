@@ -21,6 +21,7 @@ def create_app(config_class=Config):
     app.static_folder = config_class.STATIC_FOLDER
     app.template_folder = config_class.TEMPLATE_FOLDER_MAIN
     app.config['UPLOAD_FOLDER'] = config_class.IMG_UPLOAD_FOLDER
+    app.config['MAX_CONTENT_LENGTH'] = 250 * 1024
 
     db.init_app(app)
     migrate.init_app(app, db)
