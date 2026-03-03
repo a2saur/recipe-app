@@ -12,6 +12,7 @@ import os
 from typing import List
 
 from app.main.unit_coversion_helpers import *
+ALLOWED_FILE_TYPES = ["jpg", "jpeg", "png", "webp"]
 
 # keeps track of which recipes are in which cookbooks
 cookbook_recipes_table = db.Table('cookbook_recipes_table', db.metadata, sqla.Column('cookbook_id', sqla.Integer, sqla.ForeignKey('cookbook.id'), primary_key=True), 
