@@ -12,9 +12,11 @@ from time import timezone
 from datetime import datetime, UTC
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, UserIngredientListUse, UserGroceryListUse, RecipeStep, Certification, UserCertification, IngredientCostEntry
+from app.main.models import Ingredient, User, Tag, Recipe, RecipeIngredientUse, RecipeStep, Recipe, Cookbook, RecipeIngredientUse, UserIngredientListUse, UserGroceryListUse, RecipeStep, Certification, UserCertification, IngredientCostEntry
 from config import Config
 import sqlalchemy as sqla
+from datetime import datetime, timezone
+import io
 
 
 class TestConfig(Config):
@@ -148,10 +150,35 @@ def init_database():
                      certified=True, allergies=[peanut_allergy], dietary_tags=[vegan_tag], preferred_tags=[easy_tag, breakfast_tag])
     # Insert user data
     db.session.add(user1)
+    # Add a user    
+    user2 = new_user(first_name='Not', last_name='Certified', username='notcertified', email='a@wpi.edu', password='123',
+                     certified=False, allergies=[], dietary_tags=[], preferred_tags=[breakfast_tag])
+    # Insert user data
+    db.session.add(user2)
 
     # Add a recipe for the user
 
     # Commit the changes for the users
+    db.session.commit()
+
+    # add a couple ingredients
+    i1 = Ingredient(name="avocado")
+    db.session.add(i1)
+    i2 = Ingredient(name="bread")
+    db.session.add(i2)
+    db.session.commit()
+
+    # add a recipe
+    r1 = Recipe(title = "Avocado Sandwich", description = "A delicious and easy breakfast", servingSize = 1, estimatedHrs = 0, estimatedMins = 15, is_draft=False, user_id=user1.id)
+    r1.timestamp = datetime.now(timezone.utc)
+    db.session.add(r1)
+    db.session.commit()
+
+    # add ingredient uses to recipe
+    r1i1 = RecipeIngredientUse(recipe_id=r1.id, ingredient_id=i1.id, amount=1, unit="unit")
+    db.session.add(r1i1)
+    r1i2 = RecipeIngredientUse(recipe_id=r1.id, ingredient_id=i2.id, amount=2, unit="unit")
+    db.session.add(r1i2)
     db.session.commit()
 
     yield db  # this is where the testing happens!
@@ -408,7 +435,7 @@ def test_recommended_recipes(test_client,init_database): # rewrite this test
 
     # there should be total two posts
     all_recipes = db.session.scalars(sqla.select(Recipe)).all()
-    assert len(all_recipes) == 5
+    assert len(all_recipes) == 6
 
     # Avocado Toast and Salad matche preferences (vegan), so it should be in both sections
     assert response.data.count(b"Avocado Toast") == 4 # 2 * number of apperance since it has a front picture
@@ -488,44 +515,141 @@ def test_sortby_saves_filterby_min_saves(test_client,init_database): # rewrite t
 
 # ------------------------------------
 # RECIPE ROUTES TESTS
+def test_recipe_draft(test_client,init_database): # rewrite this test
+    # """
+    # GIVEN a Flask application configured for testing , after user logs in,
+    # WHEN the '/post' page is requested (GET)  AND PostForm' form is submitted (POST)
+    # THEN check that response is valid and the class is successfully created in the database
+    # """
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # check that recipe create leads to select recipe draft
+    response = test_client.get('/recipe/create')
+    assert response.status_code == 200
+    assert b"Select Recipe Draft" in response.data
 
-def test_post_recipe(test_client,init_database): # rewrite this test
-    """
-    GIVEN a Flask application configured for testing , after user logs in,
-    WHEN the '/post' page is requested (GET)  AND PostForm' form is submitted (POST)
-    THEN check that response is valid and the class is successfully created in the database
-    """
-    # #login
-    # do_login(test_client, path = '/user/login', username = 'snow', passwd = '1234')
+    # create a new recipe draft
+    response = test_client.post('/recipe/create', data={"select_button":"new"}, follow_redirects = True)
+    assert response.status_code == 200
+    # check successful redirect
+    assert b"Create New Recipe" in response.data
+    # check the draft is in the db
+    newDraft = db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True)).first()
+    assert newDraft is not None
     
-    # #test the "post" form 
-    # response = test_client.get('/post')
-    # assert response.status_code == 200
-    # assert b"Post New Smile" in response.data
-    
-    # all_tags = db.session.scalars(sqla.select(Tag)).all()
-    # #test posting a smile story
-    # tags1 = list( map(lambda t: t.id, all_tags[:3]))  # should only pass 'id's of the tags. See https://stackoverflow.com/questions/62157168/how-to-send-queryselectfield-form-data-to-a-flask-view-in-a-unittest
-    # response = test_client.post('/post', 
-    #                       data=dict(title='My test post', body='This is my first test post.',happiness_level=2, tag = tags1),
-    #                       follow_redirects = True)
-    # #checking the page content after redirect
-    # assert response.status_code == 200
-    # assert b"Welcome to Smile Portal!" in response.data
-    # assert b"My test post" in response.data 
-    # assert b"This is my first test post." in response.data 
+    # check saving recipe draft
+    response = test_client.post('/recipe/'+str(newDraft.id)+'/edit', data={
+        "title":"Testing Drafts",
+        "pictFile": (io.BytesIO(b""), ""),
+        "description":"",
+        "servingSize":0,
+        "estimatedHrs":0,
+        "estimatedMins":0,
+        "tags":[],
+        "ingredients":[],
+        "steps":[],
+        "action_button":"save",
+    }, content_type="multipart/form-data", follow_redirects = True)
 
-    # #checking whether the database is updated correctly with the post request 
-    # thepost = db.session.scalars(sqla.select(Post).where(Post.title =='My test post')).first()
-    # tags_of_post = thepost.get_tags()
-    # assert (len(tags_of_post))== 3 #should have 3 tags
-    # assert all_tags[0] in tags_of_post  #first tag should be one of the tags of the post. 
+    assert response.status_code == 200
+    # check successful redirect
+    assert b"Welcome!" in response.data
+    # check the draft is updated in the db
+    updatedDraft = db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True)).first()
+    assert updatedDraft is not None
+    assert updatedDraft.title == "Testing Drafts"
+
+    # check that the draft appears in the options
+    response = test_client.get('/recipe/create')
+    assert response.status_code == 200
+    assert b"Select Recipe Draft" in response.data
+    assert b"Testing Drafts" in response.data
+
+    # check editing the created draft
+    response = test_client.post('/recipe/create', data={"select_button":str(updatedDraft.id)}, follow_redirects = True)
+    assert response.status_code == 200
+    # check successful redirect
+    assert b"Create New Recipe" in response.data
+    # check title is prepopulated
+    assert b"Testing Drafts" in response.data
+
+    # check deleting the created draft
+    response = test_client.post('/recipe/create', data={"remove_button":str(updatedDraft.id)}, follow_redirects = True)
+    assert response.status_code == 200
+    # check successful redirect
+    assert b"Select Recipe Draft" in response.data
+    # check the draft has been deleted
+    deletedDraft = db.session.get(Recipe, updatedDraft.id)
+    assert deletedDraft is None
+
+    # finally logout
+    do_logout(test_client, path = '/user/logout') 
+    pass
+
+def test_view_recipe(test_client,init_database):
+    # """
+    # GIVEN a Flask application configured for testing , after user logs in,
+    # WHEN the '/post' page is requested (GET)  AND PostForm' form is submitted (POST)
+    # THEN check that response is valid and the class is successfully created in the database
+    # """
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
     
-    # tags2 = list( map(lambda t: t.id, all_tags[1:3]))  # should only pass 'id's of the tags. See https://stackoverflow.com/questions/62157168/how-to-send-queryselectfield-form-data-to-a-flask-view-in-a-unittest
-    # response = test_client.post('/post', 
-    #                       data=dict(title='Second post', body='Here is another post.',happiness_level=1, tag = tags2),
-    #                       follow_redirects = True)
-    # #checking the page content after redirect  
+    #test the "post" form 
+    response = test_client.get('/recipe/1/view')
+
+    #checking the page content
+    assert response.status_code == 200
+    assert b"Avocado Sandwich" in response.data
+    assert b"1.0 unit of Avocado" in response.data 
+    assert b"2.0 unit of Bread" in response.data 
+
+    # finally logout
+    do_logout(test_client, path = '/user/logout') 
+    pass
+
+def test_delete_recipe(test_client, init_database):
+    # """
+    # GIVEN a Flask application configured for testing , after user logs in,
+    # WHEN the '/post' page is requested (GET)  AND PostForm' form is submitted (POST)
+    # THEN check that response is valid and the class is successfully created in the database
+    # """
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # test deleting the recipe
+    response = test_client.post('/recipe/1/delete', follow_redirects=True)
+    # checking the page content
+    assert response.status_code == 200
+    # check redirect
+    assert b"Welcome!" in response.data
+    # check flash message
+    assert b"Recipe has been successfully deleted" in response.data
+    
+    # # test error deleting the recipe
+    response = test_client.post('/recipe/1/delete', follow_redirects=True)
+    # checking the page content
+    # check redirect
+    assert b"Welcome!" in response.data
+    # check flash message
+    assert b"Error: recipe failed to delete" in response.data
+
+    # finally logout
+    do_logout(test_client, path = '/user/logout') 
+    pass
+
+def test_view_invalid_recipe(test_client, init_database):
+    # """
+    # GIVEN a Flask application configured for testing , after user logs in,
+    # WHEN the '/post' page is requested (GET)  AND PostForm' form is submitted (POST)
+    # THEN check that response is valid and the class is successfully created in the database
+    # """
+    # login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # test deleting the recipe
+    response = test_client.get('/recipe/1000/view', follow_redirects=True)
     # assert response.status_code == 200
     # assert b"Welcome to Smile Portal!" in response.data
     # assert b"Second post" in response.data 
@@ -755,9 +879,9 @@ def test_display_profile_not_authenticated(test_client, init_database):
 
 def test_display_profile_regular(test_client, init_database):
     # Log into regular user account
-    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user = db.session.scalars(sqla.select(User).where(User.username == "notcertified")).first()
     
-    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    do_login(test_client, path = '/user/login', username = 'notcertified', passwd = '123')
     recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
     recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
     db.session.add(recipe1)
@@ -889,7 +1013,7 @@ def test_view_other_profile(test_client, init_database):
     # Logout
     do_logout(test_client, path = 'user/logout')
 
-def view_other_profile_invalid_id(test_client, init_database):
+def test_view_other_profile_invalid_id(test_client, init_database):
     do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
     response = test_client.get(f"/user/999/viewprofile", follow_redirects=False)
     assert response.status_code == 302
@@ -1479,9 +1603,229 @@ def test_invalid_amount(test_client, init_database):
     assert ingredient is None
     assert cost_entry is None
     assert b"Ingredient amount must be greater than 0" in response.data
+    
+    # finally logout
+    do_logout(test_client, path = '/user/logout') 
+    pass
 
-    do_logout(test_client, path = 'user/logout')
+def test_recipe_step_operations(test_client, init_database):
+    do_login(test_client, path='/user/login', username='CookingMama', passwd='123')
 
+    # Create draft
+    test_client.post('/recipe/create', data={"select_button": "new"}, follow_redirects=True)
+    draft = db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True)).first()
+    # check that the draft was created
+    assert draft is not None
+
+    # edit the draft data
+    response = test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "title": "Testing Steps",
+            "description": "",
+            "servingSize": 1,
+            "estimatedHrs": 0,
+            "estimatedMins": 0,
+            "tags": [],
+            "ingredients": [],
+            "steps-0-stepDescription": "First step",
+            "steps-1-stepDescription": "Second step",
+            "pictFile": (io.BytesIO(b""), ""),
+            "action_button": "add", # adding steps
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    # check that the steps appear
+    assert b"First step" in response.data
+    assert b"Second step" in response.data
+
+    # check that the steps are in the db
+    steps = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == draft.id)).all()
+    assert len(steps) == 2
+
+    # move step down
+    firstStep = steps[0]
+    test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "step_down_button": str(firstStep.id),
+            "pictFile": (io.BytesIO(b""), "")
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+    newFirstStep = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == draft.id).where(RecipeStep.stepNum == 1)).first()
+    newSecondStep = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == draft.id).where(RecipeStep.stepNum == 2)).first()
+    assert newFirstStep.description == "Second step"
+    assert newSecondStep.description == "First step"
+
+    # move step back up
+    test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "step_up_button": str(firstStep.id),
+            "pictFile": (io.BytesIO(b""), "")
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+    newFirstStep = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == draft.id).where(RecipeStep.stepNum == 1)).first()
+    newSecondStep = db.session.scalars(sqla.select(RecipeStep).where(RecipeStep.recipe_id == draft.id).where(RecipeStep.stepNum == 2)).first()
+    assert newFirstStep.description == "First step"
+    assert newSecondStep.description == "Second step"
+
+    # check deleting a step
+    test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "step_remove_button": str(newFirstStep.id),
+            "pictFile": (io.BytesIO(b""), "")
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+
+    deleted_step = db.session.get(RecipeStep, newFirstStep.id)
+    assert deleted_step is None
+
+    do_logout(test_client, path='/user/logout')
+
+def test_recipe_ingredient_operations(test_client, init_database):
+    do_login(test_client, path='/user/login', username='CookingMama', passwd='123')
+
+    # get an ingredient
+    ingredient = db.session.scalars(
+        sqla.select(Ingredient)
+    ).first()
+    assert ingredient is not None
+
+    # Create draft
+    test_client.post(
+        '/recipe/create',
+        data={"select_button": "new"},
+        follow_redirects=True
+    )
+
+    # check that the draft exists
+    draft = db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True)).first()
+    assert draft is not None
+
+    # add an ingredient
+    response = test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "title": "Ingredient Test",
+            "description": "",
+            "servingSize": 1,
+            "estimatedHrs": 0,
+            "estimatedMins": 0,
+            "tags": [],
+            "ingredients-0-ingredientName": ingredient.name,
+            "ingredients-0-quantity": 2,
+            "ingredients-0-unit": "cup",
+            "ingredients-0-ingredient_id": ingredient.id,
+            "action_button": "add",
+            "pictFile": (io.BytesIO(b""), "")
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+
+    # check that there is now one ingredient use
+    uses = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == draft.id)).all()
+    assert len(uses) == 1
+
+    
+    # check removing ingredient
+    response = test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "title": "Ingredient Test",
+            "description": "",
+            "servingSize": 1,
+            "estimatedHrs": 0,
+            "estimatedMins": 0,
+            "tags": [],
+            "ingredients-0-ingredientName": ingredient.name,
+            "ingredients-0-quantity": 2,
+            "ingredients-0-unit": "cup",
+            "ingredients-0-ingredient_id": ingredient.id,
+            "pictFile": (io.BytesIO(b""), ""),
+            "action_button": str(ingredient.id), # remove this ingredient
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+
+    # check that the redirect was successful
+    assert b"Create New Recipe" in response.data
+
+    # check deletion successfull
+    deleted_use = db.session.scalars(
+        sqla.select(RecipeIngredientUse).where(
+            RecipeIngredientUse.recipe_id == draft.id,
+            RecipeIngredientUse.ingredient_id == ingredient.id
+        )
+    ).first()
+    assert deleted_use is None
+
+    do_logout(test_client, path='/user/logout')
+
+def test_post_recipe(test_client, init_database):
+    # login
+    do_login(test_client, path='/user/login',
+             username='CookingMama', passwd='123')
+
+    # get ingredient
+    ingredient = db.session.scalars(sqla.select(Ingredient)).first()
+    # check that it exists
+    assert ingredient is not None
+    
+    # create a draft
+    test_client.post(
+        '/recipe/create',
+        data={"select_button": "new"},
+        follow_redirects=True
+    )
+    # check that it is in db
+    draft = db.session.scalars(sqla.select(Recipe).where(Recipe.is_draft == True)).first()
+    assert draft is not None
+
+    # post recipe
+    response = test_client.post(
+        f'/recipe/{draft.id}/edit',
+        data={
+            "title": "Simple Mix",
+            "description": "Simple recipe with 1 ingredient",
+            "servingSize": 2,
+            "estimatedHrs": "0",
+            "estimatedMins": "15",
+            "tags": [],
+            "ingredients-0-ingredient_id": str(ingredient.id),
+            "ingredients-0-ingredientName": ingredient.name,
+            "ingredients-0-quantity": 1,
+            "ingredients-0-unit": "unit",
+            "steps-0-stepDescription": "Mix ingredients",
+            "pictFile": (io.BytesIO(b""), ""),
+            "action_button": "post"
+        },
+        content_type="multipart/form-data",
+        follow_redirects=True
+    )
+
+    assert response.status_code == 200
+
+    # check that it posted
+    postedRecipe = db.session.get(Recipe, draft.id)
+    assert postedRecipe.is_draft is False
+    assert postedRecipe.title == "Simple Mix"
+
+    # check redirect to main page
+    assert b"Welcome" in response.data
+
+    do_logout(test_client, path='/user/logout')
 def test_add_business_certified(test_client, init_database):
     user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
     user.is_certified = True
@@ -1496,7 +1840,7 @@ def test_add_business_certified(test_client, init_database):
 
     do_logout(test_client, path = 'user/logout')
 
-def add_business_post(test_client, init_database):
+def test_add_business_post(test_client, init_database):
     user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
     user.is_certified = True
     db.session.commit()
@@ -1518,7 +1862,7 @@ def add_business_post(test_client, init_database):
     assert user.business_website == "https://www.cookingmama.com/"
     do_logout(test_client, path = 'user/logout')
 
-def edit_business(test_client, init_database):
+def test_edit_business(test_client, init_database):
     user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
     user.is_certified = True
     db.session.commit()

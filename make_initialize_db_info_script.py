@@ -516,6 +516,9 @@ cookbooks = [
     ["AllRecipe's Cookbook", "A collection of Allrecipe's best dishes", 3, "b4458f2c-11b9-11f1-9542-1ebf2a7aaad6_allrecipes.jpg", [11, 13, 14, 15, 16, 17]],
 ]
 
+certifications = ["Certified Fundamental Cook", "Certified Sous Cook", "Certified Master Baker", "Certified Working Pastry Chef",
+                  "Retail Bakers of America", "Certified Pastry Culinarian", "Certified Foodservice Professional", "Master Certified Food Executive",
+                  "Certified Chef de Cuisine", "Certified Personal Chef", "Certified Executive Chef", "Certified Decorator", "Certified Culinary Educator"]
 # ----------
 
 script = '''from app import create_app, db
@@ -524,7 +527,7 @@ from datetime import datetime, timezone
 
 app = create_app(Config)
 
-from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep
+from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep, Certification
 from config  import Config
 
 import sqlalchemy as sqla
@@ -587,6 +590,18 @@ for i in range(len(tags)):
     script += " = Tag(\nname = \""
     script += tags[i]
     script += "\")\ndb.session.add(t"
+    script += str(i)
+    script += ")\n\n"
+script += "db.session.commit()\n"
+
+# --- Add Certifications ---
+script += "\n# --- Add Certifications ---"
+for i in range(len(certifications)):
+    script += "\nc"
+    script += str(i)
+    script += " = Certification(\nname = \""
+    script += certifications[i]
+    script += "\")\ndb.session.add(c"
     script += str(i)
     script += ")\n\n"
 script += "db.session.commit()\n"
