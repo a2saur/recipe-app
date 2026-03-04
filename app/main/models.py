@@ -157,7 +157,7 @@ class User(db.Model, UserMixin):
                 unit = unit
             )
             db.session.add(new_ingredient_use)
-            flash ('{} added to your ingredient list!'.format(ingredient.name))
+            flash ('{} added to your ingredient list!'.format(ingredient.name.capitalize()))
         else: # if ingredient is already in user's ingredient list, update the quantity and unit
             ingredient_use = db.session.scalars(sqla.select(UserIngredientListUse).where(UserIngredientListUse.user_id==self.id).where(UserIngredientListUse.ingredient_id==ingredient.id)).first()
             newQuantity = convertUnitAmount(quantity, unit, ingredient_use.unit)
@@ -166,7 +166,7 @@ class User(db.Model, UserMixin):
             else:
                 ingredient_use.amount += newQuantity
                 # ingredient_use.unit = unit
-                flash('{} is updated in your ingredient list!'.format(ingredient.name))
+                flash('{} is updated in your ingredient list!'.format(ingredient.name.capitalize()))
         db.session.commit()
 
     # gets all the user's grocery list of the user
@@ -190,9 +190,9 @@ class User(db.Model, UserMixin):
             else:
                 grocery.amount += newQuantity
                 # grocery.unit = unit
-                flash('{} is updated in your grocery list!'.format(ingredient.name))
+                flash('{} is updated in your grocery list!'.format(ingredient.name.capitalize()))
         elif curr_ingredient is not None and curr_ingredient.amount >= quantity:
-            flash('{} is already in your current ingredient list'.format(ingredient.name))
+            flash('{} is already in your current ingredient list'.format(ingredient.name.capitalize()))
         elif curr_ingredient is not None and curr_ingredient.amount < quantity:
             new_grocery = UserGroceryListUse(
                 user_id = self.id,
@@ -201,7 +201,7 @@ class User(db.Model, UserMixin):
                 unit = unit
             )
             db.session.add(new_grocery)
-            flash ('{} is added to your grocery list!'.format(ingredient.name))
+            flash ('{} is added to your grocery list!'.format(ingredient.name.capitalize()))
         else:
             new_grocery = UserGroceryListUse(
                 user_id = self.id,
@@ -210,7 +210,7 @@ class User(db.Model, UserMixin):
                 unit = unit
             )
             db.session.add(new_grocery)
-            flash ('{} is added to your grocery list!'.format(ingredient.name))
+            flash ('{} is added to your grocery list!'.format(ingredient.name.capitalize()))
         db.session.commit()
     
     def get_certifications(self):
@@ -501,7 +501,6 @@ class Ingredient(db.Model):
                     unit = costEntry.unit
                 costInfo = costEntry.getCost(amount, unit)
                 if costInfo != -1:
-                    costs.append(costInfo)
                     return costInfo, amount, unit
                 else:
                     return -1

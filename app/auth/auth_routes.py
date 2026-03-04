@@ -9,13 +9,6 @@ from app.auth.auth_forms import RegistrationForm, LoginForm
 from app.main.models import Tag, User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
 from functools import wraps
 
-
-@bp_auth.route('/login/google')
-def google_login():
-    # Redirects to Google's auth page
-    redirect_uri = url_for('auth.google_authorize', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
-
 @bp_auth.route('/login/callback')
 def google_authorize():
     # 1. Get the data from Google
@@ -55,6 +48,13 @@ def google_authorize():
     flash('Welcome back, {}!'.format(user.first_name))
     return redirect(url_for('main.index'))
 
+@bp_auth.route('/login/google')
+def google_login():
+    # Redirects to Google's auth page
+    redirect_uri = url_for('auth.google_authorize', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
 def clear_certify_email(func):
     @wraps(func)
     def wrapper(*args, ** kwargs):
@@ -87,7 +87,7 @@ def register():
         # add allergies
         if rform.allergies.data:
             for allergy in rform.allergies.data:
-                ing_name = allergy.get('ingredientName')
+                ing_name = allergy.get('ingredientName').lower()
             
                 ingredient = db.session.scalar(sqla.select(Ingredient).where(Ingredient.name == ing_name))
 
