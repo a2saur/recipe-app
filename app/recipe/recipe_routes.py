@@ -18,6 +18,7 @@ def view_recipe(recipe_id):
     if not (theRecipe is None):
         theIngredients = db.session.scalars(sqla.select(RecipeIngredientUse).where(RecipeIngredientUse.recipe_id == recipe_id)).all()
         return render_template('view_recipe.html', recipe = theRecipe, ingredients = theIngredients)
+    flash("Error: could not find recipe")
     return redirect(url_for('main.index'))
 
 

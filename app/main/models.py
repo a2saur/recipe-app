@@ -481,7 +481,9 @@ class Ingredient(db.Model):
                     amount = costEntry.amount
                 if unit == -1:
                     unit = costEntry.unit
-                costs.append(costEntry.getCost(amount, unit))
+                costInfo = costEntry.getCost(amount, unit)
+                if costInfo != -1:
+                    costs.append(costInfo)
             if len(costs) == 0:
                 # Failed to get a cost estimate
                 return -1
@@ -495,7 +497,12 @@ class Ingredient(db.Model):
                     amount = costEntry.amount
                 if unit == -1:
                     unit = costEntry.unit
-                return costEntry.getCost(amount, unit), amount, unit
+                costInfo = costEntry.getCost(amount, unit)
+                if costInfo != -1:
+                    costs.append(costInfo)
+                    return costInfo, amount, unit
+                else:
+                    return -1
             else:
                 # FAILED TO GET ENTRY
                 return -1
@@ -531,8 +538,11 @@ class IngredientCostEntry(db.Model):
     
     def getCost(self, amount, unit):
         amountInNewUnit = convertUnitAmount(self.amount, self.unit, unit) # eg 4 tbsp -> 0.25 cup, $10
-        costPerUnit = self.cost/amountInNewUnit
-        return costPerUnit*amount #TODO convert amount and unit from self to get cost
+        if amountInNewUnit == -1:
+            return -1
+        else:
+            costPerUnit = self.cost/amountInNewUnit
+            return costPerUnit*amount #TODO convert amount and unit from self to get cost
 
 class RecipeIngredientUse(db.Model):
     # --- ATTRIBUTES ---
