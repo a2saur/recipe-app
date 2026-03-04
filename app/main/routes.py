@@ -13,7 +13,7 @@ from app.main import main_blueprint as bp_main
 
 @bp_main.route('/', methods=['GET', 'POST'])
 @bp_main.route('/index', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def index(sort_data="Date"):
     if current_user.is_anonymous:
         return redirect(url_for('auth.login'))
@@ -37,26 +37,31 @@ def index(sort_data="Date"):
             if fs_form.certified.data:
                 base_query = base_query.join(Recipe.writer).where(User.is_certified)
                 text = "Filters/Sorting Applied"
-            if fs_form.likes.data:
-                base_query = base_query.where(Recipe.save_count >= fs_form.likes.data)
+            if fs_form.saves.data:
+                base_query = base_query.where(Recipe.save_count >= fs_form.saves.data)
                 text = "Filters/Sorting Applied"
             if fs_form.min_date.data:
                 base_query = base_query.where(Recipe.timestamp >= fs_form.min_date.data)
                 text = "Filters/Sorting Applied"
             recipes = base_query.order_by(Recipe.timestamp.desc())
             if sort_data := fs_form.sortby.data:
-                if sort_data== "# of likes":
+                text = "Filters/Sorting Applied"
+                if sort_data== "# of saves":
                     recipes = base_query.order_by(Recipe.save_count.desc())
-                    text = "Filters/Sorting Applied"
-                elif sort_data == "Certified":
+                elif sort_data == "Certified first":
                     recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
                     text = "Filters/Sorting Applied"
                 else:
                     recipes = base_query.order_by(Recipe.timestamp.desc())
-            all_recipes  = db.session.scalars(recipes).all() 
+            all_recipes = db.session.scalars(recipes).all()
             if fs_form.max_cost.data:
                 all_recipes = [recipe for recipe in all_recipes if recipe.getCost()[0] <= fs_form.max_cost.data]
                 text = "Filters/Sorting Applied"
+        else:
+            flash("Invalid input for filters/sorting. Please try again.")
+            recipes = base_query.order_by(Recipe.timestamp.desc())
+            all_recipes  = db.session.scalars(recipes).all() 
+            
     if request.method == 'GET':
         recipes = base_query.order_by(Recipe.timestamp.desc())
         all_recipes  = db.session.scalars(recipes).all() 

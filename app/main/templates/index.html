@@ -30,8 +30,8 @@
                     <label class="me-2 mb-0 text-secondary text-nowrap">Filter: </label>
                     <div>
                         <span> 
-                        {{ filterform.likes.label(class='form-control-label')}}
-                        {{ filterform.likes(class="form-control") }}
+                        {{ filterform.saves.label(class='form-control-label')}}
+                        {{ filterform.saves(class="form-control") }}
                         </span>
                         <span> 
                         {{ filterform.min_date.label(class='form-control-label')}}
@@ -68,7 +68,7 @@
 </div>
     <div id="recipe-display">
         {% if filter_text == "" %}
-        <h2 class="text-secondary">Recommended based on your current ingredients</h2>
+        <h2 class="text-secondary">Recommended based on your preferences and current ingredients</h2>
         <div class="recipe-card-collection">
             {% for recipe in rec_recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>

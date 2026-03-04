@@ -21,6 +21,25 @@
 
         {{ wtf.form_field(form.submit) }}
     </form>
+
+    <div class="mt-3">
+        <div class="d-flex align-items-center">
+            <hr class="flex-grow-1">
+            <span class="mx-2 text-muted">or</span>
+            <hr class="flex-grow-1">
+        </div>
+
+        <div class="d-grid gap-2 mt-3">
+            <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-dark shadow-sm py-2">
+                <img src="https://developers.google.com/identity/images/g-logo.png" 
+                     alt="Google Logo" 
+                     style="width: 20px; margin-right: 8px; vertical-align: middle;">
+                Sign in with Google
+            </a>
+        </div>
+    </div>
+    
+    <br>
     <p>New User? <a href="{{ url_for('auth.register') }}">Click to Register!</a></p>
 {% endblock %}
 

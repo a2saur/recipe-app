@@ -5,6 +5,7 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
+from functools import wraps
 
 # for file upload
 from werkzeug.utils import secure_filename
@@ -16,6 +17,16 @@ from app.cookbook.cookbook_forms import CookbookForm
 
 from app.cookbook import cookbook_blueprint as bp_cookbook
 
+def certified_required(func):
+    @wraps(func)
+    def wrapper(*args, ** kwargs):
+        if (current_user.is_authenticated):
+            if (not current_user.is_certified):
+                flash('You are not a Certified User!')
+                return redirect(url_for('main.index'))
+        return func(*args, **kwargs)
+    return wrapper
+
 @bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET'])
 # @login_required
 def view_cookbook(cookbook_id):
@@ -26,11 +37,10 @@ def view_cookbook(cookbook_id):
 
 @bp_cookbook.route('/cookbook/create', methods=['GET', 'POST'])
 @login_required
+@certified_required
 def create_cookbook():
     cform = CookbookForm()
     cform.recipes.query_factory = current_user.get_user_recipes
-    if not current_user.is_certified:
-        return redirect(url_for('main.index'))
     if cform.validate_on_submit():
         if not cform.recipes.data:
             flash("At least one recipe must be selected!")
@@ -65,9 +75,8 @@ def create_cookbook():
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/edit', methods=['GET', 'POST'])
 # @login_required
+@certified_required
 def edit_cookbook(cookbook_id):
-    if not current_user.is_certified:
-        return redirect(url_for('main.index'))
     cookbookObj = db.session.get(Cookbook, cookbook_id)
     if cookbookObj is None:
         flash('Could not find cookbook')
@@ -118,6 +127,7 @@ def edit_cookbook(cookbook_id):
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
 # @login_required
+@certified_required
 def delete_cookbook(cookbook_id):
     cookbookObj = db.session.get(Cookbook, cookbook_id)
     if cookbookObj is None:
