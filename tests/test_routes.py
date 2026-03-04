@@ -1013,7 +1013,7 @@ def test_view_other_profile(test_client, init_database):
     # Logout
     do_logout(test_client, path = 'user/logout')
 
-def view_other_profile_invalid_id(test_client, init_database):
+def test_view_other_profile_invalid_id(test_client, init_database):
     do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
     response = test_client.get(f"/user/999/viewprofile", follow_redirects=False)
     assert response.status_code == 302
@@ -1840,7 +1840,7 @@ def test_add_business_certified(test_client, init_database):
 
     do_logout(test_client, path = 'user/logout')
 
-def add_business_post(test_client, init_database):
+def test_add_business_post(test_client, init_database):
     user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
     user.is_certified = True
     db.session.commit()
@@ -1862,7 +1862,7 @@ def add_business_post(test_client, init_database):
     assert user.business_website == "https://www.cookingmama.com/"
     do_logout(test_client, path = 'user/logout')
 
-def edit_business(test_client, init_database):
+def test_edit_business(test_client, init_database):
     user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
     user.is_certified = True
     db.session.commit()
