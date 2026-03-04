@@ -11,7 +11,7 @@ from turtle import title
 from time import timezone
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, RecipeStep, Certification, UserCertification
+from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, UserIngredientListUse, UserGroceryListUse, RecipeStep, Certification, UserCertification
 from config import Config
 import sqlalchemy as sqla
 
@@ -1100,8 +1100,139 @@ def test_save_with_ingredients(test_client, init_database):
 
     do_logout(test_client, path = 'user/logout')
 
+def test_add_and_view_current_ingredients(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    response = test_client.post('/user/ingredients',
+                                data={"curr-ingredientName": onion.name,
+                                      "curr-quantity": 3,
+                                      "curr-submit": True},
+                                follow_redirects=False)
+    
+    current_list = user.get_curr_ingredients()
+    assert (onion.id, 3, "unit") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in current_list]
+
+    response = test_client.get('/user/ingredients')
+
+    assert response.status_code == 200
+    assert onion.name.encode() in response.data
+    assert b"3" in response.data
+    assert b"unit" in response.data
+    do_logout(test_client, path = 'user/logout')
+
+def test_view_grocery_ingredients(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    response = test_client.post('/user/ingredients',
+                                data={"groc-ingredientName": onion.name,
+                                      "groc-quantity": 0.5,
+                                      "groc-unit" : "lb",
+                                      "groc-submit": True},
+                                follow_redirects=False)
+    
+    grocery_list = user.get_grocery_list()
+    assert (onion.id, 0.5, "lb") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in grocery_list]
+
+    response = test_client.get('/user/ingredients')
+
+    assert response.status_code == 200
+    assert onion.name.encode() in response.data
+    assert b"0.5" in response.data
+    assert b"lb" in response.data
+    do_logout(test_client, path = 'user/logout')
+
+def test_move_grocery(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_groc = UserGroceryListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_groc)
+    db.session.commit()
+
+    grocery_list = user.get_grocery_list()
+    assert user_groc in grocery_list
+
+    response = test_client.post('/user/move_or_delete_grocery',
+                                data={"action": "purchased",
+                                      "grocery_ids": [str(onion.id)]},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Selected ingredients moved to current ingredients." in response.data
+
+    db.session.refresh(user)
+    grocery_list = user.get_grocery_list()
+    assert grocery_list == []
+
+    # Ingredient should now exist in current ingredients
+    current_list = user.get_curr_ingredients()
+    assert (onion.id, 0.5, "unit") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in current_list]
+    
+    do_logout(test_client, path = 'user/logout')
+
+def test_delete_grocery(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_groc = UserGroceryListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_groc)
+    db.session.commit()
+
+    grocery_list = user.get_grocery_list()
+    assert user_groc in grocery_list
+
+    response = test_client.post('/user/move_or_delete_grocery',
+                                data={"action": "delete",
+                                      "grocery_ids": [str(onion.id)]},
+                                follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Selected grocery items deleted." in response.data
+
+
+    db.session.refresh(user)
+    grocery_list = user.get_grocery_list()
+    assert grocery_list == []
+    current_list = user.get_curr_ingredients()
+    assert current_list == []
+    
+    do_logout(test_client, path = 'user/logout')
+
+def test_delete_ingredient(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_ing = UserIngredientListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_ing)
+    db.session.commit()
+
+    curr_list = user.get_curr_ingredients()
+    assert user_ing in curr_list
+
+    response = test_client.post('/user/delete_ingredient',
+                                data={"ingredient_ids": [onion.id]},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Selected ingredients deleted." in response.data
+
+    db.session.refresh(user)
+    current_list = user.get_curr_ingredients()
+    assert current_list == []
+    
+    do_logout(test_client, path = 'user/logout')
+
+# def test_ingredient_info(test_client, init_database):
 
 # def test_add_business(test_client, init_database):
 # def test_edit_business(test_client, init_database):
-
-# def test_view_user_ingredients(test_client, init_database):

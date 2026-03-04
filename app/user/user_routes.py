@@ -343,7 +343,7 @@ def move_or_delete_grocery():
             db.session.delete(grocery)
     
     db.session.commit()
-    if action == "move":
+    if action == "purchased":
         flash("Selected ingredients moved to current ingredients.")
     elif action == "delete":
         flash("Selected grocery items deleted.")
