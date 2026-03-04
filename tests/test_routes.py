@@ -11,7 +11,7 @@ from turtle import title
 from time import timezone
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, RecipeStep
+from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, RecipeStep, Certification, UserCertification
 from config import Config
 import sqlalchemy as sqla
 
@@ -666,3 +666,241 @@ def test_delete_cookbook_no_cookbook(test_client,init_database):
     assert response.status_code == 200
     # logout
     do_logout(test_client, path = '/user/logout')
+
+# ------------------------------------
+# USER ROUTES TESTS
+def test_display_profile_not_authenticated(test_client, init_database):
+    response = test_client.get('/user/profile', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/login' in response.headers['Location']
+
+def test_display_profile_regular(test_client, init_database):
+    # Log into regular user account
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    # Get user profile
+    response = test_client.get('user/profile')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Posts" in response.data
+
+    # Assert no cookbook field in profile (not certified)
+    assert b"Number of Cookbooks Posted" not in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_display_profile_certified(test_client, init_database):    
+    # Log into regular user account
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    # Make user certified
+    user.is_certified = True
+    db.session.commit()
+    assert user.is_certified == True
+
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # Add user recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    # Add cookbook
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+
+    # Add recipes to cookbook
+    cookbook.included_recipes.add(recipe1)
+    cookbook.included_recipes.add(recipe2)
+    db.session.commit()
+
+    # Get user profile
+    response = test_client.get('user/profile')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Posts" in response.data
+
+    # There should be a cookbook field displayed on the profile
+    assert b"Number of Cookbooks Posted" in response.data
+
+    # Test for Cookbooks
+    response = test_client.get('user/profile?view=cookbook')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Cookbooks" in response.data
+
+    # Check that the cookbooks are displayed
+    for cookbook in user.get_user_cookbooks():
+        assert cookbook.title.encode() in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_view_other_profile(test_client, init_database):
+    # Get tags for dietary restrictions and preferred tags
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+
+    # Add another user    
+    user = new_user(first_name='Ash', last_name='Lynx', username='theBoss', email='ashlynx@wpi.edu', password='123',
+                    dietary_tags=[vegan_tag], preferred_tags=[easy_tag])
+    # Insert user data
+    db.session.add(user)
+    db.session.commit()
+
+    # First, test that we are redirected to the login page if we are not logged in.
+    response = test_client.get(f"/user/{user.id}/viewprofile", follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/login' in response.headers['Location']
+    
+    # Login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # Get user profile
+    response = test_client.get(f"/user/{user.id}/viewprofile", follow_redirects=False)
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    view_title=f"{user.first_name}'s Posts"
+    assert view_title.encode() in response.data
+
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+    
+def test_edit_profile(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    vegetarian_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegetarian')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.post('/user/profile/edit', 
+                          data=dict(username = "NewCM", 
+                                    first_name="New", 
+                                    last_name="Last", 
+                                    email="new@email.com", 
+                                    allergies=None, 
+                                    dietary_restrictions = [str(vegetarian_tag.id), str(vegan_tag.id)],
+                                    tags = [str(easy_tag.id)]), follow_redirects = False)
+    assert response.status_code == 302
+    assert '/user/profile' in response.headers['Location']
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "NewCM"
+    assert editedUser.first_name == "New"
+    assert editedUser.last_name == "Last"
+    assert editedUser.email == "new@email.com"
+    allergies = editedUser.get_user_allergies()
+    assert allergies == []
+    dietary_tags = editedUser.get_dietary_tags()
+    assert vegan_tag in dietary_tags
+    assert vegetarian_tag in dietary_tags
+    pref_tags = editedUser.get_preferred_tags()
+    assert easy_tag in pref_tags
+    assert breakfast_tag not in pref_tags
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_edit_profile_certified(test_client, init_database):
+    c0 = Certification(
+    name = "Certified Fundamental Cook")
+    c1 = Certification(
+        name = "Certified Sous Cook")
+    db.session.add(c0)
+    db.session.add(c1)
+    db.session.commit()
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = True
+    db.session.commit()
+    uc0 = UserCertification(user_id=user.id, certification_id=c0.id, dateRecieved = datetime.now())
+    db.session.add(uc0)
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    vegetarian_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegetarian')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    # Has to be flattened for cert in eform.certifications.data to be true
+    response = test_client.post('/user/profile/edit',
+                                data={"username": "NewCM",
+                                      "first_name": "New",
+                                      "last_name": "Last",
+                                      "email": "new@email.com",
+                                      "allergies": [],
+                                      "dietary_restrictions": [
+                                          str(vegetarian_tag.id),
+                                          str(vegan_tag.id)],
+                                      "tags": [str(easy_tag.id)],
+                                      "certifications-0-certifications": str(c1.id),
+                                      "certifications-0-dateRecieved": "2026-03-03",
+                                      "submit": "Update"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/profile' in response.headers['Location']
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "NewCM"
+    assert editedUser.first_name == "New"
+    assert editedUser.last_name == "Last"
+    assert editedUser.email == "new@email.com"
+    allergies = editedUser.get_user_allergies()
+    assert allergies == []
+    dietary_tags = editedUser.get_dietary_tags()
+    assert vegan_tag in dietary_tags
+    assert vegetarian_tag in dietary_tags
+    pref_tags = editedUser.get_preferred_tags()
+    assert easy_tag in pref_tags
+    assert breakfast_tag not in pref_tags
+    user_certs = editedUser.get_certifications()
+    assert c1.name == user_certs[0].name
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+# def test_edit_profile_regular_username_exists(test_client, init_database):
+# def test_edit_profile_regular_email_exists(test_client, init_database):
+
+# def test_become_certified_redirect_regular(test_client, init_database):
+# def test_become_certified_already_certified(test_client, init_database):
+# def test_add_business(test_client, init_database):
+# def test_edit_business(test_client, init_database):
+# def test_save_recipe(test_client, init_database):
+# def test_save_recipe_already_saved(test_client, init_database):
+# def test_remove_saved_recipe(test_client, init_database):
+# def test_view_user_ingredients(test_client, init_database):
