@@ -30,8 +30,8 @@
                     <label class="me-2 mb-0 text-secondary text-nowrap">Filter: </label>
                     <div>
                         <span> 
-                        {{ filterform.likes.label(class='form-control-label')}}
-                        {{ filterform.likes(class="form-control") }}
+                        {{ filterform.saves.label(class='form-control-label')}}
+                        {{ filterform.saves(class="form-control") }}
                         </span>
                         <span> 
                         {{ filterform.min_date.label(class='form-control-label')}}
@@ -51,16 +51,24 @@
                             {{ filterform.certified(class='form-check-input')}}
                             {{ filterform.certified.label(class='form-check-label') }}
                         </div>
+                    </div>
+                    <div>
+                        <span class="mb-5" style="width: auto;"> 
+                        {{ filterform.max_cost.label(class='form-control-label w-50')}}
+                        {{ filterform.max_cost(class="form-control w-50") }}
+                        </span>
+                        <div style="display: flex; justify-content: flex-end;">
+                            {{ filterform.refresh(class="btn btn-primary brown mt-4 ms-3") }} 
+                        </div>
                     </div>               
                 </span>
-                <span style="display: flex; justify-content: flex-end; margin-top: 10px;"> {{ filterform.refresh(class="btn btn-primary brown ms-3") }} </span>
             </form>
         </div>
     </div>
 </div>
     <div id="recipe-display">
         {% if filter_text == "" %}
-        <h2 class="text-secondary">Recommended based on your current ingredients</h2>
+        <h2 class="text-secondary">Recommended based on your preferences and current ingredients</h2>
         <div class="recipe-card-collection">
             {% for recipe in rec_recipes %}
                 <div class="recipe-card">{% include '_recipe.html' %} </div>

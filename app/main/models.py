@@ -7,6 +7,7 @@ from flask_login import UserMixin
 from app import db, login
 import sqlalchemy as sqla
 import sqlalchemy.orm as sqlo
+from sqlalchemy.ext.hybrid import hybrid_property
 import numpy as np
 import os
 from typing import List
@@ -348,6 +349,7 @@ class Recipe(db.Model):
                 print(ingCost)
                 totalCost += ingCost[0]
         return totalCost, unnaccountedIngredients
+    
     
 class RecipeStep(db.Model):
     id: sqlo.Mapped[int] = sqlo.mapped_column(primary_key=True)

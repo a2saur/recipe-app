@@ -9,7 +9,7 @@ from flask_wtf.file import FileField
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import Tag, User, UNIT_OPTIONS
+from app.main.models import Tag, User, UNIT_OPTIONS, Recipe
 
 
 class CookbookForm(FlaskForm):
@@ -17,7 +17,7 @@ class CookbookForm(FlaskForm):
     pictFile = FileField("Cover Picture (optional)", validators=[Optional()])
     description = TextAreaField('Description*', validators=[DataRequired(), Length(max=215)])
     recipes = QuerySelectMultipleField('Recipes*', 
+                                    query_factory = lambda : db.session.scalars(sqla.select(Recipe).where(Recipe.user_id == current_user.id).order_by(Recipe.title)),
                                     get_label= lambda recipe: recipe.title,
                                     render_kw={"class": "form-control", "size": "1"})
-
     submit = SubmitField('Post')
