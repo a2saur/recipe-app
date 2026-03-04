@@ -12,7 +12,7 @@ from time import timezone
 from datetime import datetime, UTC
 import pytest
 from app import create_app, db
-from app.main.models import Ingredient, Recipe, RecipeIngredientUse, RecipeStep, User, Tag, UserIngredientListUse, Cookbook, RecipeIngredientUse, RecipeStep
+from app.main.models import Ingredient, User, Tag, Recipe, Cookbook, RecipeIngredientUse, UserIngredientListUse, UserGroceryListUse, RecipeStep, Certification, UserCertification, IngredientCostEntry
 from config import Config
 import sqlalchemy as sqla
 
@@ -98,7 +98,7 @@ def new_recipe_ingredient_use(recipe_id, ingredient_id, amount, unit):
     return recipe_ingredient_use
 
 def init_ingredients():
-    ingredients = ['Peanuts', 'Shrimp', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Onion', 
+    ingredients = ['Peanuts', 'Shrimp', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Onion',
                     'Cream', 'Corn', 'Butter', 'Garlic', 'Tomato', 'Chicken', 'Beef', 
                     'Pork', 'Fish', 'Shellfish', 'Rice', 'Potato', 'Carrot', 'Bell Pepper', 
                     'Bread', 'Flour', 'Sugar', 'Salt', 'Pepper', 'Pasta', 'Parmesan', 'Avocado', 
@@ -745,3 +745,739 @@ def test_delete_cookbook_no_cookbook(test_client,init_database):
     assert response.status_code == 200
     # logout
     do_logout(test_client, path = '/user/logout')
+
+# ------------------------------------
+# USER ROUTES TESTS
+def test_display_profile_not_authenticated(test_client, init_database):
+    response = test_client.get('/user/profile', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/login' in response.headers['Location']
+
+def test_display_profile_regular(test_client, init_database):
+    # Log into regular user account
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    # Get user profile
+    response = test_client.get('user/profile')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Posts" in response.data
+
+    # Assert no cookbook field in profile (not certified)
+    assert b"Number of Cookbooks Posted" not in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_display_profile_certified(test_client, init_database):    
+    # Log into regular user account
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    # Make user certified
+    user.is_certified = True
+    db.session.commit()
+    assert user.is_certified == True
+
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # Add user recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    # Add cookbook
+    cookbook = Cookbook(title='Test Cookbook', description='This is a test cookbook.', user_id=user.id)
+    db.session.add(cookbook)
+    db.session.commit()
+
+    # Add recipes to cookbook
+    cookbook.included_recipes.add(recipe1)
+    cookbook.included_recipes.add(recipe2)
+    db.session.commit()
+
+    # Get user profile
+    response = test_client.get('user/profile')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Posts" in response.data
+
+    # There should be a cookbook field displayed on the profile
+    assert b"Number of Cookbooks Posted" in response.data
+
+    # Test for Cookbooks
+    response = test_client.get('user/profile?view=cookbook')
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+    
+    # Expected default state of the view
+    assert b"My Cookbooks" in response.data
+
+    # Check that the cookbooks are displayed
+    for cookbook in user.get_user_cookbooks():
+        assert cookbook.title.encode() in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_view_other_profile(test_client, init_database):
+    # Get tags for dietary restrictions and preferred tags
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+
+    # Add another user    
+    user = new_user(first_name='Ash', last_name='Lynx', username='theBoss', email='ashlynx@wpi.edu', password='123',
+                    dietary_tags=[vegan_tag], preferred_tags=[easy_tag])
+    # Insert user data
+    db.session.add(user)
+    db.session.commit()
+
+    # Add user recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    # First, test that we are redirected to the login page if we are not logged in.
+    response = test_client.get(f"/user/{user.id}/viewprofile", follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/login' in response.headers['Location']
+    
+    # Login
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    
+    # Get user profile
+    response = test_client.get(f"/user/{user.id}/viewprofile", follow_redirects=False)
+    assert response.status_code == 200
+
+    # Expected title
+    expected_title = "{} {}'s Profile".format(user.first_name, user.last_name)
+    assert expected_title.encode() in response.data
+
+    # Assert all user recipes displayed
+    for recipe in user.get_user_recipes():
+        assert recipe.title.encode() in response.data
+    
+    # Expected default state of the view
+    view_title=f"{user.first_name}'s Posts"
+    assert view_title.encode() in response.data
+
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def view_other_profile_invalid_id(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.get(f"/user/999/viewprofile", follow_redirects=False)
+    assert response.status_code == 302
+    do_logout(test_client, path = 'user/logout')
+    
+def test_edit_profile(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    vegetarian_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegetarian')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.post('/user/profile/edit', 
+                          data=dict(username = "NewCM", 
+                                    first_name="New", 
+                                    last_name="Last", 
+                                    email="new@email.com", 
+                                    allergies=None, 
+                                    dietary_restrictions = [str(vegetarian_tag.id), str(vegan_tag.id)],
+                                    tags = [str(easy_tag.id)]), follow_redirects = False)
+    assert response.status_code == 302
+    assert '/user/profile' in response.headers['Location']
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "NewCM"
+    assert editedUser.first_name == "New"
+    assert editedUser.last_name == "Last"
+    assert editedUser.email == "new@email.com"
+    allergies = editedUser.get_user_allergies()
+    assert allergies == []
+    dietary_tags = editedUser.get_dietary_tags()
+    assert vegan_tag in dietary_tags
+    assert vegetarian_tag in dietary_tags
+    pref_tags = editedUser.get_preferred_tags()
+    assert easy_tag in pref_tags
+    assert breakfast_tag not in pref_tags
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_edit_profile_certified(test_client, init_database):
+    c0 = Certification(
+    name = "Certified Fundamental Cook")
+    c1 = Certification(
+        name = "Certified Sous Cook")
+    db.session.add(c0)
+    db.session.add(c1)
+    db.session.commit()
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = True
+    db.session.commit()
+    uc0 = UserCertification(user_id=user.id, certification_id=c0.id, dateRecieved = datetime.now())
+    db.session.add(uc0)
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    vegetarian_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegetarian')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    breakfast_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'breakfast')).first()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    # Has to be flattened for cert in eform.certifications.data to be true
+    response = test_client.post('/user/profile/edit',
+                                data={"username": "NewCM",
+                                      "first_name": "New",
+                                      "last_name": "Last",
+                                      "email": "new@email.com",
+                                      "allergies": [],
+                                      "dietary_restrictions": [
+                                          str(vegetarian_tag.id),
+                                          str(vegan_tag.id)],
+                                      "tags": [str(easy_tag.id)],
+                                      "certifications-0-certifications": str(c1.id),
+                                      "certifications-0-dateRecieved": "2026-03-03",
+                                      "submit": "Update"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert '/user/profile' in response.headers['Location']
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "NewCM"
+    assert editedUser.first_name == "New"
+    assert editedUser.last_name == "Last"
+    assert editedUser.email == "new@email.com"
+    allergies = editedUser.get_user_allergies()
+    assert allergies == []
+    dietary_tags = editedUser.get_dietary_tags()
+    assert vegan_tag in dietary_tags
+    assert vegetarian_tag in dietary_tags
+    pref_tags = editedUser.get_preferred_tags()
+    assert easy_tag in pref_tags
+    assert breakfast_tag not in pref_tags
+    user_certs = editedUser.get_certifications()
+    assert c1.name == user_certs[0].name
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_edit_profile_username_exists(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    # Add another user    
+    user2 = new_user(first_name='Ash', last_name='Lynx', username='theBoss', email='ashlynx@wpi.edu', password='123',
+                    dietary_tags=[vegan_tag], preferred_tags=[easy_tag])
+    # Insert user data
+    db.session.add(user2)
+    db.session.commit()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    
+    response = test_client.post('/user/profile/edit', 
+                        data=dict(username = "theBoss", 
+                                    first_name="New", 
+                                    last_name="Last", 
+                                    email="new@email.com"), follow_redirects = True)
+    assert response.status_code == 200
+    assert b"This username is already registered!" in response.data
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "CookingMama"
+    assert editedUser.first_name == "Cooking"
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_edit_profile_email_exists(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    vegan_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'vegan')).first()
+    easy_tag = db.session.scalars(sqla.select(Tag).where(Tag.name == 'easy')).first()
+    # Add another user    
+    user2 = new_user(first_name='Ash', last_name='Lynx', username='theBoss', email='ashlynx@wpi.edu', password='123',
+                    dietary_tags=[vegan_tag], preferred_tags=[easy_tag])
+    # Insert user data
+    db.session.add(user2)
+    db.session.commit()
+    # Login as CookingMama
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    response = test_client.post('/user/profile/edit', 
+                        data=dict(username = "NewUser", 
+                                    first_name="New", 
+                                    last_name="Last", 
+                                    email="ashlynx@wpi.edu"), follow_redirects = True)
+    assert response.status_code == 200
+    assert b"This email is already registered! Please provide a different email address." in response.data
+    editedUser = db.session.scalars(sqla.select(User).where(User.id == user.id)).first()
+    assert editedUser.username == "CookingMama"
+    assert editedUser.first_name == "Cooking"
+    assert editedUser.email == "cookingmama@wpi.edu"
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_become_certified_regular(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    c0 = Certification(
+    name = "Certified Fundamental Cook")
+    db.session.add(c0)
+    db.session.commit()
+    response = test_client.get('/user/profile/certify')
+    assert response.status_code == 200
+    # Verify session data and get the ot_code
+    with test_client.session_transaction() as sess:
+        ot_code = sess.get('ot_code')
+    response2 = test_client.post('/user/profile/certify', 
+                                 data={"certifications-0-certifications": str(c0.id),
+                                      "certifications-0-dateRecieved": "2026-03-03",
+                                      "in_code" : ot_code,
+                                      "submit": "Update"},
+                                follow_redirects=False)
+    assert response2.status_code == 302
+    assert '/user/profile' in response2.headers['Location']
+    
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    assert user.is_certified == True
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_become_certified_regular_wrong_code(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    c0 = Certification(name = "Certified Fundamental Cook")
+    db.session.add(c0)
+    db.session.commit()
+    response = test_client.get('/user/profile/certify')
+    assert response.status_code == 200
+    # Verify session data and get the ot_code
+    with test_client.session_transaction() as sess:
+        ot_code = sess.get('ot_code')
+    code = 0000000
+    response2 = test_client.post('/user/profile/certify', 
+                                 data={"certifications-0-certifications": str(c0.id),
+                                      "certifications-0-dateRecieved": "2026-03-03",
+                                      "in_code" : code,
+                                      "submit": "Update"},
+                                follow_redirects=False)
+    assert response2.status_code == 200
+    
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    assert user.is_certified == False
+    # Logout
+    do_logout(test_client, path = 'user/logout')
+    
+def test_become_certified_already_certified(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = True
+    db.session.commit()
+    response = test_client.get('/user/profile/certify', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/index' in response.headers['Location']
+    
+     # Logout
+    do_logout(test_client, path = 'user/logout')
+
+def test_save_recipe(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+
+    # Add recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    recipe2 = new_recipe("Recipe2", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.add(recipe2)
+    db.session.commit()
+
+    response = test_client.post(f"/user/{recipe1.id}/saverecipe", follow_redirects = True)
+    assert response.status_code == 200
+    assert recipe1.save_count == 1
+    assert recipe2.save_count == 0
+
+    response2 = test_client.get("user/profile?view=saved")
+    assert response2.status_code == 200
+    assert recipe1.title.encode() in response2.data
+
+    assert recipe1 in user.get_saved()
+
+    do_logout(test_client, path = 'user/logout')
+
+
+def test_save_recipe_already_saved(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+
+    # Add recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.commit()
+
+    user.saved_recipes.add(recipe1)
+    db.session.commit()
+    recipe1.save_count += 1
+    assert recipe1 in user.get_saved()
+
+    response = test_client.post(f"/user/{recipe1.id}/saverecipe", follow_redirects = True)
+    assert response.status_code == 200
+    assert recipe1.save_count == 1
+    assert b"You have already saved this recipe!" in response.data
+    assert recipe1 in user.get_saved()
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_remove_saved_recipe(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+
+    # Add recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.commit()
+
+    user.saved_recipes.add(recipe1)
+    db.session.commit()
+    recipe1.save_count += 1
+    assert recipe1 in user.get_saved()
+
+    response = test_client.post(f"/user/{recipe1.id}/removerecipe", follow_redirects = True)
+    assert response.status_code == 200
+    assert recipe1.save_count == 0
+    assert user.get_saved() == []
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_save_with_ingredients(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+
+    # Add recipes
+    recipe1 = new_recipe("Recipe1", "description", 2, 1, 0, datetime.now(), False, user.id, save_count=0, pictFile=None)
+    db.session.add(recipe1)
+    db.session.commit()
+
+    # Add ingredients to the recipe
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+    cream = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Cream")).first()
+    corn = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Corn")).first()
+    
+    ri00 = RecipeIngredientUse(recipe_id = recipe1.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(ri00)
+    ri01 = RecipeIngredientUse(recipe_id = recipe1.id, ingredient_id = cream.id, amount = 1, unit = "unit")
+    db.session.add(ri01)
+    ri02 = RecipeIngredientUse(recipe_id = recipe1.id, ingredient_id = corn.id, amount = 4, unit = "tbsp")
+    db.session.add(ri02)
+    db.session.commit()
+
+    ingredient_list = recipe1.get_ingredient_use_cases()
+    
+    response = test_client.post(f"/user/{recipe1.id}/saverecipe", 
+                                data={"ingredient_ids" : [ingred.ingredient_id for ingred in ingredient_list]},
+                                follow_redirects = True)
+    assert response.status_code == 200
+    assert recipe1.save_count == 1
+    assert recipe1 in user.get_saved()
+    for ingred in ingredient_list:
+        assert (ingred.ingredient_id, 
+                ingred.amount, 
+                ingred.unit) in [(i.ingredient_id, i.amount, i.unit) 
+                                 for i in user.get_grocery_list()]
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_add_and_view_current_ingredients(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    response = test_client.post('/user/ingredients',
+                                data={"curr-ingredientName": onion.name,
+                                      "curr-quantity": 3,
+                                      "curr-submit": True},
+                                follow_redirects=False)
+    
+    current_list = user.get_curr_ingredients()
+    assert (onion.id, 3, "unit") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in current_list]
+
+    response = test_client.get('/user/ingredients')
+
+    assert response.status_code == 200
+    assert onion.name.encode() in response.data
+    assert b"3" in response.data
+    assert b"unit" in response.data
+    do_logout(test_client, path = 'user/logout')
+
+def test_view_grocery_ingredients(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    response = test_client.post('/user/ingredients',
+                                data={"groc-ingredientName": onion.name,
+                                      "groc-quantity": 0.5,
+                                      "groc-unit" : "lb",
+                                      "groc-submit": True},
+                                follow_redirects=False)
+    
+    grocery_list = user.get_grocery_list()
+    assert (onion.id, 0.5, "lb") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in grocery_list]
+
+    response = test_client.get('/user/ingredients')
+
+    assert response.status_code == 200
+    assert onion.name.encode() in response.data
+    assert b"0.5" in response.data
+    assert b"lb" in response.data
+    do_logout(test_client, path = 'user/logout')
+
+def test_move_grocery(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_groc = UserGroceryListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_groc)
+    db.session.commit()
+
+    grocery_list = user.get_grocery_list()
+    assert user_groc in grocery_list
+
+    response = test_client.post('/user/move_or_delete_grocery',
+                                data={"action": "purchased",
+                                      "grocery_ids": [str(onion.id)]},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Selected ingredients moved to current ingredients." in response.data
+
+    db.session.refresh(user)
+    grocery_list = user.get_grocery_list()
+    assert grocery_list == []
+
+    # Ingredient should now exist in current ingredients
+    current_list = user.get_curr_ingredients()
+    assert (onion.id, 0.5, "unit") in [(ing.ingredient_id, ing.amount, ing.unit) for ing in current_list]
+    
+    do_logout(test_client, path = 'user/logout')
+
+def test_delete_grocery(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_groc = UserGroceryListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_groc)
+    db.session.commit()
+
+    grocery_list = user.get_grocery_list()
+    assert user_groc in grocery_list
+
+    response = test_client.post('/user/move_or_delete_grocery',
+                                data={"action": "delete",
+                                      "grocery_ids": [str(onion.id)]},
+                                follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Selected grocery items deleted." in response.data
+
+
+    db.session.refresh(user)
+    grocery_list = user.get_grocery_list()
+    assert grocery_list == []
+    current_list = user.get_curr_ingredients()
+    assert current_list == []
+    
+    do_logout(test_client, path = 'user/logout')
+
+def test_delete_ingredient(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Onion")).first()
+
+    user_ing = UserIngredientListUse(user_id = user.id, ingredient_id = onion.id, amount = 0.5, unit = "unit")
+    db.session.add(user_ing)
+    db.session.commit()
+
+    curr_list = user.get_curr_ingredients()
+    assert user_ing in curr_list
+
+    response = test_client.post('/user/delete_ingredient',
+                                data={"ingredient_ids": [onion.id]},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Selected ingredients deleted." in response.data
+
+    db.session.refresh(user)
+    current_list = user.get_curr_ingredients()
+    assert current_list == []
+    
+    do_logout(test_client, path = 'user/logout')
+
+def test_add_existing_ingredient_cost(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    onion = Ingredient(name = "onion")
+    db.session.add(onion)
+    db.session.commit()
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "onion")).first()
+
+    response = test_client.post('/user/ingredientinfo',
+                                data={"ingredientName": onion.name,
+                                      "price": 0.5,
+                                      "amount": 1,
+                                      "unit": "unit",
+                                      "submit": True},
+                                      follow_redirects=True)
+    assert response.status_code == 200
+
+    cost_entry = db.session.scalars(sqla.select(IngredientCostEntry)
+                                   .where(IngredientCostEntry.user_id == user.id)
+                                   ).first()
+    assert cost_entry.ingredient_id == onion.id
+
+    assert cost_entry is not None
+    assert cost_entry.cost == 0.5
+    assert cost_entry.amount == 1
+    assert cost_entry.unit == "unit"
+    assert onion.name.encode() in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_add_non_existing_ingredient_cost(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+
+    response = test_client.post('/user/ingredientinfo',
+                                data={"ingredientName": "Miso Paste",
+                                      "price": 5,
+                                      "amount": 1,
+                                      "unit": "oz",
+                                      "submit": True},
+                                      follow_redirects=True)
+    assert response.status_code == 200
+
+    ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Miso Paste".lower())).first()
+
+    cost_entry = db.session.scalars(sqla.select(IngredientCostEntry)
+                                   .where(IngredientCostEntry.user_id == user.id)
+                                   .where(IngredientCostEntry.ingredient_id == ingredient.id)).first()
+
+    assert cost_entry is not None
+    assert cost_entry.cost == 5
+    assert cost_entry.amount == 1
+    assert cost_entry.unit == "oz"
+    assert ingredient.name.encode() in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_ingredient_info_replace_existing(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+    onion = Ingredient(name = "onion")
+    db.session.add(onion)
+    db.session.commit()
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    onion = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "onion")).first()
+
+    existing_cost_entry = IngredientCostEntry(user_id = user.id, ingredient_id = onion.id, cost = 5, amount = 2, unit = "unit")
+    db.session.add(existing_cost_entry)
+    db.session.commit()
+
+    response = test_client.post('/user/ingredientinfo',
+                                data={"ingredientName": onion.name,
+                                      "price": 0.5,
+                                      "amount": 1,
+                                      "unit": "unit",
+                                      "submit": True},
+                                      follow_redirects=True)
+    assert response.status_code == 200
+
+    cost_entry = db.session.scalars(sqla.select(IngredientCostEntry)
+                                   .where(IngredientCostEntry.user_id == user.id)
+                                   .where(IngredientCostEntry.ingredient_id == onion.id)).first()
+    assert cost_entry.ingredient_id == onion.id
+
+    assert cost_entry is not None
+    assert cost_entry.cost == 0.5
+    assert cost_entry.amount == 1
+    assert cost_entry.unit == "unit"
+    assert onion.name.encode() in response.data
+
+def test_invalid_price(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+
+    response = test_client.post('/user/ingredientinfo',
+                                data={"ingredientName": "Miso Paste",
+                                      "price": 0,
+                                      "amount": 1,
+                                      "unit": "oz",
+                                      "submit": True},
+                                      follow_redirects=True)
+    assert response.status_code == 200
+
+    ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Miso Paste".lower())).first()
+
+    cost_entry = db.session.scalars(sqla.select(IngredientCostEntry)
+                                   .where(IngredientCostEntry.user_id == user.id)).first()
+
+    assert ingredient is None
+    assert cost_entry is None
+    assert b"Ingredient price must be greater than 0" in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def test_invalid_amount(test_client, init_database):
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+
+    response = test_client.post('/user/ingredientinfo',
+                                data={"ingredientName": "Miso Paste",
+                                      "price": 5,
+                                      "amount": 0,
+                                      "unit": "oz",
+                                      "submit": True},
+                                      follow_redirects=True)
+    assert response.status_code == 200
+
+    ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == "Miso Paste".lower())).first()
+
+    cost_entry = db.session.scalars(sqla.select(IngredientCostEntry)
+                                   .where(IngredientCostEntry.user_id == user.id)).first()
+
+    assert ingredient is None
+    assert cost_entry is None
+    assert b"Ingredient amount must be greater than 0" in response.data
+
+    do_logout(test_client, path = 'user/logout')

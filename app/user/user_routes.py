@@ -343,7 +343,7 @@ def move_or_delete_grocery():
             db.session.delete(grocery)
     
     db.session.commit()
-    if action == "move":
+    if action == "purchased":
         flash("Selected ingredients moved to current ingredients.")
     elif action == "delete":
         flash("Selected grocery items deleted.")
@@ -365,7 +365,7 @@ def delete_ingredient():
     return redirect(url_for('user.view_ingredients'))
 
 @bp_user.route('/user/ingredientinfo', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def ingredient_info():
     # TODO option to only use user's entries
     iform = IngredientCostForm()
@@ -415,7 +415,7 @@ def ingredient_info():
         return render_template("ingredient_info.html", ingredientNames=ingredientNames, ingredients=ingredients, iform=iform)
 
 @bp_user.route('/user/changecostpref', methods=['POST'])
-# @login_required
+@login_required
 def change_cost_preference():
     current_user.global_costs = not current_user.global_costs
     db.session.commit()
