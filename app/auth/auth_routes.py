@@ -1,12 +1,59 @@
 from flask import render_template, flash, redirect, url_for, session, request
 from flask_login import login_user, logout_user, current_user, login_required
-from app import db
+from app import db, oauth
+import os
 from app.auth import auth_blueprint as bp_auth 
 import sqlalchemy as sqla
 from sqlalchemy import func
 from app.auth.auth_forms import RegistrationForm, LoginForm
 from app.main.models import Tag, User, Ingredient, user_allergies, user_preferred_tags, user_dietary_tags
 from functools import wraps
+
+
+@bp_auth.route('/login/google')
+def google_login():
+    # Redirects to Google's auth page
+    redirect_uri = url_for('auth.google_authorize', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+@bp_auth.route('/login/callback')
+def google_authorize():
+    # 1. Get the data from Google
+    token = oauth.google.authorize_access_token()
+    user_info = token.get('userinfo')
+    
+    if not user_info:
+        flash("Failed to retrieve user info.")
+        return redirect(url_for('auth.login'))
+
+    email = user_info['email']
+    # 2. Check if user exists (case-insensitive search to match your login logic)
+    user = db.session.scalars(
+        sqla.select(User).where(func.lower(User.email) == email.lower())
+    ).first()
+
+    # 3. Create user if they don't exist
+    if not user:
+        # We generate a random username if one isn't provided by Google
+        # or use their name from Google
+        new_username = user_info.get('preferred_username') or email.split('@')[0]
+        
+        user = User(
+            first_name=user_info.get('given_name', 'SSO'),
+            last_name=user_info.get('family_name', 'User'),
+            username=new_username,
+            email=email,
+            is_certified=False
+        )
+        # Set a random password because User model likely requires one
+        user.set_password(os.urandom(24).hex()) 
+        db.session.add(user)
+        db.session.commit()
+
+    # 4. Log the user in
+    login_user(user)
+    flash('Welcome back, {}!'.format(user.first_name))
+    return redirect(url_for('main.index'))
 
 def clear_certify_email(func):
     @wraps(func)

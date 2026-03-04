@@ -9,6 +9,11 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'meal_planner.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # SSO Credentials
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+    
     ROOT_PATH = basedir
     STATIC_FOLDER = os.path.join(basedir, 'app//static')
     TEMPLATE_FOLDER_MAIN = os.path.join(basedir, 'app//main//templates')
