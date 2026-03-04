@@ -504,57 +504,68 @@ db.session.add(t13)
 db.session.commit()
 
 # --- Add Certifications ---
-
 c0 = Certification(
-    name = "Certified Fundamental Cook")
+name = "Certified Fundamental Cook")
 db.session.add(c0)
 
+
 c1 = Certification(
-    name = "Certified Sous Cook")
+name = "Certified Sous Cook")
 db.session.add(c1)
 
+
 c2 = Certification(
-    name = "Certified Master Baker")
+name = "Certified Master Baker")
 db.session.add(c2)
 
+
 c3 = Certification(
-    name = "Certified Working Pastry Chef")
+name = "Certified Working Pastry Chef")
 db.session.add(c3)
 
+
 c4 = Certification(
-    name = "Retail Bakers of America")
+name = "Retail Bakers of America")
 db.session.add(c4)
 
+
 c5 = Certification(
-    name = "Certified Pastry Culinarian")
+name = "Certified Pastry Culinarian")
 db.session.add(c5)
 
+
 c6 = Certification(
-    name = "Certified Foodservice Professional")
+name = "Certified Foodservice Professional")
 db.session.add(c6)
 
+
 c7 = Certification(
-    name = "Master Certified Food Executive")
+name = "Master Certified Food Executive")
 db.session.add(c7)
 
+
 c8 = Certification(
-    name = "Certified Chef de Cuisine")
+name = "Certified Chef de Cuisine")
 db.session.add(c8)
 
+
 c9 = Certification(
-    name = "Certified Personal Chef")
+name = "Certified Personal Chef")
 db.session.add(c9)
 
+
 c10 = Certification(
-    name = "Certified Executive Chef")
+name = "Certified Executive Chef")
 db.session.add(c10)
 
+
 c11 = Certification(
-    name = "Certified Decorator")
+name = "Certified Decorator")
 db.session.add(c11)
 
+
 c12 = Certification(
-    name = "Certified Culinary Educator")
+name = "Certified Culinary Educator")
 db.session.add(c12)
 
 db.session.commit()
