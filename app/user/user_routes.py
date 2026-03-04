@@ -96,7 +96,7 @@ def edit_profile():
         # add allergies
         if eform.allergies.data:
             for allergy in eform.allergies.data:
-                ing_name = allergy.get('ingredientName')
+                ing_name = allergy.get('ingredientName').lower()
                 if not ing_name:
                     continue
                 
@@ -297,13 +297,13 @@ def view_ingredients():
     grocery_list = current_user.get_grocery_list()
     
     if iform.submit.data and iform.validate():
-        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == iform.ingredientName.data)).first()
+        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == iform.ingredientName.data.lower())).first()
         if not ingredient:
             if iform.ingredientName.data == "":
                 flash("Error: No ingredient name")
                 return redirect(url_for('user.view_ingredients'))
             else:
-                ingredient = Ingredient(name=iform.ingredientName.data)
+                ingredient = Ingredient(name=iform.ingredientName.data.lower())
                 db.session.add(ingredient)
                 db.session.commit()
         if iform.quantity.data <= 0:
@@ -313,9 +313,9 @@ def view_ingredients():
         return redirect(url_for('user.view_ingredients'))
     
     elif gform.submit.data and gform.validate():
-        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == gform.ingredientName.data)).first()
+        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == gform.ingredientName.data.lower())).first()
         if not ingredient:
-            ingredient = Ingredient(name=gform.ingredientName.data)
+            ingredient = Ingredient(name=gform.ingredientName.data.lower())
             db.session.add(ingredient)
             db.session.commit()
         current_user.add_grocery(ingredient, gform.quantity.data, gform.unit.data)
