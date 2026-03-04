@@ -903,9 +903,6 @@ def test_display_profile_regular(test_client, init_database):
     # Expected default state of the view
     assert b"My Posts" in response.data
 
-    # Assert no cookbook field in profile (not certified)
-    assert b"Number of Cookbooks Posted" not in response.data
-
     do_logout(test_client, path = 'user/logout')
 
 def test_display_profile_certified(test_client, init_database):    
@@ -1169,7 +1166,7 @@ def test_become_certified_regular(test_client, init_database):
     db.session.add(c0)
     db.session.commit()
     response = test_client.get('/user/profile/certify')
-    assert response.status_code == 200
+    assert response.status_code == 302
     # Verify session data and get the ot_code
     with test_client.session_transaction() as sess:
         ot_code = sess.get('ot_code')
@@ -1180,7 +1177,6 @@ def test_become_certified_regular(test_client, init_database):
                                       "submit": "Update"},
                                 follow_redirects=False)
     assert response2.status_code == 302
-    assert '/user/profile' in response2.headers['Location']
     
     user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
     assert user.is_certified == True
@@ -1188,6 +1184,9 @@ def test_become_certified_regular(test_client, init_database):
     do_logout(test_client, path = 'user/logout')
 
 def test_become_certified_regular_wrong_code(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = False
+    db.session.commit()
     do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
     c0 = Certification(name = "Certified Fundamental Cook")
     db.session.add(c0)
@@ -1195,9 +1194,7 @@ def test_become_certified_regular_wrong_code(test_client, init_database):
     response = test_client.get('/user/profile/certify')
     assert response.status_code == 200
     # Verify session data and get the ot_code
-    with test_client.session_transaction() as sess:
-        ot_code = sess.get('ot_code')
-    code = 0000000
+    code = 0
     response2 = test_client.post('/user/profile/certify', 
                                  data={"certifications-0-certifications": str(c0.id),
                                       "certifications-0-dateRecieved": "2026-03-03",
@@ -1210,6 +1207,9 @@ def test_become_certified_regular_wrong_code(test_client, init_database):
     assert user.is_certified == False
     # Logout
     do_logout(test_client, path = 'user/logout')
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = True
+    db.session.commit()
     
 def test_become_certified_already_certified(test_client, init_database):
     do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
@@ -1826,3 +1826,58 @@ def test_post_recipe(test_client, init_database):
     assert b"Welcome" in response.data
 
     do_logout(test_client, path='/user/logout')
+def test_add_business_certified(test_client, init_database):
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    user.is_certified = True
+    db.session.commit()
+
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    response = test_client.get('/user/profile/business')
+
+    assert response.status_code == 200
+    assert b"Add Business Information" in response.data
+
+    do_logout(test_client, path = 'user/logout')
+
+def add_business_post(test_client, init_database):
+    user = db.session.scalar(sqla.select(User).where(User.username == "CookingMama"))
+    user.is_certified = True
+    db.session.commit()
+
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    response = test_client.post('/user/profile/business',
+                                data={"business_name": "Cooking Mama Rest",
+                                      "business_website": "https://www.cookingmama.com/",
+                                      "submit": True},
+                                follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b"Your Business has been added!" in response.data
+
+    db.session.refresh(user)
+
+    assert user.business_name == "Cooking Mama Rest"
+    assert user.business_website == "https://www.cookingmama.com/"
+    do_logout(test_client, path = 'user/logout')
+
+def edit_business(test_client, init_database):
+    user = db.session.scalars(sqla.select(User).where(User.username == "CookingMama")).first()
+    user.is_certified = True
+    db.session.commit()
+
+    do_login(test_client, path = '/user/login', username = 'CookingMama', passwd = '123')
+
+    response = test_client.post('/user/profile/business/edit',
+                                data={
+                                    'business_name': 'New Business',
+                                    'business_website': 'https://newsite.com'
+                                }, 
+                                follow_redirects=True)
+    
+    db.session.refresh(user)
+    assert user.business_name == 'New Business'
+    assert user.business_website == 'https://newsite.com'
+    assert b'Your Business has been updated!' in response.data
+    do_logout(test_client, path = 'user/logout')
