@@ -1,40 +1,48 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/xHCYREqb)
-# CS 3733 Term Project
-### AWS Deployment URL: 
-### Project Title: Digital Meal Planner + Recipe Book
-### Team Name :  Team REST
-### Team Members 
-* Zoya Ahmad
-* Sunny Kang
-* Patricia Oltra
-* Alexa Saur
+## Digital Meal Planner + Recipe Book
+### Project Origin
+This project was originally developed in January - March 2026 as a project for WPI's software engineering course by Team REST. The team members were Zoya Ahmad, Sunny Kang, Patricia Oltra, and Alexa Saur.
 
 ------------------------
-## Running the application
------------------------
-
-### To run this example:
-- Start the application with the following command:
+### Running the Application
+- The application can be run with either of the following commands:
     ```
     python meal_planner.py
     ```
+    ```
+    flask run
+    ```
+- Tests can be run via the ```run_tests_coverage.sh``` shell script or via the following commands:
+    <br>For just pytest
+    ```
+    python3 -m pytest -v test_routes.py
+    ```
+    For pytest coverage report and display
+    ```
+    coverage run -m pytest test_routes.py
+    coverage report -m
+    coverage html
+    coverage xml
+    ```
+- To prepolate the database, run the ```re_initialize_db.sh``` shell script or the following commands:
+    <br>*NOTE: if you don't use the shell script, be sure to remove the migrations folder and meal_planner database*
+    <br>Recreate the database
+    ```
+    flask db init
+    flask db migrate -m "recreated db"
+    flask db upgrade
+    ```
+    Pre populate the app with data
+    ```
+    python3 make_initialize_db_info_script.py
+    python3 initialize_db_info.py
+    ```
 
-### To run the tests:
-- run the tests for Model (unittest)
-    ``` 
-    python -m unittest -v tests/test_models.py 
-    ```
-- run the tests for routes (pytest)
-    ```
-    python -m pytest -v tests/test_routes.py
-    ```
-- run the selenium tests
-    * Download the Chrome webdriver for your Chrome browser version (https://chromedriver.chromium.org/downloads); extract and copy it under `C:\Webdriver` folder.
-    * Run the MealPlannerApp in a terminal window: 
-        ```
-        python meal_planner.py
-        ```
-    * Run the selenium tests
-    ```
-        python tests/test_selenium.py
-    ```
+------------------------
+### About the Application
+
+------------------------
+### Repository organization
+- ```app```: Contains the code for the application, organized into modules and an init python script
+- ```class-materials```: Contains materials used for the class, including initial documentation, group reports, and the AWS Deployment guide
+- ```tests```: Contains tests to be run for bug checking
+- ```setup-files```: Files/scripts used for initializing the database

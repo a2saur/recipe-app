@@ -1,5 +1,6 @@
 # database
 meal_planner.db
+migrations
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
