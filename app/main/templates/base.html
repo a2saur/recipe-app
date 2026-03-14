@@ -49,23 +49,16 @@
                         </a>
                     </li>
 
-                    {% if current_user.is_certified %}
-                        <li class="nav-item dropdown">
-                            <a class="dropdown-toggle btn btn-outline-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Post
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a href="{{ url_for('recipe.create_recipe') }}" class="dropdown-item">Recipe</a></li>
-                                <li><a href="{{ url_for('cookbook.create_cookbook') }}" class="dropdown-item">Cookbook</a></li> <!-- TODO: change to create cookbook -->
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a href="{{ url_for('recipe.create_recipe') }}" class="btn btn-outline-dark">
-                                <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Recipe
-                            </a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="dropdown-toggle btn btn-outline-dark" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-plus-lg" style="margin-right:5px"></i>New Post
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('recipe.create_recipe') }}" class="dropdown-item">Recipe</a></li>
+                            <li><a href="{{ url_for('cookbook.create_cookbook') }}" class="dropdown-item">Cookbook</a></li>
+                        </ul>
+                    </li>
+                
 
                 </ul>
                 <li><span class="navbar-text text-dark">

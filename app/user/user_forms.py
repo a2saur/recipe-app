@@ -7,17 +7,12 @@ from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationErro
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Tag, Certification, UNIT_OPTIONS
+from app.main.models import User, Tag, UNIT_OPTIONS
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
 class IngredientSubmitForm(IngredientForm, FlaskForm):
     submit = SubmitField('Add Ingredient')
-
-class CertificationForm(Form):
-    certifications = QuerySelectField('Certifications', query_factory = lambda : db.session.scalars(sqla.select(Certification).order_by(Certification.name)), 
-                                    get_label= lambda certification: certification.name, allow_blank=True, blank_text="Select a Certification")
-    dateRecieved = DateField('Date Recieved', format = "%Y-%m-%d", validators=[Optional()])
 
 class IngredientCostForm(FlaskForm):
     ingredientName = StringField('Ingredient', validators=[DataRequired()])
@@ -52,7 +47,6 @@ class EditForm(FlaskForm):
     ), get_label = lambda tag: tag.name,
     widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
     )
-    certifications = FieldList(FormField(CertificationForm), min_entries=0)
     submit = SubmitField('Update')
 
     def validate_username(self, username):
@@ -66,13 +60,3 @@ class EditForm(FlaskForm):
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This email is already registered! Please provide a different email address.')
-
-class CertifyForm(FlaskForm):
-    in_code = StringField('One-Time Code', validators=[DataRequired()], render_kw={'placeholder':'Your code'})
-    certifications = FieldList(FormField(CertificationForm), min_entries=1)
-    submit = SubmitField('Certify')
-
-class BusinessForm(FlaskForm):
-    business_name = StringField('Business Name', validators=[DataRequired()])
-    business_website = StringField('Business Website', validators=[DataRequired(), URL()])
-    submit = SubmitField('Save Business Information')

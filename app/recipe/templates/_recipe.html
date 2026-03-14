@@ -7,20 +7,10 @@
     </div>
     <div class="recipe-card-footer">
         <span><div class="d-flex">
-            {% if recipe.writer.is_certified %}
-                <!-- Bootrstrap star ICON -->
-                <i class="bi bi-star-fill fs-5 me-2"></i>
-                {% if recipe.title | length <= 24 %}
-                    <h5>{{ recipe.title }}</h5>
-                {% else %}
-                    <h5>{{ recipe.title[:23] }}...</h5>
-                {% endif %}
-            {%else%}
-                {% if recipe.title | length < 28 %}
-                    <h5>{{ recipe.title }}</h5>
-                {% else %}
-                    <h5>{{ recipe.title[:27] }}...</h5>
-                {% endif %}
+            {% if recipe.title | length < 28 %}
+                <h5>{{ recipe.title }}</h5>
+            {% else %}
+                <h5>{{ recipe.title[:27] }}...</h5>
             {% endif %}
             </div>
             <h6 class="text-muted"> 
@@ -57,20 +47,10 @@
         <div class="recipe-card-header bottom-line">
             <span>
                 <div class="d-flex">
-                    {% if recipe.writer.is_certified %}
-                        <!-- Bootrstrap star ICON -->
-                        <i class="bi bi-star-fill fs-5 me-2"></i>
-                        {% if recipe.title | length <= 24 %}
-                            <h5>{{ recipe.title }}</h5>
-                        {% else %}
-                            <h5>{{ recipe.title[:23] }}...</h5>
-                        {% endif %}
-                    {%else%}
-                        {% if recipe.title | length < 28 %}
-                            <h5>{{ recipe.title }}</h5>
-                        {% else %}
-                            <h5>{{ recipe.title[:27] }}...</h5>
-                        {% endif %}
+                    {% if recipe.title | length < 28 %}
+                        <h5>{{ recipe.title }}</h5>
+                    {% else %}
+                        <h5>{{ recipe.title[:27] }}...</h5>
                     {% endif %}
                 </div>
                 <h7>Posted By: {{ recipe.writer.username }}</h7>

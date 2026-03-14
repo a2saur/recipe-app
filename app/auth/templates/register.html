@@ -7,21 +7,6 @@
 
     <form action="{{ url_for('auth.register') }}", method="POST">
         {{ form.hidden_tag() }}
-
-        {{form.user_type.label(class='form-check-label mb-2')}}
-        {%- for item in form.user_type %}
-            <div class="form-check{% if loop.last %} mb-3{% endif %}">
-            {{ item(class='form-check-input')}}
-            {{ item.label(class='form-check-label') }}
-                {% if loop.last %}
-                <i class="bi bi-exclamation-circle"
-                role="button"
-                data-bs-custom-class="certify-popover"
-                data-bs-toggle="popover"
-                data-bs-content="You will need to verify your e-mail and add a certification to your profile."></i>
-                {% endif %}
-            </div>
-        {%- endfor %}
         
         {{ wtf.form_field(form.first_name) }}
         {{ wtf.form_field(form.last_name) }}

@@ -515,10 +515,6 @@ cookbooks = [
     ["ChatGPT's Kitchen Creations", "A curated collection of comforting dinners, quick breakfasts, indulgent desserts, and flavorful vegetarian dishes designed for both beginners and experienced home cooks.", 2, "", [3, 4, 5, 6, 7, 8, 9, 10]],
     ["AllRecipe's Cookbook", "A collection of Allrecipe's best dishes", 3, "b4458f2c-11b9-11f1-9542-1ebf2a7aaad6_allrecipes.jpg", [11, 13, 14, 15, 16, 17]],
 ]
-
-certifications = ["Certified Fundamental Cook", "Certified Sous Cook", "Certified Master Baker", "Certified Working Pastry Chef",
-                  "Retail Bakers of America", "Certified Pastry Culinarian", "Certified Foodservice Professional", "Master Certified Food Executive",
-                  "Certified Chef de Cuisine", "Certified Personal Chef", "Certified Executive Chef", "Certified Decorator", "Certified Culinary Educator"]
 # ----------
 
 script = '''from app import create_app, db
@@ -527,7 +523,7 @@ from datetime import datetime, timezone
 
 app = create_app(Config)
 
-from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep, Certification
+from app.main.models import Recipe, Cookbook, User, Ingredient, Tag, RecipeIngredientUse, RecipeStep
 from config  import Config
 
 import sqlalchemy as sqla

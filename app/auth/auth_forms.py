@@ -18,7 +18,6 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
-    user_type = RadioField('Choose user type', choices=[('regular', 'Regular user'), ('certified', 'Certified user')], validators=[DataRequired()])
     allergies = FieldList(FormField(IngredientForm))
     dietary_restrictions = QuerySelectMultipleField(
         'Special Dietary Categories', 

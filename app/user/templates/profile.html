@@ -4,10 +4,6 @@
 {% block content %}
     
     <div class="d-flex align-items-center"> 
-        {% if user.is_certified %}
-        <!-- Bootrstrap star ICON -->
-        <i class="bi bi-star-fill fs-3 me-2 mb-2"></i>
-        {% endif %}
         <h1>{{ user.first_name }} {{ user.last_name }}'s Profile</h1>
     </div>
     
@@ -16,28 +12,8 @@
         <div> 
             <p> <b>Username:</b>  {{ user.username }} </p>
             <p> <b> Name: </b> {{ user.first_name }} {{ user.last_name }} </p>
-            {% if not read_only %}
-                <p> <b> Email: </b> {{ user.email }}</p>
-            {% endif %}
-            {% if user.business_name%}
-                <p> <b> Business Name: </b> {{ user.business_name }}</p>
-            {% endif %}
-            {% if user.business_website %}
-                <p> <b> Business Website: </b> <a href="{{ user.business_website }}" target="_blank">{{ user.business_website }}</a></p>
-            {% endif %}
-            {% if user.is_certified %}
-            <p><b> Certifications: </b>
-            {% for cert in user.user_certifications %}
-                <span class = "certification-page-tag" date-date = "{{cert.dateRecieved.strftime('%B %d, %Y') if cert.dateRecieved}}"> 
-                    {{cert.certification.name}} 
-                </span>
-            {% endfor %}
-            </p>
-            {% endif %}
             <p> <b> Number of Recipes Posted: </b> {{ user.user_recipe_count() }}</p>
-            {% if user.is_certified %}
-                <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
-            {% endif %}
+            <p> <b> Number of Cookbooks Posted: </b> {{ user.user_cookbook_count() }}</p>
 
 
             <h2> <b>Your preferences</b></h2>
@@ -72,16 +48,7 @@
         {% if not read_only and user.id == current_user.id %}
             <div class = "d-flex flex-column align-items-stretch">
             <p><a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary mb-2 w-100" >Edit Profile</a></p>
-            {%if not user.is_certified%}
-                <p><a href="{{ url_for('user.become_certified', email = current_user.email) }}" class="btn btn-success mb-2 w-100">Become Certified</a></p>
-            {% else %}
-                {% if not user.business_name %}
-                    <p><a href="{{ url_for('user.add_business') }}" class="btn btn-primary mb-2 w-100" >Add Business</a></p>
-                {% else %}
-                    <p><a href="{{ url_for('user.edit_business') }}" class="btn btn-primary mb-2 w-100" >Edit Business</a></p>
-                {% endif %}
-            {%endif%}
-                </div>
+            </div>
         {% endif %}
     </div>
 
@@ -107,25 +74,18 @@
                 <ul class="dropdown-menu">
                     <li><a href="{{ url_for('user.display_profile', view='saved') }}"  class="bi bi-pin-angle-fill mt-1 mb-2 dropdown-item"> My Saved Posts</a></li>
                     <li><a href="{{ url_for('user.display_profile', view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> My Posts</a></li>
-                    {% if current_user.is_certified %}
-                        <li><a href="{{ url_for('user.display_profile', view='cookbook') }}" class="bi bi-fork-knife mt-1 mb-2 dropdown-item"> My Cookbooks</a></li>
-                    {% endif %}
+                    <li><a href="{{ url_for('user.display_profile', view='cookbook') }}" class="bi bi-fork-knife mt-1 mb-2 dropdown-item"> My Cookbooks</a></li>
                 </ul>
             </div>
         {% else %}
             <div class = "nav-item dropdown">
                 <a class="dropdown-toggle btn btn-outline-dark fs 5" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {% if view == 'mine' %}
-                        <i style="margin-right:5px" class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Posts
-                    {% elif user.is_certified %}
-                        <i style = "margin-right:5px"class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Cookbooks
-                    {% endif %}
+                    <i style="margin-right:5px" class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Posts
+                    <i style = "margin-right:5px"class = "bi bi-pin-pen-fill me-2"></i> {{user.first_name}}'s Cookbooks
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="{{ url_for('user.view_other_profile',user_id=user.id, view='mine') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> Posts</a></li>
-                    {% if user.is_certified %}
-                        <li><a href="{{ url_for('user.view_other_profile',user_id=user.id, view='cookbook') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> Cookbooks</a></li>
-                    {% endif %}
+                    <li><a href="{{ url_for('user.view_other_profile',user_id=user.id, view='cookbook') }}" class="bi bi-pen-fill mt-1 mb-2 dropdown-item"> Cookbooks</a></li>
                 </ul>
             </div>
         {% endif %}
