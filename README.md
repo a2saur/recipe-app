@@ -38,11 +38,9 @@ This project was originally developed in January - March 2026 as a project for W
     ```
 
 ------------------------
-### About the Application
-
-------------------------
 ### Repository organization
 - ```app```: Contains the code for the application, organized into modules and an init python script
 - ```class-materials```: Contains materials used for the class, including initial documentation, group reports, and the AWS Deployment guide
 - ```tests```: Contains tests to be run for bug checking
 - ```setup-files```: Files/scripts used for initializing the database
+- ```documents```: Documentation about the application

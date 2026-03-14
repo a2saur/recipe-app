@@ -17,16 +17,6 @@ from app.cookbook.cookbook_forms import CookbookForm
 
 from app.cookbook import cookbook_blueprint as bp_cookbook
 
-def certified_required(func):
-    @wraps(func)
-    def wrapper(*args, ** kwargs):
-        if (current_user.is_authenticated):
-            if (not current_user.is_certified):
-                flash('You are not a Certified User!')
-                return redirect(url_for('main.index'))
-        return func(*args, **kwargs)
-    return wrapper
-
 @bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET'])
 # @login_required
 def view_cookbook(cookbook_id):
@@ -37,7 +27,6 @@ def view_cookbook(cookbook_id):
 
 @bp_cookbook.route('/cookbook/create', methods=['GET', 'POST'])
 @login_required
-@certified_required
 def create_cookbook():
     cform = CookbookForm()
     cform.recipes.query_factory = current_user.get_user_recipes
@@ -74,8 +63,7 @@ def create_cookbook():
     return render_template('create_cookbook.html', title='Create Cookbook', form=cform, editing_cookbook=False)
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/edit', methods=['GET', 'POST'])
-# @login_required
-@certified_required
+@login_required
 def edit_cookbook(cookbook_id):
     cookbookObj = db.session.get(Cookbook, cookbook_id)
     if cookbookObj is None:
@@ -126,8 +114,7 @@ def edit_cookbook(cookbook_id):
 
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/delete', methods=['POST'])
-# @login_required
-@certified_required
+@login_required
 def delete_cookbook(cookbook_id):
     cookbookObj = db.session.get(Cookbook, cookbook_id)
     if cookbookObj is None:

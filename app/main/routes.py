@@ -34,9 +34,6 @@ def index(sort_data="Date"):
                 else:
                     base_query = base_query.filter(Recipe.tags.any(Tag.name.in_(tag_list)))
                 text = "Filters/Sorting Applied"
-            if fs_form.certified.data:
-                base_query = base_query.join(Recipe.writer).where(User.is_certified)
-                text = "Filters/Sorting Applied"
             if fs_form.saves.data:
                 base_query = base_query.where(Recipe.save_count >= fs_form.saves.data)
                 text = "Filters/Sorting Applied"
@@ -48,9 +45,6 @@ def index(sort_data="Date"):
                 text = "Filters/Sorting Applied"
                 if sort_data== "# of saves":
                     recipes = base_query.order_by(Recipe.save_count.desc())
-                elif sort_data == "Certified first":
-                    recipes = base_query.join(Recipe.writer).order_by(User.is_certified.desc())
-                    text = "Filters/Sorting Applied"
                 else:
                     recipes = base_query.order_by(Recipe.timestamp.desc())
             all_recipes = db.session.scalars(recipes).all()

@@ -9,22 +9,11 @@ from flask import render_template, flash, redirect, url_for, request, jsonify, s
 from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
-from app.main.models import RecipeIngredientUse, Tag, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, Certification, UserCertification, IngredientCostEntry
-from app.user.user_forms import EditForm, BusinessForm, CertifyForm, IngredientCostForm
-from app.user.user_email import send_verification_email
+from app.main.models import RecipeIngredientUse, Tag, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, IngredientCostEntry
+from app.user.user_forms import EditForm, IngredientCostForm
 from app.user.user_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
-
-def uncertified_required(func):
-    @wraps(func)
-    def wrapper(*args, ** kwargs):
-        if (current_user.is_authenticated):
-            if (current_user.is_certified):
-                flash('You are already a Certified User!')
-                return redirect(url_for('main.index'))
-        return func(*args, **kwargs)
-    return wrapper
 
 @bp_user.route('/user/profile', methods=['GET','POST'])
 @login_required
@@ -64,15 +53,6 @@ def view_other_profile(user_id):
 @login_required
 def edit_profile():
     eform = EditForm()
-    if request.form.get("action_button") == "add_cert":
-        eform.certifications.append_entry()
-        return render_template('edit_profile.html', form=eform)
-    if request.form.get("remove_cert_button") is not None:
-        index = request.form.get("remove_cert_button")
-        if index not in (None, ""):
-            index = int(index)
-            del eform.certifications.entries[index]        
-            return render_template('edit_profile.html', form=eform)
     if eform.validate_on_submit():
         db.session.execute(user_allergies.delete().where(user_allergies.c.user_id == current_user.id))
         db.session.execute(user_dietary_tags.delete().where(user_dietary_tags.c.user_id == current_user.id))
@@ -82,15 +62,6 @@ def edit_profile():
         current_user.first_name = eform.first_name.data
         current_user.last_name = eform.last_name.data
         current_user.email = eform.email.data
-        if current_user.is_certified:
-            for uc in list(current_user.user_certifications):
-                db.session.delete(uc)
-            for cert in eform.certifications.data:
-                selected_cert = cert["certifications"]
-                date_recieved = cert["dateRecieved"]
-                if selected_cert:
-                    user_cert = UserCertification(user_id=current_user.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
-                    db.session.add(user_cert)
         db.session.add(current_user)
 
         # add allergies
@@ -137,105 +108,7 @@ def edit_profile():
         eform.email.data = current_user.email
         eform.dietary_restrictions.data = current_user.get_dietary_tags()
         eform.tags.data = current_user.get_preferred_tags()
-        if current_user.is_certified:
-            for uc in current_user.user_certifications:
-                eform.certifications.append_entry({
-                    "certifications": uc.certification,
-                    "dateRecieved": uc.dateRecieved
-                })
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)
-
-@bp_user.route('/user/profile/certify', methods=['GET','POST'])
-@uncertified_required
-def become_certified():
-    if current_user.is_authenticated or session.get('from_reg'):
-        if current_user.is_authenticated:
-            email = current_user.email
-        else:
-            email = session.get('reg_email', None)
-        theUser = db.session.scalars(sqla.select(User).where(User.email == email)).first()
-        cform = CertifyForm()
-        if request.method == 'GET':
-            time = datetime.now().strftime("%H:%M:%S")
-            code = str(secrets.randbelow(10**6)).zfill(6)
-            session['ot_code'] = code
-            send_verification_email(theUser, code)
-            flash("A code was sent to {} at {}, please use this code to verify your identity.".format(theUser.email, time))
-            return render_template('certify.html', cform = cform)
-        if request.method == 'POST':
-            if request.form.get("action_button") == "add_cert":
-                cform.certifications.append_entry()
-                return render_template('certify.html', cform=cform)
-            if request.form.get("remove_cert_button") is not None:
-                index = request.form.get("remove_cert_button")
-                if index not in (None, ""):
-                    index = int(index)
-                    del cform.certifications.entries[index]        
-                return render_template('certify.html', cform=cform)
-            if cform.validate_on_submit():
-                if cform.in_code.data == session.get('ot_code'):
-                    session.pop('ot_code', None)
-                    for cert in cform.certifications.data:
-                        selected_cert = cert["certifications"]
-                        date_recieved = cert["dateRecieved"]
-                        if selected_cert:
-                            user_cert = UserCertification(user_id=theUser.id, certification_id=selected_cert.id, dateRecieved = date_recieved)
-                            db.session.add(user_cert)
-                    theUser.is_certified = True
-                    db.session.commit()
-                    session.pop('from_reg', None)
-                    session.pop('reg_email', None)
-                    flash("Congratulations, you are now a Certified User!")
-                    return redirect(url_for('user.display_profile'))
-                else:
-                    flash("Invalid code. Try again.")
-                    return render_template('certify.html', cform=cform)
-        return render_template('certify.html', cform=cform)
-    else:
-        flash("You need to register or log in to acces this page!")
-        return redirect(url_for('auth.login'))
-                
-
-@bp_user.route('/user/profile/business', methods = ['GET', 'POST'])
-@login_required
-def add_business():
-    if not current_user.is_certified:
-        flash('You must be a certified user to add a business')
-        return redirect(url_for('user.display_profile'))
-    bform = BusinessForm()
-    if bform.validate_on_submit():
-        current_user.business_name = bform.business_name.data
-        current_user.business_website = bform.business_website.data
-        db.session.commit()
-        flash('Your Business has been added!')
-        return redirect(url_for('user.display_profile'))
-    return render_template('business_form.html', title="Add Business Information", form=bform, form_action='user.add_business', edit=False)
-
-@bp_user.route('/user/profile/business/edit', methods = ['GET', 'POST'])
-@login_required
-def edit_business():
-    if not current_user.is_certified:
-        flash('You must be a certified user to add a business')
-        return redirect(url_for('user.display_profile'))
-    bform = BusinessForm()
-    if request.method == 'GET':
-        bform.business_name.data = current_user.business_name
-        bform.business_website.data = current_user.business_website
-
-    if 'delete_business' in request.form:
-        current_user.business_name = None
-        current_user.business_website = None
-        db.session.commit()
-        flash('Business Information was Deleted')
-        return redirect(url_for('user.display_profile'))
-    
-    if bform.validate_on_submit():
-        current_user.business_name = bform.business_name.data
-        current_user.business_website = bform.business_website.data
-        db.session.commit()
-        flash('Your Business has been updated!')
-        return redirect(url_for('user.display_profile'))
-    return render_template('business_form.html', title="Edit Business", form=bform, form_action='user.edit_business', edit=True)
 
 @bp_user.route('/user/<recipe_id>/saverecipe', methods=['POST'])
 @login_required

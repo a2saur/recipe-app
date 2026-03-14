@@ -10,35 +10,6 @@
         {{wtf.form_field(form.first_name)}}
         {{wtf.form_field(form.last_name)}}
         {{wtf.form_field(form.email)}}
-                    <table>
-                <tr>
-                    <th></th>
-                    <th>Certification Name</th>
-                    <th>Date Recieved</th>
-                </tr>
-                {% for cert in form.certifications %}
-                <tr>
-                    <td>
-                        {% if not loop.last %}
-                        <button type = "submit" name = "remove_cert_button" value = "{{ loop.index0 }}" formnovalidate class = "btn btn-outline-danger remove-btn"> X </button>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{ cert.certifications(class="form-select") }}
-                    </td>
-                    <td>
-                        {{ cert.dateRecieved(class="form-control") }}
-                    </td>
-                </tr>
-                {% endfor %}
-                <tr>
-                    <td></td>
-                    <td>
-                        <button type = "submit" name="action_button" value="add_cert" formnovalidate class = "btn btn-outline-primary"> Add Certification</button>
-                    </td>
-                </tr>
-            </table>
-
         <h2>User Preferences</h2>
         
         <div class="allergy-section mb-4">
