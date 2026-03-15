@@ -18,7 +18,7 @@ from app.cookbook.cookbook_forms import CookbookForm
 from app.cookbook import cookbook_blueprint as bp_cookbook
 
 @bp_cookbook.route('/cookbook/<cookbook_id>/view', methods=['GET'])
-# @login_required
+@login_required
 def view_cookbook(cookbook_id):
     theCookbook = db.session.get(Cookbook, cookbook_id)
     if not (theCookbook is None):

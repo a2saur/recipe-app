@@ -4,7 +4,7 @@ from wtforms import Form, FormField, FieldList, StringField, SubmitField, Select
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.validators import  ValidationError, DataRequired, Length, InputRequired
 from wtforms.widgets import ListWidget, CheckboxInput, Select
-from wtforms.validators import DataRequired, EqualTo, Email, Optional
+from wtforms.validators import DataRequired, EqualTo, Optional
 from flask_wtf.file import FileField
 
 from app import db

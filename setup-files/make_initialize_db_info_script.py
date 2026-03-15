@@ -549,8 +549,6 @@ for i in range(len(users)):
     script += users[i][1]
     script += "\", username = \""
     script += users[i][2]
-    script += "\", email = \""
-    script += users[i][3]
     script += "\""
     if users[i][5]:
         script += ", is_certified=True"

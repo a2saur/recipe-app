@@ -12,7 +12,7 @@ from app.recipe.recipe_helpers import *
 from app.recipe import recipe_blueprint as bp_recipe
 
 @bp_recipe.route('/recipe/<recipe_id>/view', methods=['GET'])
-# @login_required
+@login_required
 def view_recipe(recipe_id):
     theRecipe = db.session.scalars(sqla.select(Recipe).where(Recipe.id == recipe_id)).first()
     if not (theRecipe is None):
@@ -203,7 +203,7 @@ def edit_recipe(recipe_id):
         return render_template('create_recipe.html', title="Edit Recipe", form=rform, recipe_id=recipe_id, is_draft=False, pictFile=recipeDraft.get_pict_path())
 
 @bp_recipe.route('/recipe/<recipe_id>/delete', methods=['POST'])
-# @login_required
+@login_required
 def delete(recipe_id):
     result = deleteRecipe(recipe_id)
     if result:

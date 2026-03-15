@@ -23,7 +23,6 @@ def register():
             first_name = rform.first_name.data,
             last_name = rform.last_name.data,
             username = rform.username.data,
-            email = rform.email.data,
         )
         user.set_password(rform.password.data)
         db.session.add(user)

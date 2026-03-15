@@ -61,7 +61,6 @@ def edit_profile():
         current_user.username = eform.username.data
         current_user.first_name = eform.first_name.data
         current_user.last_name = eform.last_name.data
-        current_user.email = eform.email.data
         db.session.add(current_user)
 
         # add allergies
@@ -105,7 +104,6 @@ def edit_profile():
         eform.username.data = current_user.username
         eform.first_name.data = current_user.first_name
         eform.last_name.data = current_user.last_name
-        eform.email.data = current_user.email
         eform.dietary_restrictions.data = current_user.get_dietary_tags()
         eform.tags.data = current_user.get_preferred_tags()
     return render_template('edit_profile.html', title="Edit Profile", form=eform, user=current_user)

@@ -45,7 +45,6 @@ class User(db.Model, UserMixin):
     first_name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     last_name: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
     username: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(64))
-    email: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(120))
     password_hash: sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(256))
 
     # for user preferences
@@ -94,7 +93,7 @@ class User(db.Model, UserMixin):
 
     # --- METHODS ---
     def __repr__(self):
-        return '<User id: {} - username: {} - email: {}>'.format(self.id, self.username, self.email)
+        return '<User id: {} - username: {}>'.format(self.id, self.username)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

@@ -77,7 +77,7 @@ The purpose of this document is to describe the high-level software design for t
 | 8. | GET, POST | /user/ingredients | Renders the page with a list of current ingredients + grocery list |
 | 9. | POST | /user/grocery/move-or-delete | Allows the user to move items from the grocery list to their own ingredient list. Also allows the user to delete ingredients from the grocery list. |
 | 10. | POST | /user/ingredient/delete | Allows the user to delete ingredients from the user’s current ingredient list. |
-| 12. | GET | /user/<user_id>/viewprofile | Shows another user’s profile with information like saved posts and email hidden. |
+| 12. | GET | /user/<user_id>/viewprofile | Shows another user’s profile with information like saved posts hidden. |
 
 #### 2.2.2.3 recipe routes
 
