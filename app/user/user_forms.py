@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import FieldList, FormField, StringField, SubmitField, PasswordField, SelectMultipleField, DateField, FieldList, FormField, Form, FloatField, SelectField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from wtforms.widgets import ListWidget, CheckboxInput
-from wtforms.validators import DataRequired, EqualTo, Email, URL, ValidationError, DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, EqualTo, URL, ValidationError, DataRequired, Optional, NumberRange
 
 from app import db
 import sqlalchemy as sqla
@@ -25,7 +25,6 @@ class EditForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
     allergies = FieldList(FormField(IngredientForm))
     dietary_restrictions = QuerySelectMultipleField(
         'Special Dietary Categories', 
@@ -54,9 +53,3 @@ class EditForm(FlaskForm):
         if user is not None:
             if user.id != current_user.id:
                 raise ValidationError('This username is already registered! Please provide a different username.')
-            
-    def validate_email(self, email):
-        user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
-        if user is not None:
-            if user.id != current_user.id:
-                raise ValidationError('This email is already registered! Please provide a different email address.')

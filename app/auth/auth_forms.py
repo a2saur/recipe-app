@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import RadioField, StringField, SubmitField, PasswordField, BooleanField, FieldList, FormField, SelectMultipleField
-from wtforms.validators import  ValidationError, DataRequired, EqualTo, Email
+from wtforms.validators import  ValidationError, DataRequired, EqualTo
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
 from flask_login import current_user
@@ -15,7 +15,6 @@ class RegistrationForm(FlaskForm):
     first_name = StringField('First name', validators=[DataRequired()])
     last_name = StringField('Last name', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField('Repeat password', validators=[DataRequired(), EqualTo('password')])
     allergies = FieldList(FormField(IngredientForm))
@@ -23,7 +22,7 @@ class RegistrationForm(FlaskForm):
         'Special Dietary Categories', 
         query_factory=lambda: db.session.scalars(
             sqla.select(Tag)
-            .where(Tag.name.in_(['vegan', 'vegetarian', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+            .where(Tag.name.in_(['vegan', 'vegetarian', 'pescetarian', 'kosher', 'halal', 'gluten-free', 'dairy-free']))
             .order_by(Tag.name)
         ), 
         get_label=lambda tag: tag.name,
@@ -34,7 +33,7 @@ class RegistrationForm(FlaskForm):
         'Select Preferred Tags', 
         query_factory=lambda: db.session.scalars(
         sqla.select(Tag)
-        .where(Tag.name.notin_(['vegetarian', 'vegan', 'kosher', 'pescetarian', 'kosher', 'halal', 'gluten-free']))
+        .where(Tag.name.notin_(['vegan', 'vegetarian', 'pescetarian', 'kosher', 'halal', 'gluten-free', 'dairy-free']))
         .order_by(Tag.name)
     ), get_label = lambda tag: tag.name,
     widget = ListWidget(prefix_label=False),option_widget = CheckboxInput()
@@ -45,12 +44,7 @@ class RegistrationForm(FlaskForm):
         user = db.session.scalars(sqla.select(User).where(func.lower(User.username) == username.data.lower())).first()
         if user is not None:
             raise ValidationError('This username already exists! Please provide a different username')
-        
-    def validate_email(self, email):
-        user = db.session.scalars(sqla.select(User).where(User.email == email.data)).first()
-        if user is not None:
-            raise ValidationError('This email is already registered! Please provide a different email address.')
-
+   
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
