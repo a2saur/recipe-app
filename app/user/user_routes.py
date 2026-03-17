@@ -310,3 +310,28 @@ def recipe_groceries():
         current_user.add_grocery(ingredient, gform.quantity.data, gform.unit.data)
         return redirect(url_for('user.recipe_groceries'))
     return render_template('view_groceries_recipes.html', title="Ingredients", grocery_list=grocery_list, saved_recipes=saved_recipes, gform=gform)
+
+@bp_user.route('/user/buttonremovesavedrecipe', methods=['POST'])
+@login_required
+def button_remove_saved_recipe():
+    action = request.form.get('action')
+    selected_recipes_ids = request.form.getlist('recipe_ids')
+
+    if not selected_recipes_ids:
+        flash('No recipes selected to remove.')
+        return redirect(url_for('user.recipe_groceries'))
+    
+    for rec_id in selected_recipes_ids:
+        recipe = db.session.get(Recipe, int(rec_id))
+        is_saved = recipe in current_user.get_saved()
+        if not is_saved:
+            flash("You haven't saved this recipe yet!")
+        else:
+            current_user.saved_recipes.remove(recipe)
+            db.session.commit()
+            recipe.save_count -= 1
+            db.session.commit()
+    db.session.commit()
+    if action == "delete":
+        flash("Selected recipes unsaved.")
+    return redirect(url_for('user.recipe_groceries'))
