@@ -238,7 +238,6 @@ def delete_ingredient():
 @bp_user.route('/user/ingredientinfo', methods=['GET', 'POST'])
 @login_required
 def ingredient_info():
-    # TODO option to only use user's entries
     iform = IngredientCostForm()
     if iform.validate_on_submit():
         # Get the ingredient the user is trying to write an entry for
@@ -291,3 +290,23 @@ def change_cost_preference():
     current_user.global_costs = not current_user.global_costs
     db.session.commit()
     return redirect(url_for('user.ingredient_info'))
+
+@bp_user.route('/user/recipegroceries', methods=['GET','POST'])
+@login_required
+def recipe_groceries():
+    gform = IngredientSubmitForm(prefix="groc")
+
+    # get the user's saved recipes
+    saved_recipes = current_user.get_saved()
+    # get the user's grocery list ingredients
+    grocery_list = current_user.get_grocery_list()
+    
+    if gform.submit.data and gform.validate():
+        ingredient = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == gform.ingredientName.data.lower())).first()
+        if not ingredient:
+            ingredient = Ingredient(name=gform.ingredientName.data.lower())
+            db.session.add(ingredient)
+            db.session.commit()
+        current_user.add_grocery(ingredient, gform.quantity.data, gform.unit.data)
+        return redirect(url_for('user.recipe_groceries'))
+    return render_template('view_groceries_recipes.html', title="Ingredients", grocery_list=grocery_list, saved_recipes=saved_recipes, gform=gform)

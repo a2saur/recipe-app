@@ -269,6 +269,8 @@
 .recipe-page {
     border: 1px solid;
     border-color: var(--outline-color);
+    margin-left:10%;
+    margin-right:10%;
 }
 
 .recipe-page-header {
