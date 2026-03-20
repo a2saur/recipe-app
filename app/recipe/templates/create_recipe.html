@@ -22,8 +22,29 @@
         
         {{ wtf.form_field(form.description) }}
         {{ wtf.form_field(form.servingSize) }}
-        {{ wtf.form_field(form.estimatedHrs) }}
-        {{ wtf.form_field(form.estimatedMins) }}
+
+        <table>
+            <tr>
+                <th>Estimated Active Time</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>{{ wtf.form_field(form.activeEstimatedHrs) }}</td>
+                <td>{{ wtf.form_field(form.activeEstimatedMins) }}</td>
+            </tr>
+        </table>
+        
+        <table>
+            <tr>
+                <th>Estimated Overall Time</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>{{ wtf.form_field(form.overallEstimatedHrs) }}</td>
+                <td>{{ wtf.form_field(form.overallEstimatedMins) }}</td>
+            </tr>
+        </table>
+
         {{ wtf.form_field(form.tags) }}
 
 

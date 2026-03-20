@@ -98,8 +98,10 @@ def edit_recipe(recipe_id):
             title = recipeDraft.title,
             description = recipeDraft.description,
             servingSize = recipeDraft.servingSize,
-            estimatedHrs = recipeDraft.estimatedHrs,
-            estimatedMins = recipeDraft.estimatedMins,
+            activeEstimatedHrs = recipeDraft.activeEstimatedHrs,
+            activeEstimatedMins = recipeDraft.activeEstimatedMins,
+            overallEstimatedHrs = recipeDraft.overallEstimatedHrs,
+            overallEstimatedMins = recipeDraft.overallEstimatedMins,
             tags = recipeDraft.get_tags(),
             ingredients = ingredient_data,
             steps = step_data

@@ -37,8 +37,10 @@ def saveRecipeDraft(recipe_id, rform, picture=None):
     recipeDraft.title = rform.title.data
     recipeDraft.description = rform.description.data
     recipeDraft.servingSize = rform.servingSize.data
-    recipeDraft.estimatedHrs = rform.estimatedHrs.data
-    recipeDraft.estimatedMins = rform.estimatedMins.data
+    recipeDraft.activeEstimatedHrs = rform.activeEstimatedHrs.data
+    recipeDraft.activeEstimatedMins = rform.activeEstimatedMins.data
+    recipeDraft.overallEstimatedHrs = rform.overallEstimatedHrs.data
+    recipeDraft.overallEstimatedMins = rform.overallEstimatedMins.data
 
     # recipeDraft.steps = rform.steps.data
     for s in recipeDraft.get_steps():
@@ -134,12 +136,10 @@ def validateRecipeDraftForPost(recipe_id):
         errors.append("Please put in a serving size")
 
     # check estimated time is not blank
-    if recipeDraft.estimatedHrs == 0 and recipeDraft.estimatedMins == 0:
-        errors.append("Please add an estimated time")
-    if recipeDraft.estimatedHrs < 0:
-        errors.append("Please add a valid time")
-    if recipeDraft.estimatedMins < 0:
-        errors.append("Please add a valid time")
+    # TODO update to better check
+    estimatedTime = recipeDraft.activeEstimatedHrs+recipeDraft.activeEstimatedMins+recipeDraft.overallEstimatedHrs+recipeDraft.overallEstimatedMins
+    if estimatedTime < 0:
+        errors.append("Please add a valid time estimate")
 
     # check steps is not blank
     if len(recipeDraft.get_steps()) == 0:

@@ -27,8 +27,10 @@ class RecipeForm(FlaskForm):
     pictFile = FileField("Picture (optional)", validators=[Optional()])
     description = TextAreaField('Description*', validators=[Length(max=215)])
     servingSize = FloatField('Serving Size*', default=0.0)
-    estimatedHrs = StringField('Estimated Hrs*', default=0)
-    estimatedMins = StringField('Estimated Mins*', default=0)
+    activeEstimatedHrs = StringField('Hrs*', default=0)
+    activeEstimatedMins = StringField('Mins*', default=0)
+    overallEstimatedHrs = StringField('Hrs*', default=0)
+    overallEstimatedMins = StringField('Mins*', default=0)
     tags = QuerySelectMultipleField('Tags (optional)', query_factory = lambda : db.session.scalars(sqla.select(Tag).order_by(Tag.name)), 
                                     get_label= lambda tag: tag.name,
                                     render_kw={"class": "form-control", "size": "1"})

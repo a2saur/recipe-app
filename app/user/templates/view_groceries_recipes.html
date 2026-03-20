@@ -14,22 +14,26 @@
         <!-- Current Ingredients List -->
         <div class="col-md-6">
             <h3>Recipes in Grocery List</h3>
+            <form method="POST" action="{{ url_for('user.button_remove_saved_recipe') }}">
             <table class="table">
             <tr>
                 <th class="align-middle" style="width: 45%;">Title</th>
                 <th class="align-middle" style="width: 25%;">By</th>
                 <th class="align-middle" style="width: 25%;">Number of Ingredients</th>
-                <th class="align-middle" style="width: 5%;"></th>
+                <th class="align-middle" style="width: 5%;"><button type="submit" name="action" value="delete" class="btn btn-primary btn-sm"><i class="bi bi-trash3"></i></button></th>
             </tr>
             {% for recipe in saved_recipes %}
             <tr>
                 <td>{{recipe.title}}</td>
                 <td>{{recipe.writer.username}}</td>
                 <td>{{recipe.get_num_ingredients()}}</td>
-                <td></td>
+                <td><input type="checkbox"
+                    name="recipe_ids"
+                    value="{{ recipe.id }}"></td>
             </tr>
             {% endfor %}
             </table>
+            </form>
         </div>
         
         <!-- Grocery List -->
