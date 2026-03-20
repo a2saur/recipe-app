@@ -9,11 +9,17 @@
             <span class="d-flex">
                 <h1 class="recipe-page-title"> {{recipe.title}} </h1>
             </span>
-            <span style="text-align:right;">
+            <span style="text-align:left;">
                 {{recipe.servingSize}}<i class="bi bi-person-fill" style="padding-left:5px"></i>
                 <br>
-                {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
-                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}
+                Active Time:
+                {% if recipe.activeEstimatedHrs > 0 %}{{recipe.activeEstimatedHrs}} hrs {%endif%}
+                {% if recipe.activeEstimatedMins > 0 %}{{recipe.activeEstimatedMins}} mins {%endif%}
+                <i class="bi bi-stopwatch" style="padding-left:5px"></i>
+                <br>
+                Overall Time:
+                {% if recipe.overallEstimatedHrs > 0 %}{{recipe.overallEstimatedHrs}} hrs {%endif%}
+                {% if recipe.overallEstimatedMins > 0 %}{{recipe.overallEstimatedMins}} mins {%endif%}
                 <i class="bi bi-stopwatch" style="padding-left:5px"></i>
                 <br>
                 {% if current_user.global_costs %}

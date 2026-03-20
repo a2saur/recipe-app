@@ -27,14 +27,15 @@
             </h6>
         </span>
         <span>
-            {% if recipe.servingSize > 1 %}
-            <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h6>
-            {% else %}
-            <h6 class="text-muted"> {{recipe.servingSize}} serving </h6>
-            {% endif %}
-            <h6 class="text-muted"> 
-                {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
-                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h6>
+            <h7 class="text-muted"> {{recipe.servingSize}} serving {% if recipe.servingSize > 1 %}(s){% endif %} </h7><br>
+            <h7 class="text-muted"> 
+                Active:
+                {% if recipe.activeEstimatedHrs > 0 %}{{recipe.activeEstimatedHrs}} hrs {%endif%}
+                {% if recipe.activeEstimatedMins > 0 %}{{recipe.activeEstimatedMins}} mins {%endif%}</h7><br>
+            <h7 class="text-muted"> 
+                Overall:
+                {% if recipe.overallEstimatedHrs > 0 %}{{recipe.overallEstimatedHrs}} hrs {%endif%}
+                {% if recipe.overallEstimatedMins > 0 %}{{recipe.overallEstimatedMins}} mins {%endif%}</h7>
         </span>
 
     </div>
@@ -98,14 +99,15 @@
 
         <div class="recipe-card-footer">
             <span>
-                {% if recipe.servingSize > 1 %}
-                    <h6 class="text-muted"> {{recipe.servingSize}} serving(s) </h5>
-                {% else %}
-                    <h6 class="text-muted"> {{recipe.servingSize}} serving </h5>
-                {% endif %}
-                <h6 class="text-muted"> 
-                {% if recipe.estimatedHrs > 0 %}{{recipe.estimatedHrs}} hrs {%endif%}
-                {% if recipe.estimatedMins > 0 %}{{recipe.estimatedMins}} mins {%endif%}</h5>
+                <h7 class="text-muted"> {{recipe.servingSize}} serving {% if recipe.servingSize > 1 %}(s){% endif %} </h7><br>
+                <h7 class="text-muted"> 
+                    Active:
+                    {% if recipe.activeEstimatedHrs > 0 %}{{recipe.activeEstimatedHrs}} hrs {%endif%}
+                    {% if recipe.activeEstimatedMins > 0 %}{{recipe.activeEstimatedMins}} mins {%endif%}</h7><br>
+                <h7 class="text-muted"> 
+                    Overall:
+                    {% if recipe.overallEstimatedHrs > 0 %}{{recipe.overallEstimatedHrs}} hrs {%endif%}
+                    {% if recipe.overallEstimatedMins > 0 %}{{recipe.overallEstimatedMins}} mins {%endif%}</h7>
             </span>
             <span>
                 {% if current_user.global_costs %}
