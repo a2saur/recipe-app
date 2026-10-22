@@ -7,7 +7,7 @@ from wtforms.validators import DataRequired, EqualTo, URL, ValidationError, Data
 
 from app import db
 import sqlalchemy as sqla
-from app.main.models import User, Tag, UNIT_OPTIONS
+from app.main.models import User, Tag, UNIT_OPTIONS, WEIGHT_UNITS, VOL_UNITS
 from app.recipe.recipe_forms import IngredientForm
 
 # Standalone form
@@ -19,6 +19,14 @@ class IngredientCostForm(FlaskForm):
     unit = SelectField('Unit', choices=UNIT_OPTIONS, default="unit")
     amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.0)])
     price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0.0)])
+    submit = SubmitField('Add')
+
+class IngredientDensityForm(FlaskForm):
+    ingredientName = StringField('Ingredient', validators=[DataRequired()])
+    weightAmount = FloatField('Weight Amount', validators=[DataRequired(), NumberRange(min=0.0)])
+    weightUnit = SelectField('Weight Unit', choices=WEIGHT_UNITS, default="g")
+    volAmount = FloatField('Volume Amount', validators=[DataRequired(), NumberRange(min=0.0)])
+    volUnit = SelectField('Volume Unit', choices=VOL_UNITS, default="ml")
     submit = SubmitField('Add')
 
 class EditForm(FlaskForm):
