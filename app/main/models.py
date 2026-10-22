@@ -90,6 +90,7 @@ class User(db.Model, UserMixin):
 
     # keeps track of what ingredients + costs are written
     ingredient_costs: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_user', passive_deletes=True)
+    ingredient_densities: sqlo.WriteOnlyMapped['IngredientDensityEntry'] = sqlo.relationship(back_populates='density_user', passive_deletes=True)
 
     # --- METHODS ---
     def __repr__(self):
@@ -409,6 +410,7 @@ class Ingredient(db.Model):
     # --- RELATIONSHIPS ---
     # helps keep track of ingredients + costs users write
     cost_entries: sqlo.WriteOnlyMapped['IngredientCostEntry'] = sqlo.relationship(back_populates='cost_ingredient')
+    density_entries: sqlo.WriteOnlyMapped['IngredientDensityEntry'] = sqlo.relationship(back_populates='density_ingredient')
 
     # helps keep track of ingredients + amounts in recipes
     recipe_involvements: sqlo.WriteOnlyMapped['RecipeIngredientUse'] = sqlo.relationship(back_populates='recipe_usecase_ingredient')
@@ -498,6 +500,49 @@ class IngredientCostEntry(db.Model):
         return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
     
     def getCost(self, amount, unit):
+        amountInNewUnit = convertUnitAmount(self.amount, self.unit, unit) # eg 4 tbsp -> 0.25 cup, $10
+        if amountInNewUnit == -1:
+            return -1
+        else:
+            costPerUnit = self.cost/amountInNewUnit
+            return costPerUnit*amount #TODO convert amount and unit from self to get cost
+
+class IngredientDensityEntry(db.Model):
+    # --- ATTRIBUTES ---
+    user_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(User.id), primary_key=True)
+    ingredient_id : sqlo.Mapped[int] = sqlo.mapped_column(sqla.ForeignKey(Ingredient.id), primary_key=True)
+    weightAmount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    weightUnit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+    volumeAmount : sqlo.Mapped[float] = sqlo.mapped_column(sqla.Float)
+    volumeUnit : sqlo.Mapped[str] = sqlo.mapped_column(sqla.String(150))
+
+    # constrain unit to be one of the options in UNIT_OPTIONS
+    __table_args__ = (
+        sqla.CheckConstraint(weightUnit.in_(WEIGHT_UNITS), name='weight_unit_check'),
+    )
+    __table_args__ = (
+        sqla.CheckConstraint(volumeUnit.in_(VOL_UNITS), name='vol_unit_check'),
+    )
+
+    # --- RELATIONSHIPS ---
+    # keeps track of the user that wrote this ingredient cost
+    density_user : sqlo.Mapped[User] = sqlo.relationship(back_populates = 'ingredient_densities')
+
+    # keeps track of the ingredient this ingredient use is using
+    density_ingredient : sqlo.Mapped[Ingredient] = sqlo.relationship(back_populates = 'density_entries')
+
+    # --- METHODS ---
+    def __repr__(self):
+        return '<User id: {} - ingredient: {} with {} {}>'.format(self.user_id, self.ingredient_id, self.amount, self.unit)
+    
+    def getName(self):
+        return db.session.scalars(sqla.select(Ingredient.name).where(Ingredient.id == self.ingredient_id)).first().capitalize()
+    
+    def getWeightFromVolume(self, amount, unit):
+        return
+
+    def getVolumeFromWeight(self, amount, unit):
+        # TODO: change to get the weight and volume
         amountInNewUnit = convertUnitAmount(self.amount, self.unit, unit) # eg 4 tbsp -> 0.25 cup, $10
         if amountInNewUnit == -1:
             return -1

@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 import sqlalchemy as sqla
 from app import db
 from app.main.models import RecipeIngredientUse, Tag, User, Ingredient, UserIngredientListUse, UserGroceryListUse, Recipe, saved_recipes_table, user_preferred_tags, user_allergies, user_dietary_tags, IngredientCostEntry
-from app.user.user_forms import EditForm, IngredientCostForm
+from app.user.user_forms import EditForm, IngredientCostForm, IngredientDensityForm
 from app.user.user_forms import IngredientSubmitForm
 
 from app.user import user_blueprint as bp_user
@@ -283,6 +283,55 @@ def ingredient_info():
         ingredients = db.session.query(Ingredient).filter(Ingredient.id.in_(ingIds)).order_by(Ingredient.name).all()
         print("---", current_user.global_costs)
         return render_template("ingredient_info.html", ingredientNames=ingredientNames, ingredients=ingredients, iform=iform)
+
+@bp_user.route('/user/ingredientdensities', methods=['GET', 'POST'])
+@login_required
+def ingredient_densities():
+    iform = IngredientDensityForm()
+    if iform.validate_on_submit():
+        # Get the ingredient the user is trying to write an entry for
+        ingredientEntry = db.session.scalars(sqla.select(Ingredient).where(Ingredient.name == iform.ingredientName.data.lower())).first()
+        # if no ingredient, add it
+        if ingredientEntry is None:
+            print("new ingredient")
+            ingredientEntry = Ingredient(name = iform.ingredientName.data.lower())
+            db.session.add(ingredientEntry)
+            db.session.commit()
+        else:
+            # check if user already has entry for this
+            ingredientCostEntry = db.session.scalars(sqla.select(IngredientCostEntry).where(IngredientCostEntry.user_id == current_user.id).where(IngredientCostEntry.ingredient_id == ingredientEntry.id)).first()
+            # if they do, remove it
+            if ingredientCostEntry is not None:
+                print("replacing ingredient entry")
+                db.session.delete(ingredientCostEntry)
+        
+        # write cost entry to db
+        ingredientCostEntry = IngredientCostEntry(
+            user_id = current_user.id,
+            ingredient_id = ingredientEntry.id,
+            cost = iform.price.data,
+            amount = iform.amount.data,
+            unit = iform.unit.data
+        )
+        db.session.add(ingredientCostEntry)
+        db.session.commit()
+        return redirect(url_for('user.ingredient_densities'))
+    else:
+        if iform.errors:
+            if iform.price.data <= 0:
+                flash("Ingredient price must be greater than 0")
+            elif iform.amount.data <= 0:
+                flash("Ingredient amount must be greater than 0")
+        # iform.ingredient.choices = [i.name for i in db.session.scalars(sqla.select(Ingredient).order_by(Ingredient.name)).all()]
+        ingredientNames = db.session.scalars(sqla.select(Ingredient.name)).all()
+        # s = sqla.select(Ingredient).join(IngredientCostEntry, Ingredient.id == IngredientCostEntry.ingredient_id).distinct().order_by(Ingredient.name)
+        # ingredients = db.session.scalars(s).all()
+
+        ingCostEntries = db.session.scalars(sqla.select(IngredientCostEntry)).all()
+        ingIds = [i.ingredient_id for i in ingCostEntries]
+        ingredients = db.session.query(Ingredient).filter(Ingredient.id.in_(ingIds)).order_by(Ingredient.name).all()
+        print("---", current_user.global_costs)
+        return render_template("ingredient_densities.html", ingredientNames=ingredientNames, ingredients=ingredients, iform=iform)
 
 @bp_user.route('/user/changecostpref', methods=['POST'])
 @login_required
