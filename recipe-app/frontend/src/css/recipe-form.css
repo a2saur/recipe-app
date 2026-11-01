@@ -1,0 +1,300 @@
+/* Add Recipe page; the card itself comes from .recipe-page.
+   Input and button styles are shared with the grocery page. */
+.recipe-form,
+.grocery-page {
+  --input-border: color-mix(in srgb, var(--bg-color-dark) 30%, transparent);
+  --input-bg: color-mix(in srgb, var(--bg-color-light-2) 50%, var(--bg-color-light));
+}
+
+.recipe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  text-align: left;
+}
+
+.recipe-form h1 {
+  font-family: var(--cookbook);
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.recipe-form input,
+.recipe-form textarea,
+.recipe-form select,
+.grocery-page input:not([type="checkbox"]),
+.grocery-page select {
+  font: inherit;
+  color: inherit;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.recipe-form textarea {
+  resize: vertical;
+}
+
+.recipe-form input:focus-visible,
+.recipe-form textarea:focus-visible,
+.recipe-form select:focus-visible,
+.recipe-form button:focus-visible,
+.grocery-page input:focus-visible,
+.grocery-page select:focus-visible,
+.grocery-page button:focus-visible {
+  outline: 2px solid var(--primary-dark);
+  outline-offset: 1px;
+}
+
+.recipe-form button,
+.grocery-page button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.recipe-form button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+
+/* Sections */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.form-section > legend {
+  font-family: var(--cookbook);
+  font-size: 1.4rem;
+  width: 100%;
+  padding: 0 0 0.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.form-hint code {
+  background-color: var(--tertiary-light);
+  color: var(--tertiary-light-text);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+}
+
+
+/* Labelled fields */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+}
+
+
+/* Serving size − n + */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepper output {
+  min-width: 2ch;
+  text-align: center;
+  font-weight: 600;
+}
+
+
+/* Hours / minutes */
+.time-fields {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.time-fields label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.time-fields input {
+  width: 4.5rem;
+}
+
+
+/* Ingredient rows: name | amount | unit | remove */
+.ingredient-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6rem 11rem 2rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ingredient-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: -0.4rem;
+}
+
+@media (max-width: 600px) {
+  .ingredient-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2rem;
+  }
+  .ingredient-row input[type="text"] {
+    grid-column: 1 / -1;
+  }
+  .ingredient-header {
+    display: none;
+  }
+}
+
+
+/* Step rows: number | text | controls */
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.step-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.step-number {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--secondary-light);
+  color: var(--secondary-light-text);
+  font-weight: 600;
+}
+
+.step-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Buttons */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background-color: var(--tertiary-light);
+  color: var(--tertiary-light-text);
+}
+
+.remove-btn:hover:not(:disabled) {
+  background-color: var(--error-light);
+  color: var(--error-light-text);
+}
+
+.stepper .icon-btn {
+  border: 1px solid var(--input-border);
+}
+
+.add-btn {
+  align-self: flex-start;
+  padding: 0.4rem 0.9rem;
+  border: 1px dashed var(--tertiary-dark);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  transition: background-color 0.2s;
+}
+
+.add-btn:hover {
+  background-color: var(--tertiary-light);
+  color: var(--tertiary-light-text);
+}
+
+.form-error {
+  background-color: var(--error-light);
+  color: var(--error-light-text);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+}
+
+/* Save is first in the DOM (Enter key default) but shown last */
+.form-actions {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--input-border);
+}
+
+.save-btn,
+.draft-btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.save-btn {
+  border: none;
+  background-color: var(--primary-dark);
+  color: var(--primary-dark-text);
+}
+
+.save-btn:hover {
+  background-color: color-mix(in srgb, var(--primary-dark), #000 15%);
+}
+
+.draft-btn {
+  border: 1px solid var(--secondary-dark);
+  background-color: var(--secondary-light);
+  color: var(--secondary-light-text);
+}
+
+.draft-btn:hover {
+  background-color: var(--secondary-dark);
+  color: var(--secondary-dark-text);
+}

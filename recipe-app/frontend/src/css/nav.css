@@ -1,0 +1,32 @@
+nav {
+    display: flex;
+    gap: 1%;
+    justify-content: center;
+    /* background-color: var(--bg-color-light-2); */
+}
+
+.nav-link {
+    background-color: color-mix(in srgb, var(--bg-color-light), var(--bg-color-light-2) 50%);
+    color: var(--text-color);
+    text-decoration: none;
+    
+    padding-top: 1%;
+    padding-bottom: 1%;
+    padding-right: 5%;
+    padding-left: 5%;
+    
+    /* Top-left, Top-right, Bottom-right, Bottom-left coordinates */
+    clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+    border-radius: 15px 15px 0 0;
+
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: color-mix(in srgb, var(--bg-color-light), var(--bg-color-light-2) 75%);
+}
+
+
+.nav-link.active-page {
+    background-color: var(--bg-color-light);
+}

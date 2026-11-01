@@ -1,0 +1,14 @@
+@font-face {
+  font-family: CookbookTitle; /* set name */
+  src: url(../fonts/CookbookTitle-Regular.otf); /* url of the font */
+}
+
+:root {
+    --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, Consolas, monospace;
+    --cookbook: 'CookbookTitle', sans-serif;
+
+    font: 18px/145% var(--sans);
+    letter-spacing: 0.18px;
+}
