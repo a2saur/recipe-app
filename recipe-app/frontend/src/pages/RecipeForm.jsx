@@ -164,7 +164,7 @@ export default function RecipeForm({ onSave }) {
 
     for (const step of parsedSteps) {
       for (const reference of step.ingredient_refs) {
-        if (!knownNames.has(reference.toLowerCase())) {
+        if (!knownNames.has(reference.split(", ")[0].toLowerCase())) {
           setError(
             `Step ${step.step_number} references "${reference}", ` +
             "but that ingredient hasn't been added. Check its name."

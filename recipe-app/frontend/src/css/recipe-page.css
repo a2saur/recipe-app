@@ -169,6 +169,10 @@
   display: grid;
 }
 
+.recipe-step-used-ings {
+  color: color-mix(in srgb, var(--bg-color-dark), var(--bg-color-light) 40%);
+}
+
 .ingredient-text {
   font-weight: bold;
 }
