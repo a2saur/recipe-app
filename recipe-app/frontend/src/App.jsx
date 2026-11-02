@@ -4,6 +4,7 @@ import RecipeDetail from "./pages/RecipeDetail.jsx";
 import RecipeForm from "./pages/RecipeForm.jsx";
 import Home from "./pages/Home.jsx";
 import GroceryList from "./pages/GroceryList.jsx";
+import ReceiptUpload from "./pages/ReceiptUpload.jsx";
 
 function NewRecipePage() {
   const navigate = useNavigate();
@@ -42,6 +43,9 @@ export default function App() {
         <NavLink to="/groceries" className={({ isActive }) => isActive ? 'nav-link active-page' : 'nav-link'}>
           Grocery List
         </NavLink>
+        <NavLink to="/receipts" className={({ isActive }) => isActive ? 'nav-link active-page' : 'nav-link'}>
+          Upload a Receipt
+        </NavLink>
         {/* <Link to="/">Home</Link>
         <Link to="/recipes/new">Add Recipe</Link> */}
       </nav>
@@ -51,6 +55,7 @@ export default function App() {
         <Route path="/recipes/new" element={<NewRecipePage />} />
         <Route path="/recipes/:id/view" element={<RecipeDetail />} />
         <Route path="/groceries" element={<GroceryList />} />
+        <Route path="/receipts" element={<ReceiptUpload />} />
       </Routes>
     </>
   );
