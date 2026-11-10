@@ -8,7 +8,7 @@ import {
   setListItemChecked,
 } from "../api/groceries";
 import { INGREDIENT_UNITS } from "../utils/ingredientUnits";
-import { useGinghamBackground } from "../utils/useGinghamBackground";
+import { useBackground } from "../utils/useBackground";
 
 // Keep in sync with GROCERY_LOCATIONS in backend/models.py.
 const GROCERY_LOCATIONS = ["fridge", "freezer", "cupboard"];
@@ -44,7 +44,7 @@ export default function GroceryList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useGinghamBackground();
+  useBackground("dotted-bg");
 
   useEffect(() => {
     getGroceries()

@@ -97,13 +97,19 @@
   }
 }
 
-/* Gingham pattern, opted into per page with useGinghamBackground() */
+/* Gingham pattern, opted into per page with useBackground("gingham-bg") */
 :root.gingham-bg {
   background-color: var(--bg-color-light-2);
   background-image:
     linear-gradient(90deg, rgb(from var(--bg-gingham-light-1) r g b / 50%) 50%, transparent 50%),
     linear-gradient(0deg, rgb(from var(--bg-gingham-light-2) r g b / 50%) 50%, transparent 50%);
   background-size: 40px 40px;
+}
+:root.dotted-bg {
+  background-color: var(--bg-color-light-2);
+  background-image: radial-gradient(rgb(from var(--bg-color-light) r g b / 50%) 2px, transparent 2px);
+  /* background-size: 22px 22px; */
+  background-size: 22px 22px;
 }
 
 body {

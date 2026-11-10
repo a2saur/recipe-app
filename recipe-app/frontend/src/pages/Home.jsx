@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import { getRecipes } from "../api/recipes";
 import RecipeCarousel from "../components/RecipeCarousel";
-import { useGinghamBackground } from "../utils/useGinghamBackground";
+import { useBackground } from "../utils/useBackground";
 
 export default function Home() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useGinghamBackground();
+  useBackground("gingham-bg");
 
   useEffect(() => {
     getRecipes()

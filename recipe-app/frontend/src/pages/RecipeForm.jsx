@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useGinghamBackground } from "../utils/useGinghamBackground";
+import { useBackground } from "../utils/useBackground";
 import { INGREDIENT_UNITS } from "../utils/ingredientUnits";
 
 function createIngredient() {
@@ -41,7 +41,7 @@ export default function RecipeForm({ onSave }) {
 
   const [error, setError] = useState("");
 
-  useGinghamBackground();
+  useBackground("gingham-bg");
 
   function updateIngredient(id, field, value) {
     setIngredients((current) =>

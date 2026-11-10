@@ -77,6 +77,14 @@ class Recipe(db.Model):
         order_by="RecipeStep.step_number",
     )
 
+    def recommendation_score(self, ingredients):
+        # basic recommendation score
+        countIn = 0
+        for ingUse in self.ingredient_uses:
+            if ingUse.ingredient.name in ingredients:
+                countIn += 1
+        return countIn / len(self.ingredient_uses)
+
 
 # ============================================================
 # Ingredient

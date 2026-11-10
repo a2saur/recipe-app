@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import { getRecipe } from "../api/recipes";
 import { formatTime } from "../utils/formatTime";
 import { RecipeStepDetails } from "../components/RecipeStepDetails";
-import { useGinghamBackground } from "../utils/useGinghamBackground";
+import { useBackground } from "../utils/useBackground";
 
 const MAX_SWING_DEG = 10; // side-to-side rotation around the pin
 const MAX_TILT_X_DEG = 10; // bottom edge pushed back into the board
@@ -36,7 +36,7 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useGinghamBackground();
+  useBackground("gingham-bg");
 
   useEffect(() => {
     setLoading(true);
