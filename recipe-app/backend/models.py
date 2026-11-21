@@ -62,6 +62,7 @@ class Recipe(db.Model):
 
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     to_make: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    day_to_make: Mapped[int | None] = mapped_column(Integer, nullable=True)  # day of the week
 
     ingredient_uses: Mapped[list["RecipeIngredientUse"]] = (
         relationship(

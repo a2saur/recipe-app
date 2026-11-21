@@ -9,6 +9,7 @@ import {
 } from "../api/groceries";
 import { INGREDIENT_UNITS } from "../utils/ingredientUnits";
 import { useBackground } from "../utils/useBackground";
+import Planner from "../components/Planner";
 
 // Keep in sync with GROCERY_LOCATIONS in backend/models.py.
 const GROCERY_LOCATIONS = ["fridge", "freezer", "cupboard"];
@@ -113,6 +114,8 @@ export default function GroceryList() {
         <h1>Groceries</h1>
 
         {error && <p className="form-error" role="alert">{error}</p>}
+
+        <Planner/>
 
         <div className="grocery-columns">
             <section className="grocery-section">

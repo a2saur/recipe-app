@@ -143,3 +143,69 @@ def view_recipe(recipe_id):
             "mode":"view"
         }), 200
 
+
+
+@recipes_bp.patch("/<recipe_id>/to-make")
+def set_to_make(recipe_id):
+    recipe = db.session.get(Recipe, recipe_id)
+    if not recipe:
+        return jsonify({"error": "Recipe could not be found"}), 404
+
+    data = request.get_json(silent=True) or {}
+    if "to_make" not in data:
+        return jsonify({"error": "to_make is required"}), 400
+
+    recipe.to_make = bool(data["to_make"])
+    db.session.commit()
+
+    return jsonify({"id": recipe.id, "to_make": recipe.to_make}), 200
+
+
+@recipes_bp.patch("/<recipe_id>/day")
+def set_day_to_make(recipe_id):
+    recipe = db.session.get(Recipe, recipe_id)
+    if not recipe:
+        return jsonify({"error": "Recipe could not be found"}), 404
+
+    data = request.get_json(silent=True) or {}
+    if "day_to_make" not in data:
+        return jsonify({"error": "day_to_make is required"}), 400
+
+    day = data["day_to_make"]
+    if day is not None and (not isinstance(day, int) or not 0 <= day <= 6):
+        return jsonify({"error": "day_to_make must be 0-6 or null"}), 400
+
+    recipe.day_to_make = day
+    db.session.commit()
+
+    return jsonify({"id": recipe.id, "day_to_make": recipe.day_to_make}), 200
+
+
+@recipes_bp.get("/to-make")
+def get_to_make():
+    recipes = (
+        Recipe.query
+        .filter_by(is_draft=False)
+        .filter_by(to_make=True)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": recipe.id,
+            "title": recipe.title,
+            "description": recipe.description,
+            "serving_size": recipe.serving_size,
+            "active_time": recipe.active_time,
+            "overall_time": recipe.overall_time,
+            "timestamp": (
+                recipe.timestamp.isoformat()
+                if recipe.timestamp else None
+            ),
+            "is_draft": recipe.is_draft,
+            "to_make": recipe.to_make,
+            "day_to_make": recipe.day_to_make,
+        }
+        for recipe in recipes
+    ]), 200
+

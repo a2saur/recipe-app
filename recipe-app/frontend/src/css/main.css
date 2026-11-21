@@ -11,7 +11,7 @@
   
   --primary-dark: #253A70;
   --primary-dark-text: #E8F5FF;
-  --primary-light: #abb7d9;
+  --primary-light: #d9e3fe;
   --primary-light-text: #131e44;
 
   --secondary-dark: #6e4d4d;
@@ -158,4 +158,8 @@ p {
 
 .blank-bg {
   background-color: var(--bg-color-light);
+}
+
+.hidden {
+  display: none;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { getRecipe } from "../api/recipes";
+import { getRecipe, setRecipeToMake } from "../api/recipes";
 import { formatTime } from "../utils/formatTime";
 import { RecipeStepDetails } from "../components/RecipeStepDetails";
 import { useBackground } from "../utils/useBackground";
@@ -35,16 +35,39 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [savingToMake, setSavingToMake] = useState(false);
+  const [checked, setChecked] = useState([]);
 
   useBackground("gingham-bg");
 
   useEffect(() => {
     setLoading(true);
     getRecipe(id)
-      .then(setRecipe)
+      .then((data) => {
+        setRecipe(data);
+        setChecked(data.ingredient_uses.map((ingredient) => (false)));
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleToggleToMake() {
+    setSavingToMake(true);
+    try {
+      const { to_make } = await setRecipeToMake(recipe.id, !recipe.to_make);
+      setRecipe((prev) => ({ ...prev, to_make }));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSavingToMake(false);
+    }
+  }
+
+  function toggleIngredient(index) {
+    setChecked(checked.map((item, i) => 
+      i === index ? !item : item
+    ));
+  }
 
   if (loading) return <p>Loading recipe...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -61,7 +84,15 @@ export default function RecipeDetail() {
           
           <div className="recipe-details">
             <div className="recipe-details-header">
-              <button className="to-make-btn"><i className="bi bi-pin-angle-fill"></i></button>
+              <button
+                className={`to-make-btn${recipe.to_make ? " active" : ""}`}
+                onClick={handleToggleToMake}
+                disabled={savingToMake}
+                aria-pressed={recipe.to_make}
+                title={recipe.to_make ? "Remove from to-make list" : "Add to to-make list"}
+              >
+                <i className={`bi ${recipe.to_make ? "bi-pin-angle-fill" : "bi-pin-angle"}`}></i>
+              </button>
             </div>
             <div className="recipe-details-card">
               {/* Tape sits outside the tilting body so it stays still */}
@@ -84,7 +115,14 @@ export default function RecipeDetail() {
           <div className="recipe-ingredients">
             <ul>
               {recipe.ingredient_uses.map((ingredient, index) => (
-                <li>{ingredient.amount} {ingredient.unit} {ingredient.name}</li>
+                <li
+                  key={ingredient.name}
+                  onClick={() => toggleIngredient(index)}
+                  style={{ textDecoration: checked[index] ? "line-through" : "none", cursor: "pointer" }}
+                >
+                  <i className={`bullet-point bi ${checked[index] ? "bi-star" : "bi-star-fill"}`}></i>
+                  {ingredient.amount} {ingredient.unit} {ingredient.name}
+                </li>
               ))}
             </ul>
           </div>
